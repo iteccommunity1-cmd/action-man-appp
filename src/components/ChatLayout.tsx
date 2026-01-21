@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { CreateChatRoomDialog } from './CreateChatRoomDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
 
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
@@ -19,16 +20,16 @@ export const ChatLayout: React.FC = () => {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingChatRooms, setLoadingChatRooms] = useState(true); // Renamed to be specific
   const [isCreateRoomDialogOpen, setIsCreateRoomDialogOpen] = useState(false);
   const [typingUsers, setTypingUsers] = useState<{ id: string; name: string }[]>([]);
 
   const typingStatusRef = useRef(new Map<string, { name: string; timeout: NodeJS.Timeout }>());
 
   const fetchChatRooms = async () => {
-    setLoading(true);
+    setLoadingChatRooms(true);
     if (!currentUser?.id) {
-      setLoading(false);
+      setLoadingChatRooms(false);
       return;
     }
 
@@ -98,7 +99,7 @@ export const ChatLayout: React.FC = () => {
         setActiveChatRoomId(null);
       }
     }
-    setLoading(false);
+    setLoadingChatRooms(false);
   };
 
   useEffect(() => {
@@ -249,25 +250,27 @@ export const ChatLayout: React.FC = () => {
   };
 
   const activeChatRoom = chatRooms.find((room) => room.id === activeChatRoomId);
+  const overallLoading = loadingChatRooms || loadingTeamMembers; // Combined loading state
 
-  if (loading || loadingTeamMembers) {
+  if (overallLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
-        <p className="text-lg text-gray-600">Loading chat rooms...</p>
+      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="ml-4 text-xl text-gray-600">Loading chat rooms and team members...</p>
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
+      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
         <p className="text-lg text-red-600">User not authenticated for chat.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+    <div className="flex flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
       <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0 flex flex-col">
         <div className="flex-grow">
           <ChatRoomList
