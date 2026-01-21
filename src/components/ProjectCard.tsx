@@ -3,7 +3,7 @@ import { Project } from '@/types/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Users, CalendarDays, Hourglass, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Users, CalendarDays, Hourglass, MoreVertical, Edit, Trash2, CheckCircle, PlayCircle, PauseCircle, XCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import {
@@ -11,19 +11,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 interface ProjectCardProps {
   project: Project;
   onEdit: (project: Project) => void;
   onDelete: (projectId: string) => void;
+  onStatusChange: (projectId: string, newStatus: Project['status']) => void; // New prop for status change
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
-  const { teamMembers } = useTeamMembers(); // Use the hook
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, onStatusChange }) => {
+  const { teamMembers } = useTeamMembers();
 
   const getStatusBadgeColor = (status: Project['status']) => {
     switch (status) {
@@ -47,7 +49,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
     <Card className="rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border-gray-200">
       <CardHeader className="pb-3">
         <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-between">
-          <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"> {/* Only title is clickable */}
+          <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md">
             {project.title}
           </Link>
           <div className="flex items-center gap-2">
@@ -62,10 +64,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="rounded-lg shadow-md">
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-gray-100">
-                  <Edit className="h-4 w-4" /> Edit
+                  <Edit className="h-4 w-4" /> Edit Project
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-yellow-50">
+                  <PauseCircle className="h-4 w-4 text-yellow-600" /> Set to Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-blue-50">
+                  <PlayCircle className="h-4 w-4 text-blue-600" /> Set to In Progress
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" /> Mark as Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-red-50">
+                  <XCircle className="h-4 w-4 text-red-600" /> Mark as Overdue
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md">
-                  <Trash2 className="h-4 w-4" /> Delete
+                  <Trash2 className="h-4 w-4" /> Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

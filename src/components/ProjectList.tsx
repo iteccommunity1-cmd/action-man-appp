@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Button } from '@/components/ui/button'; // Import Button
+import { Button } from '@/components/ui/button';
 
 type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
 type SortOrder = 'newest' | 'oldest';
@@ -35,7 +35,7 @@ export const ProjectList: React.FC = () => {
   const { currentUser } = useUser();
   const queryClient = useQueryClient();
 
-  const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false); // State for new project dialog
+  const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -94,7 +94,7 @@ export const ProjectList: React.FC = () => {
         showError("Failed to delete project: " + error.message);
       } else {
         showSuccess("Project deleted successfully!");
-        queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
       }
     } catch (error) {
       console.error("Unexpected error deleting project:", error);
@@ -105,15 +105,35 @@ export const ProjectList: React.FC = () => {
     }
   };
 
+  const handleStatusChange = async (projectId: string, newStatus: Project['status']) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ status: newStatus })
+        .eq('id', projectId);
+
+      if (error) {
+        console.error("Error updating project status:", error);
+        showError("Failed to update project status: " + error.message);
+      } else {
+        showSuccess(`Project status updated to "${newStatus.replace('-', ' ')}"!`);
+        queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Unexpected error updating project status:", error);
+      showError("An unexpected error occurred.");
+    }
+  };
+
   const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
     setEditingProject(null);
-    queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list after edit
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
   const handleCreateDialogClose = () => {
     setIsCreateProjectDialogOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list after creation
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
   if (isLoading) {
@@ -190,6 +210,7 @@ export const ProjectList: React.FC = () => {
               project={project}
               onEdit={handleEditProject}
               onDelete={handleDeleteProject}
+              onStatusChange={handleStatusChange} // Pass the new handler
             />
           ))}
         </div>
