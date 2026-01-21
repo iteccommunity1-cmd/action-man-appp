@@ -2,6 +2,7 @@ export interface ChatRoom {
   id: string;
   name: string;
   lastMessage?: string;
+  lastSenderName?: string; // Added to display sender of last message
   avatar?: string;
   type: 'project' | 'private';
   members?: string[]; // Added members array

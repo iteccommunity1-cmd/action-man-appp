@@ -46,7 +46,7 @@ export const ChatLayout: React.FC = () => {
         roomsData.map(async (room) => {
           const { data: lastMessageData, error: lastMessageError } = await supabase
             .from('messages')
-            .select('content, created_at')
+            .select('content, created_at, sender_name') // Fetch sender_name
             .eq('chat_room_id', room.id)
             .order('created_at', { ascending: false })
             .limit(1)
@@ -78,6 +78,7 @@ export const ChatLayout: React.FC = () => {
             name: roomName,
             avatar: roomAvatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
             lastMessage: lastMessageData?.content || "No recent messages",
+            lastSenderName: lastMessageData?.sender_name, // Pass sender_name
           };
         })
       );
@@ -170,7 +171,7 @@ export const ChatLayout: React.FC = () => {
         ]);
         setChatRooms((prevRooms) =>
           prevRooms.map((room) =>
-            room.id === activeChatRoomId ? { ...room, lastMessage: newMessage.content } : room
+            room.id === activeChatRoomId ? { ...room, lastMessage: newMessage.content, lastSenderName: newMessage.sender_name } : room
           )
         );
       })
