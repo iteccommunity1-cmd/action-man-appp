@@ -22,7 +22,7 @@ export const ChatLayout: React.FC = () => {
 
   const typingStatusRef = useRef(new Map<string, { name: string; timeout: NodeJS.Timeout }>());
 
-  const fetchChatRooms = async () => {
+  const fetchChatRooms = async (initialRoomId?: string | null) => {
     setLoading(true);
     const { data: roomsData, error: roomsError } = await supabase
       .from('chat_rooms')
@@ -56,35 +56,50 @@ export const ChatLayout: React.FC = () => {
         })
       );
       setChatRooms(roomsWithLastMessage);
-      if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
+
+      // Set active chat room: prioritize initialRoomId, then localStorage, then first room
+      if (initialRoomId && roomsWithLastMessage.some(room => room.id === initialRoomId)) {
+        setActiveChatRoomId(initialRoomId);
+        localStorage.removeItem('activeChatRoomId'); // Clear from localStorage once used
+      } else if (localStorage.getItem('activeChatRoomId')) {
+        const storedRoomId = localStorage.getItem('activeChatRoomId');
+        if (roomsWithLastMessage.some(room => room.id === storedRoomId)) {
+          setActiveChatRoomId(storedRoomId);
+          localStorage.removeItem('activeChatRoomId'); // Clear from localStorage once used
+        } else if (roomsWithLastMessage.length > 0) {
+          setActiveChatRoomId(roomsWithLastMessage[0].id);
+        }
+      } else if (roomsWithLastMessage.length > 0) {
         setActiveChatRoomId(roomsWithLastMessage[0].id);
+      } else {
+        setActiveChatRoomId(null);
       }
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchChatRooms();
+    const initialRoomFromStorage = localStorage.getItem('activeChatRoomId');
+    fetchChatRooms(initialRoomFromStorage);
 
     const chatRoomsChannel = supabase
       .channel('chat_rooms_changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms' }, (payload) => {
         const newRoom = payload.new as ChatRoom;
-        setChatRooms((prev) => [
-          {
-            ...newRoom,
-            lastMessage: "New chat room created!",
-            avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
-          },
-          ...prev,
-        ]);
+        const roomToAdd = {
+          ...newRoom,
+          lastMessage: "New chat room created!",
+          avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
+        };
+        setChatRooms((prev) => [roomToAdd, ...prev]);
+        setActiveChatRoomId(newRoom.id); // Automatically select the newly created room
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase, activeChatRoomId]);
+  }, [supabase]); // Only run once on mount
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -270,7 +285,7 @@ export const ChatLayout: React.FC = () => {
       <CreateChatRoomDialog
         isOpen={isCreateRoomDialogOpen}
         onClose={() => setIsCreateRoomDialogOpen(false)}
-        onRoomCreated={fetchChatRooms}
+        onRoomCreated={() => fetchChatRooms()} // Re-fetch rooms to update list and potentially set new room as active
       />
     </div>
   );
