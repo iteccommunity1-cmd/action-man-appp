@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MultiSelect } from "@/components/MultiSelect";
 import { teamMembers } from "@/data/teamMembers";
 import { showSuccess, showError } from "@/utils/toast";
+import { useSupabase } from "@/providers/SupabaseProvider"; // Import useSupabase
+import { useUser } from "@/contexts/UserContext"; // Import useUser
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -35,6 +37,8 @@ const formSchema = z.object({
 });
 
 export function ProjectForm() {
+  const { supabase } = useSupabase();
+  const { currentUser } = useUser();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,10 +48,38 @@ export function ProjectForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("Project created:", values);
-    showSuccess("Project created successfully!");
-    form.reset();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!currentUser?.id) {
+      showError("You must be logged in to create a project.");
+      return;
+    }
+
+    const { title, assignedMembers, deadline } = values;
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          user_id: currentUser.id,
+          title,
+          assigned_members: assignedMembers,
+          deadline: deadline.toISOString(), // Convert Date to ISO string for Supabase
+          status: 'pending', // Default status
+        })
+        .select();
+
+      if (error) {
+        console.error("Error creating project:", error);
+        showError("Failed to create project: " + error.message);
+      } else {
+        console.log("Project created:", data);
+        showSuccess("Project created successfully!");
+        form.reset();
+      }
+    } catch (error) {
+      console.error("Unexpected error creating project:", error);
+      showError("An unexpected error occurred.");
+    }
   };
 
   const memberOptions = teamMembers.map((member) => ({
