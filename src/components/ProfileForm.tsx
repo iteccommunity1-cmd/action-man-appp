@@ -13,10 +13,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const profileFormSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required." }).optional().or(z.literal('')),
@@ -27,7 +27,6 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export const ProfileForm: React.FC = () => {
-  const { supabase } = useSupabase();
   const { currentUser, isLoadingUser } = useUser();
 
   const form = useForm<ProfileFormValues>({

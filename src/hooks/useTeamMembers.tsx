@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { TeamMember } from '@/types/project';
 import { showError } from '@/utils/toast';
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 export const useTeamMembers = () => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);

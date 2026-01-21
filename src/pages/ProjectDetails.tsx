@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Project, TeamMember } from '@/types/project';
 import { Task } from '@/types/task';
@@ -11,16 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-// import { teamMembers } from '@/data/teamMembers'; // Removed static data import
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const queryClient = useQueryClient();
@@ -112,7 +110,7 @@ const ProjectDetails: React.FC = () => {
   }
 
   const assignedMemberDetails: (TeamMember | undefined)[] = project.assigned_members.map(memberId =>
-    teamMembers.find((member: TeamMember) => member.id === memberId)
+    teamMembers.find(member => member.id === memberId)
   );
 
   return (

@@ -34,11 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Task } from '@/types/task';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -63,7 +63,6 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const form = useForm<z.infer<typeof formSchema>>({

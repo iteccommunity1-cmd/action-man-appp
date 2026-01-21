@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Project, TeamMember } from '@/types/project';
 import { Task } from '@/types/task';
@@ -16,10 +15,10 @@ import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const queryClient = useQueryClient();

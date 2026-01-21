@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
 import { ChatRoom, Message } from '@/types/chat';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,9 @@ import { PlusCircle } from 'lucide-react';
 import { CreateChatRoomDialog } from './CreateChatRoomDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 export const ChatLayout: React.FC = () => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const location = useLocation();

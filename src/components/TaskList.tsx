@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Task } from '@/types/task';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { sendNotification } from '@/utils/notifications';
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 interface TaskListProps {
   projectId: string;
@@ -31,7 +31,6 @@ interface TaskListProps {
 }
 
 export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEditTask }) => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const queryClient = useQueryClient();

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Project } from '@/types/project';
 import { ProjectCard } from './ProjectCard';
@@ -26,12 +25,12 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
 type SortOrder = 'newest' | 'oldest';
 
 export const ProjectList: React.FC = () => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const queryClient = useQueryClient();
 

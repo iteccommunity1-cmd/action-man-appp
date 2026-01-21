@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelect } from "@/components/MultiSelect";
 import { showSuccess, showError } from "@/utils/toast";
-import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { Project } from '@/types/project';
 import {
@@ -40,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2
+import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -67,7 +67,6 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   onClose,
   onSave,
 }) => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const isEditMode = !!project;

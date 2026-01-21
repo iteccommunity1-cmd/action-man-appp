@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/MultiSelect";
-import { useSupabase } from "@/providers/SupabaseProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { useTeamMembers } from '@/hooks/useTeamMembers';
@@ -67,7 +67,6 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
   onClose,
   onRoomCreated,
 }) => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const navigate = useNavigate();

@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useSupabase } from '@/providers/SupabaseProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { Notification } from '@/types/notification';
 import { showError } from '@/utils/toast';
 
 export const useNotifications = () => {
-  const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
