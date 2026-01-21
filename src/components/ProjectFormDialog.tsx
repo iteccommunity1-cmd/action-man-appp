@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { MultiSelect } from "@/components/MultiSelect";
 import { teamMembers } from "@/data/teamMembers";
 import { showSuccess, showError } from "@/utils/toast";
 import { useSupabase } from "@/providers/SupabaseProvider";
+import { useUser } from "@/contexts/UserContext";
 import { Project } from '@/types/project';
 import {
   Dialog,
@@ -49,70 +50,133 @@ const formSchema = z.object({
   deadline: z.date({
     required_error: "A deadline date is required.",
   }),
-  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']),
+  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']).optional(), // Optional for creation
 });
 
-interface ProjectEditDialogProps {
-  project: Project | null;
+interface ProjectFormDialogProps {
+  project?: Project | null; // If null/undefined, it's a new project; otherwise, it's for editing
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void; // Callback to refresh project list
 }
 
-export const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({
+export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   project,
   isOpen,
   onClose,
   onSave,
 }) => {
   const { supabase } = useSupabase();
+  const { currentUser } = useUser();
+  const isEditMode = !!project;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       assignedMembers: [],
       deadline: undefined,
-      status: 'pending',
+      status: 'pending', // Default status for new projects
     },
   });
 
   React.useEffect(() => {
-    if (project && isOpen) {
-      form.reset({
-        title: project.title,
-        assignedMembers: project.assigned_members,
-        deadline: new Date(project.deadline),
-        status: project.status,
-      });
+    if (isOpen) {
+      if (isEditMode && project) {
+        form.reset({
+          title: project.title,
+          assignedMembers: project.assigned_members,
+          deadline: new Date(project.deadline),
+          status: project.status,
+        });
+      } else {
+        // Reset for new project creation
+        form.reset({
+          title: "",
+          assignedMembers: [],
+          deadline: undefined,
+          status: 'pending',
+        });
+      }
     }
-  }, [project, isOpen, form]);
+  }, [project, isOpen, form, isEditMode]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!project) return;
+    if (!currentUser?.id) {
+      showError("You must be logged in to manage projects.");
+      return;
+    }
 
     const { title, assignedMembers, deadline, status } = values;
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .update({
-          title,
-          assigned_members: assignedMembers,
-          deadline: deadline.toISOString(),
-          status,
-        })
-        .eq('id', project.id);
+      if (isEditMode && project) {
+        // Update existing project
+        const { error } = await supabase
+          .from('projects')
+          .update({
+            title,
+            assigned_members: assignedMembers,
+            deadline: deadline.toISOString(),
+            status,
+          })
+          .eq('id', project.id);
 
-      if (error) {
-        console.error("Error updating project:", error);
-        showError("Failed to update project: " + error.message);
+        if (error) {
+          console.error("Error updating project:", error);
+          showError("Failed to update project: " + error.message);
+        } else {
+          showSuccess("Project updated successfully!");
+          onSave();
+          onClose();
+        }
       } else {
-        showSuccess("Project updated successfully!");
-        onSave(); // Refresh the list
-        onClose();
+        // Create new project
+        // First, create the chat room
+        const { data: chatRoomData, error: chatRoomError } = await supabase
+          .from('chat_rooms')
+          .insert({
+            name: `${title} Chat`,
+            type: 'project',
+            avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${title}`, // Generate avatar based on project title
+          })
+          .select('id')
+          .single();
+
+        if (chatRoomError) {
+          console.error("Error creating chat room for project:", chatRoomError);
+          showError("Failed to create project chat room: " + chatRoomError.message);
+          return;
+        }
+
+        const chat_room_id = chatRoomData.id;
+
+        // Then, create the project and link the chat room
+        const { error: projectError } = await supabase
+          .from('projects')
+          .insert({
+            user_id: currentUser.id,
+            title,
+            assigned_members: assignedMembers,
+            deadline: deadline.toISOString(),
+            status: status || 'pending', // Use default 'pending' if not explicitly set
+            chat_room_id: chat_room_id, // Link the created chat room
+          })
+          .select();
+
+        if (projectError) {
+          console.error("Error creating project:", projectError);
+          showError("Failed to create project: " + projectError.message);
+          // Optionally, delete the created chat room if project creation fails
+          await supabase.from('chat_rooms').delete().eq('id', chat_room_id);
+        } else {
+          showSuccess("Project and associated chat room created successfully!");
+          onSave();
+          onClose();
+        }
       }
     } catch (error) {
-      console.error("Unexpected error updating project:", error);
+      console.error("Unexpected error managing project:", error);
       showError("An unexpected error occurred.");
     }
   };
@@ -126,9 +190,11 @@ export const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-800">Edit Project</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-800">
+            {isEditMode ? "Edit Project" : "Create New Project"}
+          </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Make changes to your project here. Click save when you're done.
+            {isEditMode ? "Make changes to your project here. Click save when you're done." : "Fill in the details to create a new project."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -206,36 +272,38 @@ export const ProjectEditDialog: React.FC<ProjectEditDialogProps> = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-lg shadow-md">
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="overdue">Overdue</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isEditMode && (
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700">Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="rounded-lg shadow-md">
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2">
                 Cancel
               </Button>
               <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">
-                Save Changes
+                {isEditMode ? "Save Changes" : <><PlusCircle className="h-4 w-4 mr-2" /> Create Project</>}
               </Button>
             </DialogFooter>
           </form>

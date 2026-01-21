@@ -6,7 +6,7 @@ import { Project } from '@/types/project';
 import { ProjectCard } from './ProjectCard';
 import { showError, showSuccess } from '@/utils/toast';
 import { Loader2 } from 'lucide-react';
-import { ProjectEditDialog } from './ProjectEditDialog';
+import { ProjectFormDialog } from './ProjectFormDialog'; // Import the new unified dialog
 import {
   AlertDialog,
   AlertDialogAction,
@@ -180,7 +180,7 @@ export const ProjectList: React.FC = () => {
         </div>
       )}
 
-      <ProjectEditDialog
+      <ProjectFormDialog
         project={editingProject}
         isOpen={isEditDialogOpen}
         onClose={handleDialogClose}
