@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PlusCircle, Loader2 } from "lucide-react"; // Import Loader2
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { PlusCircle, Loader2 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,18 +34,26 @@ import { MultiSelect } from "@/components/MultiSelect";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Chat room name must be at least 2 characters.",
-  }).optional(), // Make optional for private chats where name is auto-generated
+  name: z.string().optional(), // Optional by default, refined by superRefine
   type: z.enum(['project', 'private'], {
     required_error: "Please select a chat room type.",
   }),
-  selectedMembers: z.array(z.string()).min(1, { // Renamed from assignedMembers, now required for private
+  selectedMembers: z.array(z.string()).min(1, {
     message: "Please select at least one member for the chat.",
   }),
+}).superRefine((data, ctx) => {
+  if (data.type === 'project') {
+    if (!data.name || data.name.trim().length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Project chat name must be at least 2 characters.",
+        path: ['name'],
+      });
+    }
+  }
 });
 
 interface CreateChatRoomDialogProps {
@@ -61,8 +69,8 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
 }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
-  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
-  const navigate = useNavigate(); // Initialize useNavigate
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +83,6 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
   const selectedType = form.watch("type");
   const selectedMemberIds = form.watch("selectedMembers");
 
-  // Effect to update chat room name for private chats
   React.useEffect(() => {
     if (selectedType === 'private' && selectedMemberIds.length > 0) {
       const selectedMemberNames = teamMembers
@@ -90,7 +97,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       }
       form.setValue("name", generatedName);
     } else if (selectedType === 'project') {
-      form.setValue("name", ""); // Clear name for project type
+      form.setValue("name", ""); // Clear name for project type if it was previously set by private logic
     }
   }, [selectedType, selectedMemberIds, teamMembers, form]);
 
@@ -102,17 +109,14 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
     }
 
     const { name, type, selectedMembers } = values;
-    const membersToInclude = [currentUser.id, ...selectedMembers].sort(); // Sort for consistent comparison
+    const membersToInclude = [currentUser.id, ...selectedMembers].sort();
 
     try {
       if (type === 'private') {
-        // Check if a private chat room with these exact members already exists
         const { data: existingRooms, error: existingRoomError } = await supabase
           .from('chat_rooms')
-          .select('id')
-          .eq('type', 'private')
-          .contains('members', membersToInclude)
-          .filter('array_length(members, 1)', 'eq', membersToInclude.length);
+          .select('id, members')
+          .eq('type', 'private');
 
         if (existingRoomError) {
           console.error("Error checking for existing chat room:", existingRoomError);
@@ -120,10 +124,16 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
           return;
         }
 
-        if (existingRooms && existingRooms.length > 0) {
+        // Check if a private chat room with these exact members already exists
+        const existingRoom = existingRooms?.find(room => {
+          const roomMembersSorted = room.members?.sort();
+          return JSON.stringify(roomMembersSorted) === JSON.stringify(membersToInclude);
+        });
+
+        if (existingRoom) {
           showSuccess("Private chat already exists. Redirecting to existing chat.");
           onClose();
-          navigate('/chat', { state: { activeChatRoomId: existingRooms[0].id } });
+          navigate('/chat', { state: { activeChatRoomId: existingRoom.id } });
           return;
         }
       }
