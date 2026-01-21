@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
 import { teamMembers } from '@/data/teamMembers';
@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-import { CreateChatRoomDialog } from './CreateChatRoomDialog'; // Import the new dialog
+import { CreateChatRoomDialog } from './CreateChatRoomDialog';
 
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
@@ -18,6 +18,9 @@ export const ChatLayout: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateRoomDialogOpen, setIsCreateRoomDialogOpen] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<{ id: string; name: string }[]>([]);
+
+  const typingStatusRef = useRef(new Map<string, { name: string; timeout: NodeJS.Timeout }>());
 
   const fetchChatRooms = async () => {
     setLoading(true);
@@ -40,7 +43,7 @@ export const ChatLayout: React.FC = () => {
             .limit(1)
             .single();
 
-          if (lastMessageError && lastMessageError.code !== 'PGRST116') { // PGRST116 means no rows found
+          if (lastMessageError && lastMessageError.code !== 'PGRST116') {
             console.error(`Error fetching last message for room ${room.id}:`, lastMessageError);
           }
 
@@ -60,18 +63,17 @@ export const ChatLayout: React.FC = () => {
     setLoading(false);
   };
 
-  // Fetch chat rooms on component mount and when a new room is created
   useEffect(() => {
     fetchChatRooms();
 
-    const channel = supabase
+    const chatRoomsChannel = supabase
       .channel('chat_rooms_changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms' }, (payload) => {
         const newRoom = payload.new as ChatRoom;
         setChatRooms((prev) => [
           {
             ...newRoom,
-            lastMessage: "New chat room created!", // Placeholder, will be updated on next fetch
+            lastMessage: "New chat room created!",
             avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
           },
           ...prev,
@@ -80,14 +82,14 @@ export const ChatLayout: React.FC = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(chatRoomsChannel);
     };
   }, [supabase, activeChatRoomId]);
 
-  // Fetch messages for the active chat room
   useEffect(() => {
     if (!activeChatRoomId) {
       setMessages([]);
+      setTypingUsers([]);
       return;
     }
 
@@ -114,7 +116,8 @@ export const ChatLayout: React.FC = () => {
 
     fetchMessages();
 
-    const channel = supabase
+    // Realtime for messages
+    const messagesChannel = supabase
       .channel(`messages_room_${activeChatRoomId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_room_id=eq.${activeChatRoomId}` }, (payload) => {
         const newMessage = payload.new as Message;
@@ -128,7 +131,6 @@ export const ChatLayout: React.FC = () => {
             timestamp: newMessage.created_at,
           },
         ]);
-        // Also update the last message in the chat room list for the active room
         setChatRooms((prevRooms) =>
           prevRooms.map((room) =>
             room.id === activeChatRoomId ? { ...room, lastMessage: newMessage.content } : room
@@ -137,10 +139,48 @@ export const ChatLayout: React.FC = () => {
       })
       .subscribe();
 
+    // Realtime for typing status
+    const typingChannel = supabase
+      .channel(`typing_room_${activeChatRoomId}`)
+      .on('broadcast', { event: 'typing_status' }, (payload) => {
+        const { userId, userName, isTyping } = payload.payload;
+
+        if (userId === currentUser?.id) return; // Ignore own typing events
+
+        if (isTyping) {
+          // Add user to typing list and set a timeout to remove them
+          const existingTimeout = typingStatusRef.current.get(userId)?.timeout;
+          if (existingTimeout) {
+            clearTimeout(existingTimeout);
+          }
+
+          const timeout = setTimeout(() => {
+            typingStatusRef.current.delete(userId);
+            setTypingUsers(Array.from(typingStatusRef.current.entries()).map(([id, data]) => ({ id, name: data.name })));
+          }, 3500); // Remove after 3.5 seconds if no new typing event
+
+          typingStatusRef.current.set(userId, { name: userName, timeout });
+        } else {
+          // Remove user from typing list
+          const existingTimeout = typingStatusRef.current.get(userId)?.timeout;
+          if (existingTimeout) {
+            clearTimeout(existingTimeout);
+          }
+          typingStatusRef.current.delete(userId);
+        }
+        setTypingUsers(Array.from(typingStatusRef.current.entries()).map(([id, data]) => ({ id, name: data.name })));
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(typingChannel);
+      // Clear all typing timeouts when leaving a chat room
+      typingStatusRef.current.forEach(user => clearTimeout(user.timeout));
+      typingStatusRef.current.clear();
+      setTypingUsers([]);
     };
-  }, [activeChatRoomId, supabase]);
+  }, [activeChatRoomId, supabase, currentUser?.id]);
 
   const handleSendMessage = async (content: string) => {
     if (!activeChatRoomId || !content.trim() || !currentUser) return;
@@ -157,6 +197,20 @@ export const ChatLayout: React.FC = () => {
       console.error("Error sending message:", error);
       showError("Failed to send message.");
     }
+  };
+
+  const handleTypingStatusChange = (isTyping: boolean) => {
+    if (!activeChatRoomId || !currentUser) return;
+
+    supabase.channel(`typing_room_${activeChatRoomId}`).send({
+      type: 'broadcast',
+      event: 'typing_status',
+      payload: {
+        userId: currentUser.id,
+        userName: currentUser.name,
+        isTyping,
+      },
+    });
   };
 
   const activeChatRoom = chatRooms.find((room) => room.id === activeChatRoomId);
@@ -203,6 +257,8 @@ export const ChatLayout: React.FC = () => {
             messages={messages}
             onSendMessage={handleSendMessage}
             currentUserId={currentUser!.id}
+            onTypingStatusChange={handleTypingStatusChange}
+            typingUsers={typingUsers}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
@@ -214,7 +270,7 @@ export const ChatLayout: React.FC = () => {
       <CreateChatRoomDialog
         isOpen={isCreateRoomDialogOpen}
         onClose={() => setIsCreateRoomDialogOpen(false)}
-        onRoomCreated={fetchChatRooms} // Refresh chat rooms after creation
+        onRoomCreated={fetchChatRooms}
       />
     </div>
   );

@@ -3,14 +3,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Removed ScrollAreaViewport import
-import { Message } from '@/types/chat'; // Import Message from shared types
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Message } from '@/types/chat';
+import { TypingIndicator } from './TypingIndicator'; // Import TypingIndicator
 
 interface ChatWindowProps {
   chatRoomName: string;
   messages: Message[];
   onSendMessage: (content: string) => void;
   currentUserId: string;
+  onTypingStatusChange: (isTyping: boolean) => void; // New prop for typing status
+  typingUsers: { id: string; name: string }[]; // New prop for typing users
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -18,9 +21,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
   currentUserId,
+  onTypingStatusChange,
+  typingUsers,
 }) => {
   const [newMessage, setNewMessage] = useState("");
-  const scrollAreaRef = useRef<HTMLDivElement>(null); // Ref for the ScrollArea component itself
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -33,15 +39,35 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (newMessage.trim()) {
       onSendMessage(newMessage);
       setNewMessage("");
+      onTypingStatusChange(false); // Stop typing after sending
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
     }
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    onTypingStatusChange(true); // Start typing
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      onTypingStatusChange(false); // Stop typing after a delay
+      typingTimeoutRef.current = null;
+    }, 3000); // 3 seconds delay
+  };
+
+  const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (
     <div className="flex flex-col h-full bg-white rounded-r-xl shadow-lg">
       <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-xl">
         <h3 className="text-xl font-semibold">{chatRoomName}</h3>
       </div>
-      <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}> {/* Pass ref directly to ScrollArea */}
+      <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
         {messages.map((message) => (
           <div
             key={message.id}
@@ -82,13 +108,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             )}
           </div>
         ))}
+        {otherTypingUsers.length > 0 && (
+          <div className="flex justify-start mt-4">
+            <TypingIndicator userName={otherTypingUsers.map(u => u.name).join(', ')} />
+          </div>
+        )}
       </ScrollArea>
       <div className="p-4 border-t border-gray-200 flex items-center gap-2 bg-gray-50 rounded-br-xl">
         <Input
           placeholder="Type your message..."
           className="flex-grow rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={handleInputChange}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         />
         <Button
