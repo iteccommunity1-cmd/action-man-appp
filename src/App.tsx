@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login"; // Import the new Login page
+import ProjectDetails from "./pages/ProjectDetails"; // Import ProjectDetails
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Chat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProjectDetails />
                   </ProtectedRoute>
                 }
               />
