@@ -39,12 +39,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
             </Avatar>
             <div className="ml-3 flex-1">
               <p className="font-medium text-sm">{room.name}</p>
-              {room.lastMessage && (
-                <p className="text-xs text-muted-foreground truncate">
-                  {room.lastSenderName ? `${room.lastSenderName}: ` : ''}
-                  {room.lastMessage}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground truncate">
+                {room.lastMessage
+                  ? (room.lastSenderName ? `${room.lastSenderName}: ` : '') + room.lastMessage
+                  : 'No recent messages'}
+              </p>
             </div>
           </div>
         ))}
