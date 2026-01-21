@@ -3,7 +3,6 @@ import { Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// Removed Separator import
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 
