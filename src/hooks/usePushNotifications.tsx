@@ -6,7 +6,7 @@ import { showError, showSuccess } from '@/utils/toast';
 // Replace with your actual VAPID public key
 // You will generate VAPID keys later and set the public key here.
 // For now, use a placeholder or generate one temporarily for testing.
-const VAPID_PUBLIC_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
+const VAPID_PUBLIC_KEY = "BDiWWVjmSr4A08yeQ7Iuq2-5t-LTaJjCChjPjfUfvslGI7uHZqzB9eCWLR9qgLr-ln__ZWI4wTQHGzX_rs-cAow"; 
 
 export const usePushNotifications = () => {
   const { currentUser } = useUser();
