@@ -1,5 +1,6 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { ProjectForm } from "@/components/ProjectForm";
+import { Link } from "react-router-dom"; // Import Link
 
 const Index = () => {
   return (
@@ -7,6 +8,9 @@ const Index = () => {
       <div className="flex-grow flex items-center justify-center w-full">
         <ProjectForm />
       </div>
+      <Link to="/chat" className="mt-8 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
+        Go to Chat
+      </Link>
       <MadeWithDyad />
     </div>
   );
