@@ -13,19 +13,22 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-
-    /* Path Aliases */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": ["node_modules", "dist", "supabase/functions"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

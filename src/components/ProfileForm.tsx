@@ -15,8 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
-import { Loader2 } from 'lucide-react';
+import { Loader2, BellRing, BellOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client'; // Direct import
+import { Switch } from '@/components/ui/switch'; // Import Switch component
+import { usePushNotifications } from '@/hooks/usePushNotifications'; // Import the new hook
 
 const profileFormSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required." }).optional().or(z.literal('')),
@@ -28,6 +30,13 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export const ProfileForm: React.FC = () => {
   const { currentUser, isLoadingUser } = useUser();
+  const {
+    isSubscribed,
+    isLoading: isLoadingPush,
+    permissionStatus,
+    subscribeUser,
+    unsubscribeUser,
+  } = usePushNotifications();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -96,6 +105,14 @@ export const ProfileForm: React.FC = () => {
     }
   };
 
+  const handlePushNotificationToggle = async (checked: boolean) => {
+    if (checked) {
+      await subscribeUser();
+    } else {
+      await unsubscribeUser();
+    }
+  };
+
   if (isLoadingUser) {
     return (
       <div className="flex items-center justify-center p-8 bg-white rounded-xl shadow-lg border border-gray-200">
@@ -157,6 +174,39 @@ export const ProfileForm: React.FC = () => {
               </FormItem>
             )}
           />
+
+          {/* Push Notifications Section */}
+          <div className="space-y-2 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {isSubscribed ? (
+                  <BellRing className="h-5 w-5 text-blue-600" />
+                ) : (
+                  <BellOff className="h-5 w-5 text-gray-500" />
+                )}
+                <FormLabel className="text-gray-700 text-base">Push Notifications</FormLabel>
+              </div>
+              {isLoadingPush ? (
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              ) : (
+                <Switch
+                  checked={isSubscribed}
+                  onCheckedChange={handlePushNotificationToggle}
+                  disabled={permissionStatus === 'denied'}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              )}
+            </div>
+            <p className="text-sm text-gray-600">
+              Receive notifications directly to your device, even when the app is closed.
+            </p>
+            {permissionStatus === 'denied' && (
+              <p className="text-sm text-red-500">
+                Notifications are blocked by your browser. Please enable them in your browser settings.
+              </p>
+            )}
+          </div>
+
           <Button type="submit" className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg transition-colors duration-200">
             Save Profile
           </Button>
