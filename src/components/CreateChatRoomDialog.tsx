@@ -91,8 +91,10 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       let generatedName = "";
       if (selectedMemberNames.length === 1) {
         generatedName = selectedMemberNames[0];
-      } else if (selectedMemberNames.length > 1) {
-        generatedName = `${selectedMemberNames[0]} & ${selectedMemberNames.length - 1} others`;
+      } else if (selectedMemberNames.length === 2) {
+        generatedName = `${selectedMemberNames[0]} & ${selectedMemberNames[1]}`;
+      } else if (selectedMemberNames.length > 2) {
+        generatedName = `${selectedMemberNames[0]}, ${selectedMemberNames[1]} & ${selectedMemberNames.length - 2} others`;
       }
       form.setValue("name", generatedName);
     } else if (selectedType === 'project') {
@@ -138,10 +140,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       }
 
       const chatRoomName = type === 'private' && selectedMembers.length > 0
-        ? teamMembers
-            .filter(member => selectedMembers.includes(member.id))
-            .map(member => member.name)
-            .join(', ')
+        ? form.getValues("name") // Use the auto-generated name
         : name;
 
       const { error } = await supabase
@@ -220,21 +219,25 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
               )}
             />
 
-            {selectedType === 'project' && (
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-700">Chat Room Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Marketing Team Chat" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Chat Room Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={selectedType === 'private' ? "Auto-generated for private chats" : "e.g., Marketing Team Chat"}
+                      {...field}
+                      className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      readOnly={selectedType === 'private'}
+                      disabled={selectedType === 'private'}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

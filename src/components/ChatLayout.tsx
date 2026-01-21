@@ -63,8 +63,15 @@ export const ChatLayout: React.FC = () => {
           if (room.type === 'private' && room.members && room.members.length > 1) {
             const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
             const otherMembers = teamMembers.filter(member => otherMemberIds.includes(member.id));
-            if (otherMembers.length > 0) {
-              roomName = otherMembers.map(m => m.name).join(', ');
+            
+            if (otherMembers.length === 1) {
+              roomName = otherMembers[0].name;
+              roomAvatar = otherMembers[0].avatar;
+            } else if (otherMembers.length === 2) {
+              roomName = `${otherMembers[0].name} & ${otherMembers[1].name}`;
+              roomAvatar = otherMembers[0].avatar; // Use first other member's avatar
+            } else if (otherMembers.length > 2) {
+              roomName = `${otherMembers[0].name}, ${otherMembers[1].name} & ${otherMembers.length - 2} others`;
               roomAvatar = otherMembers[0].avatar; // Use first other member's avatar
             }
           } else if (room.type === 'private' && room.members && room.members.length === 1 && room.members[0] === currentUser.id) {
