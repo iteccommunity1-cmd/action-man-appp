@@ -11,15 +11,10 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
 
-  const handleLinkClick = () => {
-    // No need to manage isSheetOpen here, as Sidebar handles it internally.
-    // This function can remain empty or be removed if no other layout-specific logic is needed.
-  };
-
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {isMobile ? (
-        <Sidebar onLinkClick={handleLinkClick} />
+        <Sidebar />
       ) : (
         <Sidebar />
       )}

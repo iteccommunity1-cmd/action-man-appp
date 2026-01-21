@@ -3,9 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { showError, showSuccess } from '@/utils/toast';
 
-// Replace with your actual VAPID public key
-// You will generate VAPID keys later and set the public key here.
-// For now, use a placeholder or generate one temporarily for testing.
+// IMPORTANT: Replace this with your actual VAPID public key.
+// You can generate VAPID keys using a tool like web-push-codelab.glitch.me
+// or by running `npx web-push generate-vapid-keys` in your terminal.
+// The public key will be used here, and the private key will be set as a Supabase Edge Function secret.
 const VAPID_PUBLIC_KEY = "BDiWWVjmSr4A08yeQ7Iuq2-5t-LTaJjCChjPjfUfvslGI7uHZqzB9eCWLR9qgLr-ln__ZWI4wTQHGzX_rs-cAow"; 
 
 export const usePushNotifications = () => {

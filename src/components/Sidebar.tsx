@@ -9,10 +9,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile sidebar
 
 interface SidebarProps {
-  onLinkClick?: () => void; // Callback for when a link is clicked (e.g., to close mobile sheet)
+  // onLinkClick?: () => void; // Removed as it's no longer needed
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
+export const Sidebar: React.FC<SidebarProps> = () => {
   const { currentUser, signOut } = useUser();
   const isMobile = useIsMobile();
 
@@ -24,7 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
 
   const handleSignOut = async () => {
     await signOut();
-    if (onLinkClick) onLinkClick();
+    // if (onLinkClick) onLinkClick(); // Removed
   };
 
   const renderSidebarContent = () => (
@@ -53,7 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
           <Link
             key={item.label}
             to={item.href}
-            onClick={onLinkClick}
+            // onClick={onLinkClick} // Removed
             className={cn(
               "flex items-center gap-3 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200",
               // Add active state styling if needed, e.g., based on current path
