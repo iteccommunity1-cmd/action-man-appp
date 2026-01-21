@@ -5,8 +5,8 @@ import { useUser } from '@/contexts/UserContext';
 import { Project } from '@/types/project';
 import { ProjectCard } from './ProjectCard';
 import { showError, showSuccess } from '@/utils/toast';
-import { Loader2 } from 'lucide-react';
-import { ProjectFormDialog } from './ProjectFormDialog'; // Import the new unified dialog
+import { Loader2, PlusCircle } from 'lucide-react';
+import { ProjectFormDialog } from './ProjectFormDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button'; // Import Button
 
 type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
 type SortOrder = 'newest' | 'oldest';
@@ -34,6 +35,7 @@ export const ProjectList: React.FC = () => {
   const { currentUser } = useUser();
   const queryClient = useQueryClient();
 
+  const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false); // State for new project dialog
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -103,10 +105,15 @@ export const ProjectList: React.FC = () => {
     }
   };
 
-  const handleDialogClose = () => {
+  const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
     setEditingProject(null);
     queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list after edit
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateProjectDialogOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list after creation
   };
 
   if (isLoading) {
@@ -129,7 +136,15 @@ export const ProjectList: React.FC = () => {
 
   return (
     <div className="w-full">
-      <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Your Projects</h3>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
+        <h3 className="text-2xl font-bold text-gray-800">Your Projects</h3>
+        <Button
+          onClick={() => setIsCreateProjectDialogOpen(true)}
+          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4"
+        >
+          <PlusCircle className="h-5 w-5 mr-2" /> Create New Project
+        </Button>
+      </div>
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
         <div className="flex items-center gap-2">
@@ -165,7 +180,7 @@ export const ProjectList: React.FC = () => {
       {projects!.length === 0 ? (
         <div className="text-center text-gray-500 p-8 border border-dashed border-gray-300 rounded-xl bg-gray-50">
           <p className="text-lg">No projects found matching your criteria.</p>
-          <p className="text-sm mt-2">Try adjusting your filters or create a new project!</p>
+          <p className="text-sm mt-2">Click "Create New Project" to get started!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -183,7 +198,13 @@ export const ProjectList: React.FC = () => {
       <ProjectFormDialog
         project={editingProject}
         isOpen={isEditDialogOpen}
-        onClose={handleDialogClose}
+        onClose={handleEditDialogClose}
+        onSave={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+      />
+
+      <ProjectFormDialog
+        isOpen={isCreateProjectDialogOpen}
+        onClose={handleCreateDialogClose}
         onSave={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
       />
 
