@@ -21,23 +21,37 @@ export const ChatLayout: React.FC = () => {
 
   const fetchChatRooms = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data: roomsData, error: roomsError } = await supabase
       .from('chat_rooms')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Error fetching chat rooms:", error);
+    if (roomsError) {
+      console.error("Error fetching chat rooms:", roomsError);
       showError("Failed to load chat rooms.");
     } else {
-      const roomsWithLastMessage = data.map(room => {
-        const dummyRoom = teamMembers.find(m => m.id === room.id);
-        return {
-          ...room,
-          lastMessage: room.lastMessage || "No recent messages",
-          avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
-        };
-      });
+      const roomsWithLastMessage = await Promise.all(
+        roomsData.map(async (room) => {
+          const { data: lastMessageData, error: lastMessageError } = await supabase
+            .from('messages')
+            .select('content, created_at')
+            .eq('chat_room_id', room.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (lastMessageError && lastMessageError.code !== 'PGRST116') { // PGRST116 means no rows found
+            console.error(`Error fetching last message for room ${room.id}:`, lastMessageError);
+          }
+
+          const dummyRoom = teamMembers.find(m => m.id === room.id);
+          return {
+            ...room,
+            lastMessage: lastMessageData?.content || "No recent messages",
+            avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
+          };
+        })
+      );
       setChatRooms(roomsWithLastMessage);
       if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
         setActiveChatRoomId(roomsWithLastMessage[0].id);
@@ -57,7 +71,7 @@ export const ChatLayout: React.FC = () => {
         setChatRooms((prev) => [
           {
             ...newRoom,
-            lastMessage: "New chat room created!",
+            lastMessage: "New chat room created!", // Placeholder, will be updated on next fetch
             avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
           },
           ...prev,
@@ -114,6 +128,12 @@ export const ChatLayout: React.FC = () => {
             timestamp: newMessage.created_at,
           },
         ]);
+        // Also update the last message in the chat room list for the active room
+        setChatRooms((prevRooms) =>
+          prevRooms.map((room) =>
+            room.id === activeChatRoomId ? { ...room, lastMessage: newMessage.content } : room
+          )
+        );
       })
       .subscribe();
 
