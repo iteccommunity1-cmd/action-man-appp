@@ -21,19 +21,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { sendNotification } from '@/utils/notifications';
 
 interface TaskListProps {
   projectId: string;
-  onAddTask: () => void; // Callback to open task creation dialog
-  onEditTask: (task: Task) => void; // Callback to open task edit dialog
+  onAddTask: () => void;
+  onEditTask: (task: Task) => void;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEditTask }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
-  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const queryClient = useQueryClient();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -92,9 +92,9 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
           if (assignedMember) {
             sendNotification({
               userId: assignedMember.id,
-              message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}" in project ${projectId}.`,
+              message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
               type: 'task_update',
-              relatedId: task.id,
+              relatedId: projectId, // Pass projectId here for navigation
             });
           }
         }

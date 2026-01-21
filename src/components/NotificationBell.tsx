@@ -5,9 +5,34 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
+import { Notification } from '@/types/notification'; // Import Notification type
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 export const NotificationBell: React.FC = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
+  const navigate = useNavigate();
+
+  const handleNotificationClick = async (notification: Notification) => {
+    await markAsRead(notification.id);
+
+    if (notification.related_id) {
+      switch (notification.type) {
+        case 'task_update':
+          // Assuming related_id for task_update is the project_id
+          navigate(`/projects/${notification.related_id}`);
+          break;
+        case 'chat_mention':
+          // Assuming related_id for chat_mention is the chat_room_id
+          navigate('/chat', { state: { activeChatRoomId: notification.related_id } });
+          break;
+        // Add more cases for other notification types as needed
+        default:
+          // Optionally navigate to a generic notifications page or home
+          // navigate('/');
+          break;
+      }
+    }
+  };
 
   return (
     <Popover>
@@ -44,7 +69,7 @@ export const NotificationBell: React.FC = () => {
                     "flex items-start p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors",
                     !notification.read ? "bg-blue-50" : ""
                   )}
-                  onClick={() => !notification.read && markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex-grow">
                     <p className={cn("text-sm", !notification.read ? "font-medium text-gray-900" : "text-gray-700")}>
