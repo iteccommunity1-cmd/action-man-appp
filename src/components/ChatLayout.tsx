@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
 import { teamMembers } from '@/data/teamMembers';
@@ -13,6 +14,7 @@ import { CreateChatRoomDialog } from './CreateChatRoomDialog';
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const location = useLocation();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,7 +24,7 @@ export const ChatLayout: React.FC = () => {
 
   const typingStatusRef = useRef(new Map<string, { name: string; timeout: NodeJS.Timeout }>());
 
-  const fetchChatRooms = async (initialRoomId?: string | null) => {
+  const fetchChatRooms = async () => {
     setLoading(true);
     const { data: roomsData, error: roomsError } = await supabase
       .from('chat_rooms')
@@ -57,18 +59,14 @@ export const ChatLayout: React.FC = () => {
       );
       setChatRooms(roomsWithLastMessage);
 
-      // Set active chat room: prioritize initialRoomId, then localStorage, then first room
-      if (initialRoomId && roomsWithLastMessage.some(room => room.id === initialRoomId)) {
-        setActiveChatRoomId(initialRoomId);
-        localStorage.removeItem('activeChatRoomId'); // Clear from localStorage once used
-      } else if (localStorage.getItem('activeChatRoomId')) {
-        const storedRoomId = localStorage.getItem('activeChatRoomId');
-        if (roomsWithLastMessage.some(room => room.id === storedRoomId)) {
-          setActiveChatRoomId(storedRoomId);
-          localStorage.removeItem('activeChatRoomId'); // Clear from localStorage once used
-        } else if (roomsWithLastMessage.length > 0) {
-          setActiveChatRoomId(roomsWithLastMessage[0].id);
-        }
+      const stateActiveRoomId = (location.state as { activeChatRoomId?: string })?.activeChatRoomId;
+      const localStorageActiveRoomId = localStorage.getItem('activeChatRoomId');
+
+      if (stateActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === stateActiveRoomId)) {
+        setActiveChatRoomId(stateActiveRoomId);
+      } else if (localStorageActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === localStorageActiveRoomId)) {
+        setActiveChatRoomId(localStorageActiveRoomId);
+        localStorage.removeItem('activeChatRoomId');
       } else if (roomsWithLastMessage.length > 0) {
         setActiveChatRoomId(roomsWithLastMessage[0].id);
       } else {
@@ -79,8 +77,7 @@ export const ChatLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    const initialRoomFromStorage = localStorage.getItem('activeChatRoomId');
-    fetchChatRooms(initialRoomFromStorage);
+    fetchChatRooms();
 
     const chatRoomsChannel = supabase
       .channel('chat_rooms_changes')
@@ -92,14 +89,14 @@ export const ChatLayout: React.FC = () => {
           avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
         };
         setChatRooms((prev) => [roomToAdd, ...prev]);
-        setActiveChatRoomId(newRoom.id); // Automatically select the newly created room
+        setActiveChatRoomId(newRoom.id);
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase]); // Only run once on mount
+  }, [supabase, location.state]);
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -131,7 +128,6 @@ export const ChatLayout: React.FC = () => {
 
     fetchMessages();
 
-    // Realtime for messages
     const messagesChannel = supabase
       .channel(`messages_room_${activeChatRoomId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_room_id=eq.${activeChatRoomId}` }, (payload) => {
@@ -154,16 +150,14 @@ export const ChatLayout: React.FC = () => {
       })
       .subscribe();
 
-    // Realtime for typing status
     const typingChannel = supabase
       .channel(`typing_room_${activeChatRoomId}`)
       .on('broadcast', { event: 'typing_status' }, (payload) => {
         const { userId, userName, isTyping } = payload.payload;
 
-        if (userId === currentUser?.id) return; // Ignore own typing events
+        if (userId === currentUser?.id) return;
 
         if (isTyping) {
-          // Add user to typing list and set a timeout to remove them
           const existingTimeout = typingStatusRef.current.get(userId)?.timeout;
           if (existingTimeout) {
             clearTimeout(existingTimeout);
@@ -172,11 +166,10 @@ export const ChatLayout: React.FC = () => {
           const timeout = setTimeout(() => {
             typingStatusRef.current.delete(userId);
             setTypingUsers(Array.from(typingStatusRef.current.entries()).map(([id, data]) => ({ id, name: data.name })));
-          }, 3500); // Remove after 3.5 seconds if no new typing event
+          }, 3500);
 
           typingStatusRef.current.set(userId, { name: userName, timeout });
         } else {
-          // Remove user from typing list
           const existingTimeout = typingStatusRef.current.get(userId)?.timeout;
           if (existingTimeout) {
             clearTimeout(existingTimeout);
@@ -190,7 +183,6 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(typingChannel);
-      // Clear all typing timeouts when leaving a chat room
       typingStatusRef.current.forEach(user => clearTimeout(user.timeout));
       typingStatusRef.current.clear();
       setTypingUsers([]);
@@ -285,7 +277,7 @@ export const ChatLayout: React.FC = () => {
       <CreateChatRoomDialog
         isOpen={isCreateRoomDialogOpen}
         onClose={() => setIsCreateRoomDialogOpen(false)}
-        onRoomCreated={() => fetchChatRooms()} // Re-fetch rooms to update list and potentially set new room as active
+        onRoomCreated={() => fetchChatRooms()}
       />
     </div>
   );

@@ -8,7 +8,7 @@ import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react'; // Added MessageCircle
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { teamMembers } from '@/data/teamMembers';
@@ -120,7 +120,7 @@ const ProjectDetails: React.FC = () => {
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
         {project.chat_room_id && (
-          <Link to="/chat" onClick={() => localStorage.setItem('activeChatRoomId', project.chat_room_id!)}>
+          <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }}>
             <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
               <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
             </Button>
