@@ -4,51 +4,52 @@ import { ChatWindow } from './ChatWindow';
 import { teamMembers } from '@/data/teamMembers';
 import { ChatRoom, Message } from '@/types/chat';
 import { useSupabase } from '@/providers/SupabaseProvider';
-import { useUser } from '@/contexts/UserContext'; // Import useUser hook
-import { showError } from '@/utils/toast'; // Removed showSuccess
+import { useUser } from '@/contexts/UserContext';
+import { showError } from '@/utils/toast';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { CreateChatRoomDialog } from './CreateChatRoomDialog'; // Import the new dialog
 
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
-  const { currentUser } = useUser(); // Get current user
+  const { currentUser } = useUser();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateRoomDialogOpen, setIsCreateRoomDialogOpen] = useState(false);
 
-  // Fetch chat rooms
-  useEffect(() => {
-    const fetchChatRooms = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('chat_rooms')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const fetchChatRooms = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('chat_rooms')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching chat rooms:", error);
-        showError("Failed to load chat rooms.");
-      } else {
-        // For now, we'll manually add lastMessage and avatar from dummy data if needed
-        // In a real app, these would come from the database or a more complex query
-        const roomsWithLastMessage = data.map(room => {
-          const dummyRoom = teamMembers.find(m => m.id === room.id); // Example for private chats
-          return {
-            ...room,
-            lastMessage: room.lastMessage || "No recent messages", // Placeholder
-            avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
-          };
-        });
-        setChatRooms(roomsWithLastMessage);
-        if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
-          setActiveChatRoomId(roomsWithLastMessage[0].id);
-        }
+    if (error) {
+      console.error("Error fetching chat rooms:", error);
+      showError("Failed to load chat rooms.");
+    } else {
+      const roomsWithLastMessage = data.map(room => {
+        const dummyRoom = teamMembers.find(m => m.id === room.id);
+        return {
+          ...room,
+          lastMessage: room.lastMessage || "No recent messages",
+          avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
+        };
+      });
+      setChatRooms(roomsWithLastMessage);
+      if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
+        setActiveChatRoomId(roomsWithLastMessage[0].id);
       }
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
 
+  // Fetch chat rooms on component mount and when a new room is created
+  useEffect(() => {
     fetchChatRooms();
 
-    // Realtime subscription for chat rooms (optional, for new rooms being created)
     const channel = supabase
       .channel('chat_rooms_changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms' }, (payload) => {
@@ -89,17 +90,16 @@ export const ChatLayout: React.FC = () => {
       } else {
         setMessages(data.map(msg => ({
           ...msg,
-          sender_id: msg.sender_id, // Use snake_case
-          sender_name: msg.sender_name, // Use snake_case
-          sender_avatar: msg.sender_avatar, // Use snake_case
-          timestamp: msg.created_at, // Use created_at for timestamp
+          sender_id: msg.sender_id,
+          sender_name: msg.sender_name,
+          sender_avatar: msg.sender_avatar,
+          timestamp: msg.created_at,
         })));
       }
     };
 
     fetchMessages();
 
-    // Realtime subscription for messages
     const channel = supabase
       .channel(`messages_room_${activeChatRoomId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_room_id=eq.${activeChatRoomId}` }, (payload) => {
@@ -108,9 +108,9 @@ export const ChatLayout: React.FC = () => {
           ...prev,
           {
             ...newMessage,
-            sender_id: newMessage.sender_id, // Use snake_case
-            sender_name: newMessage.sender_name, // Use snake_case
-            sender_avatar: newMessage.sender_avatar, // Use snake_case
+            sender_id: newMessage.sender_id,
+            sender_name: newMessage.sender_name,
+            sender_avatar: newMessage.sender_avatar,
             timestamp: newMessage.created_at,
           },
         ]);
@@ -123,7 +123,7 @@ export const ChatLayout: React.FC = () => {
   }, [activeChatRoomId, supabase]);
 
   const handleSendMessage = async (content: string) => {
-    if (!activeChatRoomId || !content.trim() || !currentUser) return; // Added currentUser check
+    if (!activeChatRoomId || !content.trim() || !currentUser) return;
 
     const { error } = await supabase.from('messages').insert({
       chat_room_id: activeChatRoomId,
@@ -136,9 +136,6 @@ export const ChatLayout: React.FC = () => {
     if (error) {
       console.error("Error sending message:", error);
       showError("Failed to send message.");
-    } else {
-      // Message will be added via real-time subscription, no need to manually update state here
-      // showSuccess("Message sent!"); // Optional: show success toast
     }
   };
 
@@ -152,8 +149,6 @@ export const ChatLayout: React.FC = () => {
     );
   }
 
-  // If currentUser is null here, it means ProtectedRoute failed or there's a race condition.
-  // For robustness, we can add a check, though ProtectedRoute should prevent this.
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
@@ -164,12 +159,22 @@ export const ChatLayout: React.FC = () => {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-      <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0">
-        <ChatRoomList
-          chatRooms={chatRooms}
-          activeChatRoomId={activeChatRoomId}
-          onSelectChatRoom={setActiveChatRoomId}
-        />
+      <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0 flex flex-col">
+        <div className="flex-grow">
+          <ChatRoomList
+            chatRooms={chatRooms}
+            activeChatRoomId={activeChatRoomId}
+            onSelectChatRoom={setActiveChatRoomId}
+          />
+        </div>
+        <div className="p-4 border-t border-sidebar-border bg-sidebar">
+          <Button
+            onClick={() => setIsCreateRoomDialogOpen(true)}
+            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+          >
+            <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
+          </Button>
+        </div>
       </div>
       <div className="flex-grow">
         {activeChatRoom ? (
@@ -181,10 +186,16 @@ export const ChatLayout: React.FC = () => {
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
-            Select a chatroom to start messaging
+            Select a chatroom or create a new one to start messaging
           </div>
         )}
       </div>
+
+      <CreateChatRoomDialog
+        isOpen={isCreateRoomDialogOpen}
+        onClose={() => setIsCreateRoomDialogOpen(false)}
+        onRoomCreated={fetchChatRooms} // Refresh chat rooms after creation
+      />
     </div>
   );
 };
