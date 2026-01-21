@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 
 interface ProjectCardProps {
   project: Project;
@@ -43,67 +43,66 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
 
   return (
     <Card className="rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border-gray-200">
-      <Link to={`/projects/${project.id}`} className="block"> {/* Make the card clickable */}
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-between">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-between">
+          <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"> {/* Only title is clickable */}
             {project.title}
-            <div className="flex items-center gap-2">
-              <Badge className={cn("rounded-full px-3 py-1 text-xs font-medium", getStatusBadgeColor(project.status))}>
-                {project.status.replace('-', ' ')}
-              </Badge>
-              {/* Dropdown menu for actions, prevent propagation to Link */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={(e) => e.preventDefault()}>
-                    <MoreVertical className="h-4 w-4 text-gray-600" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-lg shadow-md">
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-gray-100">
-                    <Edit className="h-4 w-4" /> Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md">
-                    <Trash2 className="h-4 w-4" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
-            <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Badge className={cn("rounded-full px-3 py-1 text-xs font-medium", getStatusBadgeColor(project.status))}>
+              {project.status.replace('-', ' ')}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={(e) => e.stopPropagation()}>
+                  <MoreVertical className="h-4 w-4 text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-lg shadow-md">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-gray-100">
+                  <Edit className="h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Hourglass className="h-4 w-4 mr-2 text-purple-500" />
-            <span>Created: {format(new Date(project.created_at), 'PPP')}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center text-sm text-gray-600">
+          <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
+          <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
+        </div>
+        <div className="flex items-center text-sm text-gray-600">
+          <Hourglass className="h-4 w-4 mr-2 text-purple-500" />
+          <span>Created: {format(new Date(project.created_at), 'PPP')}</span>
+        </div>
+        <div>
+          <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+            <Users className="h-4 w-4 mr-2 text-indigo-500" />
+            Assigned Members:
+          </h5>
+          <div className="flex flex-wrap gap-2">
+            {assignedMemberDetails.length > 0 ? (
+              assignedMemberDetails.map((member) => (
+                <div key={member!.id} className="flex items-center space-x-2 bg-gray-100 rounded-full pr-3 py-1">
+                  <Avatar className="h-7 w-7 border border-gray-200">
+                    <AvatarImage src={member!.avatar} alt={member!.name} />
+                    <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                      {member!.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-gray-700">{member!.name}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-sm text-gray-500">No members assigned</span>
+            )}
           </div>
-          <div>
-            <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <Users className="h-4 w-4 mr-2 text-indigo-500" />
-              Assigned Members:
-            </h5>
-            <div className="flex flex-wrap gap-2">
-              {assignedMemberDetails.length > 0 ? (
-                assignedMemberDetails.map((member) => (
-                  <div key={member!.id} className="flex items-center space-x-2 bg-gray-100 rounded-full pr-3 py-1">
-                    <Avatar className="h-7 w-7 border border-gray-200">
-                      <AvatarImage src={member!.avatar} alt={member!.name} />
-                      <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
-                        {member!.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm text-gray-700">{member!.name}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="text-sm text-gray-500">No members assigned</span>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Link>
+        </div>
+      </CardContent>
     </Card>
   );
 };
