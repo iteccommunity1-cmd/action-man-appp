@@ -101,7 +101,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {message.sender_id === currentUserId && (
               <Avatar className="h-8 w-8 rounded-full border border-gray-200">
                 <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
-                <AvatarFallback className="bg-blue-600 text-white text-xs">
+                <AvatarFallback className="bg-blue-500 text-white text-xs">
                   {message.sender_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
