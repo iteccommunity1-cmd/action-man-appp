@@ -3,16 +3,25 @@ import { Project } from '@/types/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Users, CalendarDays, Hourglass } from 'lucide-react';
+import { Users, CalendarDays, Hourglass, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { teamMembers } from '@/data/teamMembers';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
 
 interface ProjectCardProps {
   project: Project;
+  onEdit: (project: Project) => void;
+  onDelete: (projectId: string) => void;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
   const getStatusBadgeColor = (status: Project['status']) => {
     switch (status) {
       case 'completed':
@@ -36,9 +45,26 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       <CardHeader className="pb-3">
         <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-between">
           {project.title}
-          <Badge className={cn("rounded-full px-3 py-1 text-xs font-medium", getStatusBadgeColor(project.status))}>
-            {project.status.replace('-', ' ')}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={cn("rounded-full px-3 py-1 text-xs font-medium", getStatusBadgeColor(project.status))}>
+              {project.status.replace('-', ' ')}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
+                  <MoreVertical className="h-4 w-4 text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-lg shadow-md">
+                <DropdownMenuItem onClick={() => onEdit(project)} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-gray-100">
+                  <Edit className="h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete(project.id)} className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md">
+                  <Trash2 className="h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
