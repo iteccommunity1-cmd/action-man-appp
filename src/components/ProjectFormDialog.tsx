@@ -19,7 +19,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelect } from "@/components/MultiSelect";
-import { teamMembers } from "@/data/teamMembers";
 import { showSuccess, showError } from "@/utils/toast";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
@@ -39,6 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { Loader2 } from 'lucide-react'; // Import Loader2
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -68,6 +69,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const isEditMode = !!project;
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -139,6 +141,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             name: `${title} Chat`,
             type: 'project',
             avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${title}`, // Generate avatar based on project title
+            members: [currentUser.id, ...assignedMembers], // Add current user and assigned members
           })
           .select('id')
           .single();
@@ -185,6 +188,19 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
     value: member.id,
     label: member.name,
   }));
+
+  if (loadingTeamMembers) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

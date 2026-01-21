@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader2 } from "lucide-react"; // Import Loader2
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,19 +30,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "@/components/MultiSelect";
-import { teamMembers } from "@/data/teamMembers";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Chat room name must be at least 2 characters.",
-  }),
+  }).optional(), // Make optional for private chats where name is auto-generated
   type: z.enum(['project', 'private'], {
     required_error: "Please select a chat room type.",
   }),
-  assignedMembers: z.array(z.string()).optional(), // Optional for private chats
+  selectedMembers: z.array(z.string()).min(1, { // Renamed from assignedMembers, now required for private
+    message: "Please select at least one member for the chat.",
+  }),
 });
 
 interface CreateChatRoomDialogProps {
@@ -58,16 +60,38 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
 }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       type: "private",
-      assignedMembers: [],
+      selectedMembers: [],
     },
   });
 
   const selectedType = form.watch("type");
+  const selectedMemberIds = form.watch("selectedMembers");
+
+  // Effect to update chat room name for private chats
+  React.useEffect(() => {
+    if (selectedType === 'private' && selectedMemberIds.length > 0) {
+      const selectedMemberNames = teamMembers
+        .filter(member => selectedMemberIds.includes(member.id))
+        .map(member => member.name);
+      
+      let generatedName = "";
+      if (selectedMemberNames.length === 1) {
+        generatedName = selectedMemberNames[0];
+      } else if (selectedMemberNames.length > 1) {
+        generatedName = `${selectedMemberNames[0]} & ${selectedMemberNames.length - 1} others`;
+      }
+      form.setValue("name", generatedName);
+    } else if (selectedType === 'project') {
+      form.setValue("name", ""); // Clear name for project type
+    }
+  }, [selectedType, selectedMemberIds, teamMembers, form]);
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!currentUser?.id) {
@@ -75,17 +99,24 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       return;
     }
 
-    const { name, type } = values; // Removed assignedMembers as it's not used in the insert
+    const { name, type, selectedMembers } = values;
 
     try {
-      const { error } = await supabase // Removed data as it's not used
+      const membersToInclude = [currentUser.id, ...selectedMembers];
+      const chatRoomName = type === 'private' && selectedMembers.length > 0
+        ? teamMembers
+            .filter(member => selectedMembers.includes(member.id))
+            .map(member => member.name)
+            .join(', ')
+        : name;
+
+      const { error } = await supabase
         .from('chat_rooms')
         .insert({
-          name,
+          name: chatRoomName,
           type,
-          // For project type, you might link to a project ID or handle members differently.
-          // For simplicity, we're just creating the room.
-          // assigned_members: type === 'project' ? assignedMembers : [], // If you had a column for this
+          members: membersToInclude,
+          avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${chatRoomName || 'default'}`
         })
         .select();
 
@@ -109,6 +140,19 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
     label: member.name,
   }));
 
+  if (loadingTeamMembers) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
@@ -120,20 +164,6 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">Chat Room Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Marketing Team Chat" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="type"
@@ -159,23 +189,37 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
             {selectedType === 'project' && (
               <FormField
                 control={form.control}
-                name="assignedMembers"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700">Assigned Members (Optional)</FormLabel>
+                    <FormLabel className="text-gray-700">Chat Room Name</FormLabel>
                     <FormControl>
-                      <MultiSelect
-                        options={memberOptions}
-                        selected={field.value || []}
-                        onChange={field.onChange}
-                        placeholder="Select members for this project chat"
-                      />
+                      <Input placeholder="e.g., Marketing Team Chat" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="selectedMembers"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Select Members</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={memberOptions}
+                      selected={field.value || []}
+                      onChange={field.onChange}
+                      placeholder="Select members for this chat"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2">

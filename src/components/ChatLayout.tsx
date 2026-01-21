@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
-import { teamMembers } from '@/data/teamMembers';
 import { ChatRoom, Message } from '@/types/chat';
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
@@ -10,10 +9,12 @@ import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { CreateChatRoomDialog } from './CreateChatRoomDialog';
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const location = useLocation();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
@@ -26,9 +27,15 @@ export const ChatLayout: React.FC = () => {
 
   const fetchChatRooms = async () => {
     setLoading(true);
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
+    }
+
     const { data: roomsData, error: roomsError } = await supabase
       .from('chat_rooms')
       .select('*')
+      .contains('members', [currentUser.id]) // Filter rooms where current user is a member
       .order('created_at', { ascending: false });
 
     if (roomsError) {
@@ -49,11 +56,28 @@ export const ChatLayout: React.FC = () => {
             console.error(`Error fetching last message for room ${room.id}:`, lastMessageError);
           }
 
-          const dummyRoom = teamMembers.find(m => m.id === room.id);
+          let roomName = room.name;
+          let roomAvatar = room.avatar;
+
+          // For private chats, try to derive name from other members
+          if (room.type === 'private' && room.members && room.members.length > 1) {
+            const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
+            const otherMembers = teamMembers.filter(member => otherMemberIds.includes(member.id));
+            if (otherMembers.length > 0) {
+              roomName = otherMembers.map(m => m.name).join(', ');
+              roomAvatar = otherMembers[0].avatar; // Use first other member's avatar
+            }
+          } else if (room.type === 'private' && room.members && room.members.length === 1 && room.members[0] === currentUser.id) {
+            // Self-chat, if ever created
+            roomName = currentUser.name;
+            roomAvatar = currentUser.avatar;
+          }
+
           return {
             ...room,
+            name: roomName,
+            avatar: roomAvatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
             lastMessage: lastMessageData?.content || "No recent messages",
-            avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
           };
         })
       );
@@ -77,11 +101,13 @@ export const ChatLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchChatRooms();
+    if (!loadingTeamMembers) { // Only fetch chat rooms once team members are loaded
+      fetchChatRooms();
+    }
 
     const chatRoomsChannel = supabase
       .channel('chat_rooms_changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms', filter: `members.cs.{${currentUser?.id}}` }, (payload) => {
         const newRoom = payload.new as ChatRoom;
         const roomToAdd = {
           ...newRoom,
@@ -96,7 +122,7 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase, location.state]);
+  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers]); // Add teamMembers to dependencies
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -222,7 +248,7 @@ export const ChatLayout: React.FC = () => {
 
   const activeChatRoom = chatRooms.find((room) => room.id === activeChatRoomId);
 
-  if (loading) {
+  if (loading || loadingTeamMembers) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
         <p className="text-lg text-gray-600">Loading chat rooms...</p>

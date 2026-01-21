@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Users, CalendarDays, Hourglass, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { teamMembers } from '@/data/teamMembers';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 
 interface ProjectCardProps {
   project: Project;
@@ -23,6 +23,8 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
+  const { teamMembers } = useTeamMembers(); // Use the hook
+
   const getStatusBadgeColor = (status: Project['status']) => {
     switch (status) {
       case 'completed':

@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-// import { teamMembers } from '@/data/teamMembers'; // Removed static data import
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
@@ -112,7 +111,7 @@ const ProjectDetails: React.FC = () => {
   }
 
   const assignedMemberDetails: (TeamMember | undefined)[] = project.assigned_members.map(memberId =>
-    teamMembers.find((member: TeamMember) => member.id === memberId)
+    teamMembers.find(member => member.id === memberId)
   );
 
   return (

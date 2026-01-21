@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react";
+import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react"; // Added Loader2
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { teamMembers } from "@/data/teamMembers";
 import { useSupabase } from "@/providers/SupabaseProvider";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Task } from '@/types/task';
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -65,6 +65,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
 }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -159,6 +160,19 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
     value: member.id,
     label: member.name,
   }));
+
+  if (loadingTeamMembers) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

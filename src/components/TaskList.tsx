@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { teamMembers } from '@/data/teamMembers'; // For assigned_to display
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 
 interface TaskListProps {
   projectId: string;
@@ -32,6 +32,7 @@ interface TaskListProps {
 export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEditTask }) => {
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const queryClient = useQueryClient();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -120,7 +121,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
     }
   };
 
-  if (isLoading) {
+  if (isLoading || loadingTeamMembers) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
