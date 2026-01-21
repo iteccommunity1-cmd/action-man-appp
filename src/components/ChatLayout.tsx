@@ -1,65 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
-import { teamMembers } from '@/data/teamMembers'; // Using existing team members for avatars
-import { ChatRoom, Message } from '@/types/chat'; // Import ChatRoom and Message from shared types
-
-// Dummy data for chat rooms and messages
-const dummyChatRooms: ChatRoom[] = [
-  { id: "project-1", name: "Marketing Website Redesign", lastMessage: "Alice: Sounds good!", avatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=Project1", type: 'project' },
-  { id: "project-2", name: "Mobile App Development", lastMessage: "Bob: Meeting at 2 PM.", avatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=Project2", type: 'project' },
-  { id: "private-1", name: "Alice Johnson", lastMessage: "Hey, can we chat?", avatar: teamMembers.find(m => m.id === "1")?.avatar, type: 'private' },
-  { id: "private-2", name: "Bob Smith", lastMessage: "Got it, thanks!", avatar: teamMembers.find(m => m.id === "2")?.avatar, type: 'private' },
-];
-
-const dummyMessages: { [key: string]: Message[] } = {
-  "project-1": [
-    { id: "msg1", senderId: "1", senderName: "Alice Johnson", senderAvatar: teamMembers.find(m => m.id === "1")?.avatar, content: "Hi team, let's discuss the new design mockups.", timestamp: "2023-10-27T10:00:00Z" },
-    { id: "msg2", senderId: "current-user", senderName: "You", senderAvatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser", content: "Sure, I'm ready!", timestamp: "2023-10-27T10:05:00Z" },
-    { id: "msg3", senderId: "3", senderName: "Charlie Brown", senderAvatar: teamMembers.find(m => m.id === "3")?.avatar, content: "Sounds good!", timestamp: "2023-10-27T10:10:00Z" },
-  ],
-  "project-2": [
-    { id: "msg4", senderId: "2", senderName: "Bob Smith", senderAvatar: teamMembers.find(m => m.id === "2")?.avatar, content: "Meeting at 2 PM to review the sprint.", timestamp: "2023-10-27T11:00:00Z" },
-    { id: "msg5", senderId: "current-user", senderName: "You", senderAvatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser", content: "Acknowledged.", timestamp: "2023-10-27T11:02:00Z" },
-  ],
-  "private-1": [
-    { id: "msg6", senderId: "1", senderName: "Alice Johnson", senderAvatar: teamMembers.find(m => m.id === "1")?.avatar, content: "Hey, can we chat about the marketing strategy?", timestamp: "2023-10-27T12:00:00Z" },
-    { id: "msg7", senderId: "current-user", senderName: "You", senderAvatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser", content: "Yes, I'm free now.", timestamp: "2023-10-27T12:01:00Z" },
-  ],
-  "private-2": [
-    { id: "msg8", senderId: "current-user", senderName: "You", senderAvatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser", content: "Did you get the report?", timestamp: "2023-10-27T13:00:00Z" },
-    { id: "msg9", senderId: "2", senderName: "Bob Smith", senderAvatar: teamMembers.find(m => m.id === "2")?.avatar, content: "Got it, thanks!", timestamp: "2023-10-27T13:05:00Z" },
-  ],
-};
+import { teamMembers } from '@/data/teamMembers';
+import { ChatRoom, Message } from '@/types/chat';
+import { useSupabase } from '@/providers/SupabaseProvider';
+import { useUser } from '@/contexts/UserContext'; // Import useUser hook
+import { showSuccess, showError } from '@/utils/toast';
 
 export const ChatLayout: React.FC = () => {
-  const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(dummyChatRooms[0]?.id || null);
-  const [currentMessages, setCurrentMessages] = useState(dummyMessages);
+  const { supabase } = useSupabase();
+  const { currentUser } = useUser(); // Get current user
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const activeChatRoom = dummyChatRooms.find((room) => room.id === activeChatRoomId);
+  // Fetch chat rooms
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('chat_rooms')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  const handleSendMessage = (content: string) => {
-    if (activeChatRoomId) {
-      const newMessage: Message = { // Explicitly type newMessage
-        id: `msg-${Date.now()}`,
-        senderId: "current-user", // Placeholder for current user ID
-        senderName: "You", // Placeholder for current user name
-        senderAvatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser", // Placeholder avatar
-        content,
-        timestamp: new Date().toISOString(),
-      };
-      setCurrentMessages((prevMessages) => ({
-        ...prevMessages,
-        [activeChatRoomId]: [...(prevMessages[activeChatRoomId] || []), newMessage],
-      }));
+      if (error) {
+        console.error("Error fetching chat rooms:", error);
+        showError("Failed to load chat rooms.");
+      } else {
+        // For now, we'll manually add lastMessage and avatar from dummy data if needed
+        // In a real app, these would come from the database or a more complex query
+        const roomsWithLastMessage = data.map(room => {
+          const dummyRoom = teamMembers.find(m => m.id === room.id); // Example for private chats
+          return {
+            ...room,
+            lastMessage: room.lastMessage || "No recent messages", // Placeholder
+            avatar: room.avatar || dummyRoom?.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
+          };
+        });
+        setChatRooms(roomsWithLastMessage);
+        if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
+          setActiveChatRoomId(roomsWithLastMessage[0].id);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchChatRooms();
+
+    // Realtime subscription for chat rooms (optional, for new rooms being created)
+    const channel = supabase
+      .channel('chat_rooms_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms' }, (payload) => {
+        const newRoom = payload.new as ChatRoom;
+        setChatRooms((prev) => [
+          {
+            ...newRoom,
+            lastMessage: "New chat room created!",
+            avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
+          },
+          ...prev,
+        ]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, activeChatRoomId]);
+
+  // Fetch messages for the active chat room
+  useEffect(() => {
+    if (!activeChatRoomId) {
+      setMessages([]);
+      return;
+    }
+
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_room_id', activeChatRoomId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error("Error fetching messages:", error);
+        showError("Failed to load messages.");
+      } else {
+        setMessages(data.map(msg => ({
+          ...msg,
+          senderId: msg.sender_id,
+          senderName: msg.sender_name,
+          senderAvatar: msg.sender_avatar,
+          timestamp: msg.created_at, // Use created_at for timestamp
+        })));
+      }
+    };
+
+    fetchMessages();
+
+    // Realtime subscription for messages
+    const channel = supabase
+      .channel(`messages_room_${activeChatRoomId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_room_id=eq.${activeChatRoomId}` }, (payload) => {
+        const newMessage = payload.new as Message;
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...newMessage,
+            senderId: newMessage.sender_id,
+            senderName: newMessage.sender_name,
+            senderAvatar: newMessage.sender_avatar,
+            timestamp: newMessage.created_at,
+          },
+        ]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeChatRoomId, supabase]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!activeChatRoomId || !content.trim()) return;
+
+    const { error } = await supabase.from('messages').insert({
+      chat_room_id: activeChatRoomId,
+      sender_id: currentUser.id,
+      sender_name: currentUser.name,
+      sender_avatar: currentUser.avatar,
+      content: content.trim(),
+    });
+
+    if (error) {
+      console.error("Error sending message:", error);
+      showError("Failed to send message.");
+    } else {
+      // Message will be added via real-time subscription, no need to manually update state here
+      // showSuccess("Message sent!"); // Optional: show success toast
     }
   };
+
+  const activeChatRoom = chatRooms.find((room) => room.id === activeChatRoomId);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
+        <p className="text-lg text-gray-600">Loading chat rooms...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
       <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0">
         <ChatRoomList
-          chatRooms={dummyChatRooms}
+          chatRooms={chatRooms}
           activeChatRoomId={activeChatRoomId}
           onSelectChatRoom={setActiveChatRoomId}
         />
@@ -68,12 +165,12 @@ export const ChatLayout: React.FC = () => {
         {activeChatRoom ? (
           <ChatWindow
             chatRoomName={activeChatRoom.name}
-            messages={currentMessages[activeChatRoomId] || []}
+            messages={messages}
             onSendMessage={handleSendMessage}
-            currentUserId="current-user" // Placeholder for current user ID
+            currentUserId={currentUser.id}
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500 text-lg">
+          <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
             Select a chatroom to start messaging
           </div>
         )}

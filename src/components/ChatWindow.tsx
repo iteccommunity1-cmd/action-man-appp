@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   currentUserId,
 }) => {
   const [newMessage, setNewMessage] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = () => {
     if (newMessage.trim()) {
@@ -33,7 +41,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-xl">
         <h3 className="text-xl font-semibold">{chatRoomName}</h3>
       </div>
-      <ScrollArea className="flex-grow p-4 space-y-4">
+      <ScrollArea className="flex-grow p-4 space-y-4" viewportRef={scrollAreaRef}>
         {messages.map((message) => (
           <div
             key={message.id}
@@ -61,7 +69,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
               <p className="text-sm">{message.content}</p>
               <p className="text-xs opacity-75 mt-1 text-right">
-                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
             {message.senderId === currentUserId && (
