@@ -77,8 +77,8 @@ export const ChatLayout: React.FC = () => {
             ...room,
             name: roomName,
             avatar: roomAvatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
-            lastMessage: lastMessageData?.content || "No recent messages",
-            lastSenderName: lastMessageData?.sender_name, // Pass sender_name
+            lastMessage: lastMessageData?.content || undefined, // Set to undefined if no message
+            lastSenderName: lastMessageData?.sender_name || undefined, // Set to undefined if no message
           };
         })
       );
@@ -112,7 +112,8 @@ export const ChatLayout: React.FC = () => {
         const newRoom = payload.new as ChatRoom;
         const roomToAdd = {
           ...newRoom,
-          lastMessage: "New chat room created!",
+          lastMessage: undefined, // No last message initially
+          lastSenderName: undefined, // No last sender initially
           avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
         };
         setChatRooms((prev) => [roomToAdd, ...prev]);
