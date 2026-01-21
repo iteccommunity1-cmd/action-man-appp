@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { User } from '@supabase/supabase-js';
+import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'; // Import AuthChangeEvent and Session
 
 interface CurrentUser {
   id: string;
@@ -43,7 +43,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
         await fetchUserProfile(session.user);
       } else {
@@ -53,7 +53,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Initial check for session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: Session | null } }) => {
       if (session?.user) {
         await fetchUserProfile(session.user);
       }

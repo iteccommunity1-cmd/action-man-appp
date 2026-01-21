@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChatLayout } from '@/components/ChatLayout';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { NotificationBell } from '@/components/NotificationBell'; // Import NotificationBell

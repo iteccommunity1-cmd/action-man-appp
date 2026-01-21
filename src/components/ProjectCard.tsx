@@ -3,7 +3,7 @@ import { Project } from '@/types/project';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Users, CalendarDays, Hourglass, CheckCircle2 } from 'lucide-react';
+import { Users, CalendarDays, Hourglass } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { teamMembers } from '@/data/teamMembers';
 import { cn } from '@/lib/utils';
@@ -13,20 +13,6 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-  const getStatusBadgeVariant = (status: Project['status']) => {
-    switch (status) {
-      case 'completed':
-        return 'default'; // Greenish
-      case 'in-progress':
-        return 'secondary'; // Grayish
-      case 'overdue':
-        return 'destructive'; // Red
-      case 'pending':
-      default:
-        return 'outline'; // Light gray
-    }
-  };
-
   const getStatusBadgeColor = (status: Project['status']) => {
     switch (status) {
       case 'completed':
@@ -43,7 +29,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
   const assignedMemberDetails = project.assigned_members.map(memberId =>
     teamMembers.find(member => member.id === memberId)
-  ).filter(Boolean); // Filter out undefined members
+  ).filter(Boolean);
 
   return (
     <Card className="rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border-gray-200">
@@ -72,14 +58,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           <div className="flex flex-wrap gap-2">
             {assignedMemberDetails.length > 0 ? (
               assignedMemberDetails.map((member) => (
-                <div key={member.id} className="flex items-center space-x-2 bg-gray-100 rounded-full pr-3 py-1">
+                <div key={member!.id} className="flex items-center space-x-2 bg-gray-100 rounded-full pr-3 py-1">
                   <Avatar className="h-7 w-7 border border-gray-200">
-                    <AvatarImage src={member.avatar} alt={member.name} />
+                    <AvatarImage src={member!.avatar} alt={member!.name} />
                     <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
-                      {member.name.charAt(0)}
+                      {member!.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-gray-700">{member.name}</span>
+                  <span className="text-sm text-gray-700">{member!.name}</span>
                 </div>
               ))
             ) : (

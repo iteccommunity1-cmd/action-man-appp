@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Notification } from '@/types/notification';

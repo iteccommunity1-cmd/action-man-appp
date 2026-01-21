@@ -1,15 +1,15 @@
-import React from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { AuthChangeEvent, Session } from '@supabase/supabase-js'; // Import AuthChangeEvent and Session
 
 const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session) {
         navigate('/'); // Redirect to home page after successful login
       }

@@ -5,7 +5,7 @@ import { teamMembers } from '@/data/teamMembers';
 import { ChatRoom, Message } from '@/types/chat';
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext'; // Import useUser hook
-import { showSuccess, showError } from '@/utils/toast';
+import { showError } from '@/utils/toast'; // Removed showSuccess
 
 export const ChatLayout: React.FC = () => {
   const { supabase } = useSupabase();
@@ -123,13 +123,13 @@ export const ChatLayout: React.FC = () => {
   }, [activeChatRoomId, supabase]);
 
   const handleSendMessage = async (content: string) => {
-    if (!activeChatRoomId || !content.trim()) return;
+    if (!activeChatRoomId || !content.trim() || !currentUser) return; // Added currentUser check
 
     const { error } = await supabase.from('messages').insert({
       chat_room_id: activeChatRoomId,
-      sender_id: currentUser.id,
-      sender_name: currentUser.name,
-      sender_avatar: currentUser.avatar,
+      sender_id: currentUser!.id,
+      sender_name: currentUser!.name,
+      sender_avatar: currentUser!.avatar,
       content: content.trim(),
     });
 
@@ -152,6 +152,16 @@ export const ChatLayout: React.FC = () => {
     );
   }
 
+  // If currentUser is null here, it means ProtectedRoute failed or there's a race condition.
+  // For robustness, we can add a check, though ProtectedRoute should prevent this.
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white">
+        <p className="text-lg text-red-600">User not authenticated for chat.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-[calc(100vh-4rem)] max-h-[900px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
       <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0">
@@ -167,7 +177,7 @@ export const ChatLayout: React.FC = () => {
             chatRoomName={activeChatRoom.name}
             messages={messages}
             onSendMessage={handleSendMessage}
-            currentUserId={currentUser.id}
+            currentUserId={currentUser!.id}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
