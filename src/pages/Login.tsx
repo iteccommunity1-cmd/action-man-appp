@@ -38,12 +38,10 @@ const Login = () => {
                   inputBorderHover: 'hsl(224.3 76.3% 48%)',
                   inputBorderFocus: 'hsl(224.3 76.3% 48%)',
                   inputText: 'hsl(222.2 84% 4.9%)',
-                  inputLabel: 'hsl(215.4 16.3% 46.9%)',
                 },
                 radii: {
                   borderRadiusButton: '0.75rem', // Rounded buttons
-                  button: '0.75rem',
-                  input: '0.75rem',
+                  inputBorderRadius: '0.75rem', // Corrected property name
                 },
               },
             },
