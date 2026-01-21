@@ -4,6 +4,7 @@ export interface ChatRoom {
   lastMessage?: string;
   avatar?: string;
   type: 'project' | 'private';
+  members?: string[]; // Added members array
 }
 
 export interface Message {

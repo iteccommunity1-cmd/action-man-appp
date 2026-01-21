@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 interface TaskListProps {
   projectId: string;
@@ -84,6 +85,19 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       } else {
         showSuccess(`Task marked as ${newStatus}!`);
         queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+
+        // Send notification to assigned user if different from current user
+        if (task.assigned_to && task.assigned_to !== currentUser?.id) {
+          const assignedMember = teamMembers.find(member => member.id === task.assigned_to);
+          if (assignedMember) {
+            sendNotification({
+              userId: assignedMember.id,
+              message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}" in project ${projectId}.`,
+              type: 'task_update',
+              relatedId: task.id,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Unexpected error updating task status:", error);
