@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Removed ScrollAreaViewport import
 import { Message } from '@/types/chat'; // Import Message from shared types
 
 interface ChatWindowProps {
@@ -20,7 +20,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   currentUserId,
 }) => {
   const [newMessage, setNewMessage] = useState("");
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null); // Ref for the ScrollArea component itself
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -41,42 +41,42 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-xl">
         <h3 className="text-xl font-semibold">{chatRoomName}</h3>
       </div>
-      <ScrollArea className="flex-grow p-4 space-y-4" viewportRef={scrollAreaRef}>
+      <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}> {/* Pass ref directly to ScrollArea */}
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex items-start ${
-              message.senderId === currentUserId ? "justify-end" : "justify-start"
+              message.sender_id === currentUserId ? "justify-end" : "justify-start"
             }`}
           >
-            {message.senderId !== currentUserId && (
+            {message.sender_id !== currentUserId && (
               <Avatar className="h-8 w-8 rounded-full border border-gray-200">
-                <AvatarImage src={message.senderAvatar} alt={message.senderName} />
+                <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
                 <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
-                  {message.senderName.charAt(0)}
+                  {message.sender_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             )}
             <div
               className={`max-w-[70%] p-3 rounded-xl ${
-                message.senderId === currentUserId
+                message.sender_id === currentUserId
                   ? "bg-blue-600 text-white rounded-br-none ml-2"
                   : "bg-gray-100 text-gray-800 rounded-bl-none mr-2"
               }`}
             >
-              {message.senderId !== currentUserId && (
-                <p className="font-semibold text-xs mb-1">{message.senderName}</p>
+              {message.sender_id !== currentUserId && (
+                <p className="font-semibold text-xs mb-1">{message.sender_name}</p>
               )}
               <p className="text-sm">{message.content}</p>
               <p className="text-xs opacity-75 mt-1 text-right">
                 {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
-            {message.senderId === currentUserId && (
+            {message.sender_id === currentUserId && (
               <Avatar className="h-8 w-8 rounded-full border border-gray-200">
-                <AvatarImage src={message.senderAvatar} alt={message.senderName} />
+                <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
                 <AvatarFallback className="bg-blue-600 text-white text-xs">
-                  {message.senderName.charAt(0)}
+                  {message.sender_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             )}

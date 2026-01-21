@@ -89,9 +89,9 @@ export const ChatLayout: React.FC = () => {
       } else {
         setMessages(data.map(msg => ({
           ...msg,
-          senderId: msg.sender_id,
-          senderName: msg.sender_name,
-          senderAvatar: msg.sender_avatar,
+          sender_id: msg.sender_id, // Use snake_case
+          sender_name: msg.sender_name, // Use snake_case
+          sender_avatar: msg.sender_avatar, // Use snake_case
           timestamp: msg.created_at, // Use created_at for timestamp
         })));
       }
@@ -108,9 +108,9 @@ export const ChatLayout: React.FC = () => {
           ...prev,
           {
             ...newMessage,
-            senderId: newMessage.sender_id,
-            senderName: newMessage.sender_name,
-            senderAvatar: newMessage.sender_avatar,
+            sender_id: newMessage.sender_id, // Use snake_case
+            sender_name: newMessage.sender_name, // Use snake_case
+            sender_avatar: newMessage.sender_avatar, // Use snake_case
             timestamp: newMessage.created_at,
           },
         ]);

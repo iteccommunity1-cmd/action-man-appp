@@ -1,41 +1,83 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
 interface CurrentUser {
   id: string;
   name: string;
   avatar?: string;
+  email?: string;
 }
 
 interface UserContextType {
-  currentUser: CurrentUser;
+  currentUser: CurrentUser | null;
+  isLoadingUser: boolean;
+  signOut: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // For now, we'll use a static dummy user. In a real app, this would come from authentication.
-  const [currentUser, setCurrentUser] = useState<CurrentUser>({
-    id: "current-user-123", // Unique ID for the current user
-    name: "You",
-    avatar: "https://api.dicebear.com/8.x/adventurer/svg?seed=CurrentUser",
-  });
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // In a real application, you would fetch or set the current user here
-  // e.g., from Supabase Auth, local storage, etc.
+  const fetchUserProfile = async (user: User) => {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, avatar_url')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (profile not yet created)
+      console.error("Error fetching user profile:", error);
+    }
+
+    setCurrentUser({
+      id: user.id,
+      name: profile?.first_name && profile?.last_name
+        ? `${profile.first_name} ${profile.last_name}`
+        : user.email || 'User',
+      avatar: profile?.avatar_url || `https://api.dicebear.com/8.x/adventurer/svg?seed=${user.id}`,
+      email: user.email,
+    });
+  };
+
   useEffect(() => {
-    // Example: If you had Supabase auth, you might do something like:
-    // const { data: { user } } = await supabase.auth.getUser();
-    // if (user) {
-    //   setCurrentUser({
-    //     id: user.id,
-    //     name: user.user_metadata.full_name || user.email,
-    //     avatar: user.user_metadata.avatar_url,
-    //   });
-    // }
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchUserProfile(session.user);
+      } else {
+        setCurrentUser(null);
+      }
+      setIsLoadingUser(false);
+    });
+
+    // Initial check for session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        await fetchUserProfile(session.user);
+      }
+      setIsLoadingUser(false);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
+  const signOut = async () => {
+    setIsLoadingUser(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error);
+    } else {
+      setCurrentUser(null);
+    }
+    setIsLoadingUser(false);
+  };
+
   return (
-    <UserContext.Provider value={{ currentUser }}>
+    <UserContext.Provider value={{ currentUser, isLoadingUser, signOut }}>
       {children}
     </UserContext.Provider>
   );
