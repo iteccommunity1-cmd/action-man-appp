@@ -59,26 +59,37 @@ export const ChatLayout: React.FC = () => {
           let roomName = room.name;
           let roomAvatar = room.avatar;
 
-          // For private chats, try to derive name from other members
-          if (room.type === 'private' && room.members && room.members.length > 1) {
+          // For private chats, always derive name and avatar from members
+          if (room.type === 'private' && room.members && currentUser) {
+            const allMembers = [currentUser, ...teamMembers];
             const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
-            const otherMembers = teamMembers.filter(member => otherMemberIds.includes(member.id));
+            const otherMembersDetails = otherMemberIds
+              .map((id: string) => allMembers.find(member => member.id === id)) // Fixed: Explicitly type 'id' as string
+              .filter(Boolean);
             
-            if (otherMembers.length === 1) {
-              roomName = otherMembers[0].name;
-              roomAvatar = otherMembers[0].avatar;
-            } else if (otherMembers.length === 2) {
-              roomName = `${otherMembers[0].name} & ${otherMembers[1].name}`;
-              roomAvatar = otherMembers[0].avatar; // Use first other member's avatar
-            } else if (otherMembers.length > 2) {
-              roomName = `${otherMembers[0].name}, ${otherMembers[1].name} & ${otherMembers.length - 2} others`;
-              roomAvatar = otherMembers[0].avatar; // Use first other member's avatar
+            if (otherMembersDetails.length === 1) {
+              roomName = otherMembersDetails[0]!.name;
+              roomAvatar = otherMembersDetails[0]!.avatar;
+            } else if (otherMembersDetails.length === 2) {
+              roomName = `${otherMembersDetails[0]!.name} & ${otherMembersDetails[1]!.name}`;
+              roomAvatar = otherMembersDetails[0]!.avatar;
+            } else if (otherMembersDetails.length > 2) {
+              roomName = `${otherMembersDetails[0]!.name}, ${otherMembersDetails[1]!.name} & ${otherMembersDetails.length - 2} others`;
+              roomAvatar = otherMembersDetails[0]!.avatar;
+            } else if (otherMemberIds.length === 0 && room.members.includes(currentUser.id)) {
+              // Self-chat
+              roomName = currentUser.name;
+              roomAvatar = currentUser.avatar;
+            } else {
+              roomName = "Unknown Private Chat"; // Fallback
+              roomAvatar = `https://api.dicebear.com/8.x/adventurer/svg?seed=default`;
             }
-          } else if (room.type === 'private' && room.members && room.members.length === 1 && room.members[0] === currentUser.id) {
-            // Self-chat, if ever created
-            roomName = currentUser.name;
-            roomAvatar = currentUser.avatar;
+          } else if (room.type === 'project') {
+            // For project chats, use the stored name and avatar
+            roomName = room.name;
+            roomAvatar = room.avatar;
           }
+
 
           return {
             ...room,

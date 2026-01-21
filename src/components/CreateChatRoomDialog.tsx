@@ -82,25 +82,31 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
   const selectedType = form.watch("type");
   const selectedMemberIds = form.watch("selectedMembers");
 
+  // Effect to generate private chat name based on selected members
   React.useEffect(() => {
-    if (selectedType === 'private' && selectedMemberIds.length > 0) {
-      const selectedMemberNames = teamMembers
-        .filter(member => selectedMemberIds.includes(member.id))
-        .map(member => member.name);
-      
+    if (selectedType === 'private' && selectedMemberIds.length > 0 && currentUser) {
+      const allMembers = [currentUser, ...teamMembers];
+      const participantNames = selectedMemberIds
+        .filter(id => id !== currentUser.id) // Exclude current user from the "other" members list
+        .map(id => allMembers.find(member => member.id === id)?.name)
+        .filter(Boolean) as string[];
+
       let generatedName = "";
-      if (selectedMemberNames.length === 1) {
-        generatedName = selectedMemberNames[0];
-      } else if (selectedMemberNames.length === 2) {
-        generatedName = `${selectedMemberNames[0]} & ${selectedMemberNames[1]}`;
-      } else if (selectedMemberNames.length > 2) {
-        generatedName = `${selectedMemberNames[0]}, ${selectedMemberNames[1]} & ${selectedMemberNames.length - 2} others`;
+      if (participantNames.length === 1) {
+        generatedName = participantNames[0];
+      } else if (participantNames.length === 2) {
+        generatedName = `${participantNames[0]} & ${participantNames[1]}`;
+      } else if (participantNames.length > 2) {
+        generatedName = `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} others`;
+      } else if (participantNames.length === 0 && selectedMemberIds.includes(currentUser.id)) {
+        // Case for a private chat with only self (if ever allowed/created)
+        generatedName = currentUser.name;
       }
       form.setValue("name", generatedName);
     } else if (selectedType === 'project') {
       form.setValue("name", ""); // Clear name for project type if it was previously set by private logic
     }
-  }, [selectedType, selectedMemberIds, teamMembers, form]);
+  }, [selectedType, selectedMemberIds, teamMembers, currentUser, form]);
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -109,11 +115,30 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       return;
     }
 
-    const { name, type, selectedMembers } = values;
+    const { type, selectedMembers } = values;
     const membersToInclude = [currentUser.id, ...selectedMembers].sort();
 
     try {
+      let chatRoomName = values.name; // Default to form value for project type
+
       if (type === 'private') {
+        // For private chats, always derive the name from members
+        const allMembers = [currentUser, ...teamMembers];
+        const participantNames = selectedMembers
+          .filter(id => id !== currentUser.id)
+          .map(id => allMembers.find(member => member.id === id)?.name)
+          .filter(Boolean) as string[];
+
+        if (participantNames.length === 1) {
+          chatRoomName = participantNames[0];
+        } else if (participantNames.length === 2) {
+          chatRoomName = `${participantNames[0]} & ${participantNames[1]}`;
+        } else if (participantNames.length > 2) {
+          chatRoomName = `${participantNames[0]}, ${participantNames[1]} & ${participantNames.length - 2} others`;
+        } else {
+          chatRoomName = currentUser.name; // Fallback for self-chat or unexpected empty
+        }
+
         const { data: existingRooms, error: existingRoomError } = await supabase
           .from('chat_rooms')
           .select('id, members')
@@ -139,14 +164,10 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
         }
       }
 
-      const chatRoomName = type === 'private' && selectedMembers.length > 0
-        ? form.getValues("name") // Use the auto-generated name
-        : name;
-
       const { error } = await supabase
         .from('chat_rooms')
         .insert({
-          name: chatRoomName,
+          name: chatRoomName, // Use the derived name for private, or form name for project
           type,
           members: membersToInclude,
           avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${chatRoomName || 'default'}`
