@@ -4,13 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SupabaseProvider } from "@/providers/SupabaseProvider";
-import { UserProvider, useUser } from "@/contexts/UserContext"; // Import useUser
+import { UserProvider, useUser } from "@/contexts/UserContext";
+import { Layout } from "@/components/Layout"; // Import the new Layout component
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
-import Login from "./pages/Login"; // Import the new Login page
-import ProjectDetails from "./pages/ProjectDetails"; // Import ProjectDetails
-import Profile from "./pages/Profile"; // Import the new Profile page
+import Login from "./pages/Login";
+import ProjectDetails from "./pages/ProjectDetails";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Layout>{children}</Layout>; // Wrap children with Layout
 };
 
 const App = () => (
