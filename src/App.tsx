@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login"; // Import the new Login page
 import ProjectDetails from "./pages/ProjectDetails"; // Import ProjectDetails
+import Profile from "./pages/Profile"; // Import the new Profile page
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ProjectDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />

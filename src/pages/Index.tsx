@@ -13,6 +13,14 @@ const Index = () => {
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
       <div className="absolute top-4 right-4 flex items-center space-x-2">
         <NotificationBell />
+        <Link to="/profile">
+          <Button
+            variant="outline"
+            className="rounded-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            My Profile
+          </Button>
+        </Link>
         <Button
           onClick={signOut}
           variant="outline"
