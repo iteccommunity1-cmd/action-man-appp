@@ -4,17 +4,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Project, TeamMember } from '@/types/project';
-import { Task } from '@/types/task'; // Import Task type
+import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2 } from 'lucide-react';
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react'; // Added MessageCircle
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { teamMembers } from '@/data/teamMembers';
 import { showError } from '@/utils/toast';
-import { TaskList } from '@/components/TaskList'; // Import TaskList
-import { TaskFormDialog } from '@/components/TaskFormDialog'; // Import TaskFormDialog (will create next)
+import { Button } from '@/components/ui/button';
+import { TaskList } from '@/components/TaskList';
+import { TaskFormDialog } from '@/components/TaskFormDialog';
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +36,7 @@ const ProjectDetails: React.FC = () => {
         .from('projects')
         .select('*')
         .eq('id', id)
-        .eq('user_id', currentUser.id) // Ensure user can only see their own projects
+        .eq('user_id', currentUser.id)
         .single();
 
       if (error) {
@@ -61,7 +62,7 @@ const ProjectDetails: React.FC = () => {
   };
 
   const handleAddTask = () => {
-    setEditingTask(null); // Clear any previous editing task
+    setEditingTask(null);
     setIsTaskFormDialogOpen(true);
   };
 
@@ -73,7 +74,7 @@ const ProjectDetails: React.FC = () => {
   const handleTaskFormClose = () => {
     setIsTaskFormDialogOpen(false);
     setEditingTask(null);
-    queryClient.invalidateQueries({ queryKey: ['tasks', id] }); // Refresh tasks after form close
+    queryClient.invalidateQueries({ queryKey: ['tasks', id] });
   };
 
   if (isLoading) {
@@ -114,10 +115,17 @@ const ProjectDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-3xl mx-auto mb-6">
+      <div className="w-full max-w-3xl mx-auto mb-6 flex justify-between items-center">
         <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
+        {project.chat_room_id && (
+          <Link to="/chat" onClick={() => localStorage.setItem('activeChatRoomId', project.chat_room_id!)}>
+            <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
+              <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200 mb-8">

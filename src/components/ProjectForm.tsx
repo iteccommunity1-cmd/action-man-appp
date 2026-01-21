@@ -20,8 +20,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MultiSelect } from "@/components/MultiSelect";
 import { teamMembers } from "@/data/teamMembers";
 import { showSuccess, showError } from "@/utils/toast";
-import { useSupabase } from "@/providers/SupabaseProvider"; // Import useSupabase
-import { useUser } from "@/contexts/UserContext"; // Import useUser
+import { useSupabase } from "@/providers/SupabaseProvider";
+import { useUser } from "@/contexts/UserContext";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -56,23 +56,46 @@ export function ProjectForm() {
     const { title, assignedMembers, deadline } = values;
 
     try {
-      const { data, error } = await supabase
+      // First, create the chat room
+      const { data: chatRoomData, error: chatRoomError } = await supabase
+        .from('chat_rooms')
+        .insert({
+          name: `${title} Chat`,
+          type: 'project',
+          avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${title}`, // Generate avatar based on project title
+        })
+        .select('id')
+        .single();
+
+      if (chatRoomError) {
+        console.error("Error creating chat room for project:", chatRoomError);
+        showError("Failed to create project chat room: " + chatRoomError.message);
+        return;
+      }
+
+      const chat_room_id = chatRoomData.id;
+
+      // Then, create the project and link the chat room
+      const { data: projectData, error: projectError } = await supabase
         .from('projects')
         .insert({
           user_id: currentUser.id,
           title,
           assigned_members: assignedMembers,
-          deadline: deadline.toISOString(), // Convert Date to ISO string for Supabase
-          status: 'pending', // Default status
+          deadline: deadline.toISOString(),
+          status: 'pending',
+          chat_room_id: chat_room_id, // Link the created chat room
         })
         .select();
 
-      if (error) {
-        console.error("Error creating project:", error);
-        showError("Failed to create project: " + error.message);
+      if (projectError) {
+        console.error("Error creating project:", projectError);
+        showError("Failed to create project: " + projectError.message);
+        // Optionally, delete the created chat room if project creation fails
+        await supabase.from('chat_rooms').delete().eq('id', chat_room_id);
       } else {
-        console.log("Project created:", data);
-        showSuccess("Project created successfully!");
+        console.log("Project created:", projectData);
+        showSuccess("Project and associated chat room created successfully!");
         form.reset();
       }
     } catch (error) {

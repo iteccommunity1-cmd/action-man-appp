@@ -11,5 +11,6 @@ export interface Project {
   assigned_members: string[]; // Changed to string[] to match TEXT[] in Supabase
   deadline: string; // Changed to string to handle ISO date strings from Supabase
   status: 'pending' | 'in-progress' | 'completed' | 'overdue';
+  chat_room_id?: string; // New: Link to associated chat room
   created_at: string; // Changed to string to handle ISO date strings from Supabase
 }
