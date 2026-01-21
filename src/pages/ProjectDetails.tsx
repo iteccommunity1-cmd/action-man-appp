@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from '@/providers/SupabaseProvider';
 import { useUser } from '@/contexts/UserContext';
 import { Project, TeamMember } from '@/types/project';
+import { Task } from '@/types/task'; // Import Task type
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,11 +13,17 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { teamMembers } from '@/data/teamMembers';
 import { showError } from '@/utils/toast';
+import { TaskList } from '@/components/TaskList'; // Import TaskList
+import { TaskFormDialog } from '@/components/TaskFormDialog'; // Import TaskFormDialog (will create next)
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
+  const queryClient = useQueryClient();
+
+  const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
     queryKey: ['project', id],
@@ -51,6 +58,22 @@ const ProjectDetails: React.FC = () => {
       default:
         return 'bg-yellow-500 text-white hover:bg-yellow-600';
     }
+  };
+
+  const handleAddTask = () => {
+    setEditingTask(null); // Clear any previous editing task
+    setIsTaskFormDialogOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsTaskFormDialogOpen(true);
+  };
+
+  const handleTaskFormClose = () => {
+    setIsTaskFormDialogOpen(false);
+    setEditingTask(null);
+    queryClient.invalidateQueries({ queryKey: ['tasks', id] }); // Refresh tasks after form close
   };
 
   if (isLoading) {
@@ -97,7 +120,7 @@ const ProjectDetails: React.FC = () => {
         </Link>
       </div>
 
-      <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200">
+      <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200 mb-8">
         <CardHeader className="pb-4">
           <CardTitle className="text-3xl font-bold text-gray-800 flex items-center justify-between">
             {project.title}
@@ -140,6 +163,18 @@ const ProjectDetails: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Task List Section */}
+      <div className="w-full max-w-3xl mx-auto">
+        <TaskList projectId={project.id} onAddTask={handleAddTask} onEditTask={handleEditTask} />
+      </div>
+
+      <TaskFormDialog
+        projectId={project.id}
+        task={editingTask}
+        isOpen={isTaskFormDialogOpen}
+        onClose={handleTaskFormClose}
+      />
     </div>
   );
 };
