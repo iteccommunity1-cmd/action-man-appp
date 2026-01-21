@@ -1,4 +1,3 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { ProjectForm } from "@/components/ProjectForm";
 import { ProjectList } from "@/components/ProjectList";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -17,7 +16,6 @@ const Index = () => {
           <ProjectList />
         </div>
       </div>
-      <MadeWithDyad />
     </div>
   );
 };

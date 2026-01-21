@@ -1,5 +1,4 @@
 import { ChatLayout } from '@/components/ChatLayout';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { NotificationBell } from '@/components/NotificationBell';
 
 const Chat = () => {
@@ -11,7 +10,6 @@ const Chat = () => {
       <div className="flex-grow flex items-center justify-center w-full">
         <ChatLayout />
       </div>
-      <MadeWithDyad />
     </div>
   );
 };

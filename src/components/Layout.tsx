@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { MadeWithDyad } from './made-with-dyad'; // Import MadeWithDyad
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,8 +10,6 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
 
-  // The Sidebar component now manages its own sheet state and calls onLinkClick
-  // when a navigation item is clicked, which will close the sheet.
   const handleLinkClick = () => {
     // No need to manage isSheetOpen here, as Sidebar handles it internally.
     // This function can remain empty or be removed if no other layout-specific logic is needed.
@@ -23,8 +22,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       ) : (
         <Sidebar />
       )}
-      <main className="flex-grow p-4 sm:p-6 lg:p-8">
-        {children}
+      <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col">
+        <div className="flex-grow">
+          {children}
+        </div>
+        <MadeWithDyad /> {/* Placed at the bottom of the main content */}
       </main>
     </div>
   );
