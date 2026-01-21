@@ -17,6 +17,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
+type SortOrder = 'newest' | 'oldest';
 
 export const ProjectList: React.FC = () => {
   const { supabase } = useSupabase();
@@ -27,18 +38,27 @@ export const ProjectList: React.FC = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<ProjectStatus>('all');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
   const { data: projects, isLoading, isError, error } = useQuery<Project[], Error>({
-    queryKey: ['projects', currentUser?.id],
+    queryKey: ['projects', currentUser?.id, filterStatus, sortOrder],
     queryFn: async () => {
       if (!currentUser?.id) {
         throw new Error("User not logged in.");
       }
-      const { data, error } = await supabase
+      let query = supabase
         .from('projects')
         .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
+        .eq('user_id', currentUser.id);
+
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus);
+      }
+
+      query = query.order('created_at', { ascending: sortOrder === 'oldest' });
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -110,10 +130,42 @@ export const ProjectList: React.FC = () => {
   return (
     <div className="w-full">
       <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Your Projects</h3>
+      
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filter-status" className="text-gray-700">Filter by Status:</Label>
+          <Select value={filterStatus} onValueChange={(value: ProjectStatus) => setFilterStatus(value)}>
+            <SelectTrigger id="filter-status" className="w-[180px] rounded-lg border-gray-300">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg shadow-md">
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Label htmlFor="sort-order" className="text-gray-700">Sort by:</Label>
+          <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
+            <SelectTrigger id="sort-order" className="w-[180px] rounded-lg border-gray-300">
+              <SelectValue placeholder="Sort order" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg shadow-md">
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {projects!.length === 0 ? (
         <div className="text-center text-gray-500 p-8 border border-dashed border-gray-300 rounded-xl bg-gray-50">
-          <p className="text-lg">You haven't created any projects yet.</p>
-          <p className="text-sm mt-2">Use the form above to get started!</p>
+          <p className="text-lg">No projects found matching your criteria.</p>
+          <p className="text-sm mt-2">Try adjusting your filters or create a new project!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
