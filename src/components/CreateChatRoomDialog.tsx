@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { PlusCircle, Loader2 } from "lucide-react"; // Import Loader2
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 import { Button } from "@/components/ui/button";
 import {
@@ -61,6 +62,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
   const { supabase } = useSupabase();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
+  const navigate = useNavigate(); // Initialize useNavigate
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -100,9 +102,32 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
     }
 
     const { name, type, selectedMembers } = values;
+    const membersToInclude = [currentUser.id, ...selectedMembers].sort(); // Sort for consistent comparison
 
     try {
-      const membersToInclude = [currentUser.id, ...selectedMembers];
+      if (type === 'private') {
+        // Check if a private chat room with these exact members already exists
+        const { data: existingRooms, error: existingRoomError } = await supabase
+          .from('chat_rooms')
+          .select('id')
+          .eq('type', 'private')
+          .contains('members', membersToInclude)
+          .filter('array_length(members, 1)', 'eq', membersToInclude.length);
+
+        if (existingRoomError) {
+          console.error("Error checking for existing chat room:", existingRoomError);
+          showError("Failed to check for existing chat room: " + existingRoomError.message);
+          return;
+        }
+
+        if (existingRooms && existingRooms.length > 0) {
+          showSuccess("Private chat already exists. Redirecting to existing chat.");
+          onClose();
+          navigate('/chat', { state: { activeChatRoomId: existingRooms[0].id } });
+          return;
+        }
+      }
+
       const chatRoomName = type === 'private' && selectedMembers.length > 0
         ? teamMembers
             .filter(member => selectedMembers.includes(member.id))
