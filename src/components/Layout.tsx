@@ -1,7 +1,8 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { MadeWithDyad } from './made-with-dyad'; // Import MadeWithDyad
+import { MadeWithDyad } from './made-with-dyad';
+import { NotificationBell } from './NotificationBell'; // Import NotificationBell
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,11 +23,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       ) : (
         <Sidebar />
       )}
-      <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col">
+      <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col relative"> {/* Added relative for absolute positioning */}
+        <div className="absolute top-4 right-4 z-10"> {/* Position NotificationBell */}
+          <NotificationBell />
+        </div>
         <div className="flex-grow">
           {children}
         </div>
-        <MadeWithDyad /> {/* Placed at the bottom of the main content */}
+        <MadeWithDyad />
       </main>
     </div>
   );
