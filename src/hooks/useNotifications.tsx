@@ -77,6 +77,20 @@ export const useNotifications = (filterType: NotificationFilterType = 'all') => 
           );
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUser.id}` },
+        (payload) => {
+          const deletedNotification = payload.old as Notification;
+          setNotifications((prev) => {
+            const filtered = prev.filter((n) => n.id !== deletedNotification.id);
+            if (!deletedNotification.read) {
+              setUnreadCount((prevCount) => Math.max(0, prevCount - 1));
+            }
+            return filtered;
+          });
+        }
+      )
       .subscribe();
 
     return () => {
