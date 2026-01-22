@@ -115,7 +115,7 @@ export const ProfileForm: React.FC = () => {
 
   if (isLoadingUser) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white rounded-xl shadow-lg border border-gray-200 w-full max-w-md"> {/* Added w-full max-w-md */}
+      <div className="flex items-center justify-center p-8 bg-card rounded-xl shadow-lg border border-border w-full max-w-md"> {/* Updated styling */}
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <p className="ml-3 text-lg text-gray-600">Loading profile...</p>
       </div>
@@ -123,7 +123,7 @@ export const ProfileForm: React.FC = () => {
   }
 
   return (
-    <div className="max-w-full sm:max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-lg border border-gray-200 w-full"> {/* Adjusted max-w and padding for responsiveness */}
+    <div className="max-w-full sm:max-w-2xl mx-auto p-4 sm:p-6 bg-card rounded-xl shadow-lg border border-border w-full"> {/* Updated styling */}
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">My Profile</h2>
       <div className="flex justify-center mb-6">
         <Avatar className="h-24 w-24 rounded-full border-4 border-blue-200 shadow-md">
@@ -176,7 +176,7 @@ export const ProfileForm: React.FC = () => {
           />
 
           {/* Push Notifications Section */}
-          <div className="space-y-2 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="space-y-2 p-4 border border-border rounded-lg bg-muted"> {/* Updated styling */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {isSubscribed ? (

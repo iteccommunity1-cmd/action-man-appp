@@ -71,7 +71,7 @@ export const UpcomingTasksWidget: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="rounded-xl shadow-lg border border-gray-200 h-full flex items-center justify-center p-6">
+      <Card className="rounded-xl glass-card h-full flex items-center justify-center p-6"> {/* Applied glass-card */}
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <p className="ml-3 text-lg text-gray-600">Loading tasks...</p>
       </Card>
@@ -81,14 +81,14 @@ export const UpcomingTasksWidget: React.FC = () => {
   if (isError) {
     showError("Failed to load upcoming tasks: " + error.message);
     return (
-      <Card className="rounded-xl shadow-lg border border-gray-200 h-full flex items-center justify-center p-6">
+      <Card className="rounded-xl glass-card h-full flex items-center justify-center p-6"> {/* Applied glass-card */}
         <p className="text-lg text-red-600">Error loading tasks.</p>
       </Card>
     );
   }
 
   return (
-    <Card className="rounded-xl shadow-lg border border-gray-200 h-full flex flex-col">
+    <Card className="rounded-xl glass-card h-full flex flex-col"> {/* Applied glass-card */}
       <CardHeader className="pb-4">
         <CardTitle className="text-2xl font-bold text-gray-800 flex items-center justify-between">
           Upcoming Tasks

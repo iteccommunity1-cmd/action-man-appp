@@ -86,7 +86,7 @@ const NotificationsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white rounded-xl shadow-lg border border-gray-200 w-full max-w-3xl mx-auto min-h-[400px]">
+      <div className="flex items-center justify-center p-8 bg-background rounded-xl shadow-lg border border-border w-full max-w-3xl mx-auto min-h-[400px]"> {/* Updated background */}
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <p className="ml-3 text-lg text-gray-600">Loading notifications...</p>
       </div>
@@ -94,7 +94,7 @@ const NotificationsPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 sm:p-0">
+    <div className="w-full max-w-3xl mx-auto p-4 sm:p-0 bg-background"> {/* Updated background */}
       <div className="flex items-center justify-between mb-6">
         <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Dashboard
@@ -108,7 +108,7 @@ const NotificationsPage: React.FC = () => {
         </Button>
       </div>
 
-      <Card className="rounded-xl shadow-lg border border-gray-200">
+      <Card className="rounded-xl glass-card"> {/* Applied glass-card */}
         <CardHeader className="pb-4">
           <CardTitle className="text-3xl font-bold text-gray-800 flex items-center gap-3">
             <Bell className="h-8 w-8 text-blue-600" />

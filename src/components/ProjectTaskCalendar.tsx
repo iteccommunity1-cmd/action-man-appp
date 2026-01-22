@@ -58,7 +58,7 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
   };
 
   return (
-    <Card className="rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 h-full flex flex-col">
+    <Card className="rounded-xl glass-card p-4 sm:p-6 h-full flex flex-col"> {/* Applied glass-card */}
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="rounded-full">
           <ChevronLeft className="h-5 w-5 text-gray-700" />

@@ -46,7 +46,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
   ).filter(Boolean);
 
   return (
-    <Card className="rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border-gray-200">
+    <Card className="rounded-xl glass-card"> {/* Applied glass-card */}
       <CardHeader className="pb-3">
         <CardTitle className="text-xl font-semibold text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"> {/* Adjusted for mobile stacking */}
           <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md">

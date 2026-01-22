@@ -67,8 +67,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-none sm:rounded-xl shadow-lg"> {/* Adjusted rounded corners for mobile */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-none sm:rounded-t-xl flex items-center"> {/* Adjusted rounded corners */}
+    <div className="flex flex-col h-full bg-card rounded-none sm:rounded-xl shadow-lg"> {/* Updated styling */}
+      <div className="p-4 border-b border-border bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-none sm:rounded-t-xl flex items-center"> {/* Updated styling */}
         {isMobile && onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-white hover:bg-blue-700 rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -85,7 +85,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             }`}
           >
             {message.sender_id !== currentUserId && (
-              <Avatar className="h-8 w-8 rounded-full border border-gray-200">
+              <Avatar className="h-8 w-8 rounded-full border border-border"> {/* Updated styling */}
                 <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
                 <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
                   {message.sender_name.charAt(0)}
@@ -95,8 +95,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <div
               className={`max-w-[70%] p-3 rounded-xl ${
                 message.sender_id === currentUserId
-                  ? "bg-blue-600 text-white rounded-br-none ml-2"
-                  : "bg-gray-100 text-gray-800 rounded-bl-none mr-2"
+                  ? "bg-primary text-primary-foreground rounded-br-none ml-2" // Updated styling
+                  : "bg-muted text-muted-foreground rounded-bl-none mr-2" // Updated styling
               }`}
             >
               {message.sender_id !== currentUserId && (
@@ -108,9 +108,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               </p>
             </div>
             {message.sender_id === currentUserId && (
-              <Avatar className="h-8 w-8 rounded-full border border-gray-200">
+              <Avatar className="h-8 w-8 rounded-full border border-border"> {/* Updated styling */}
                 <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
-                <AvatarFallback className="bg-blue-500 text-white text-xs">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs"> {/* Updated styling */}
                   {message.sender_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -123,10 +123,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         )}
       </ScrollArea>
-      <div className="p-4 border-t border-gray-200 flex items-center gap-2 bg-gray-50 rounded-b-none sm:rounded-b-xl"> {/* Adjusted rounded corners */}
+      <div className="p-4 border-t border-border flex items-center gap-2 bg-muted rounded-b-none sm:rounded-b-xl"> {/* Updated styling */}
         <Input
           placeholder="Type your message..."
-          className="flex-grow rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          className="flex-grow rounded-full border-border focus:border-primary focus:ring-primary bg-input text-foreground" // Updated styling
           value={newMessage}
           onChange={handleInputChange}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
@@ -134,7 +134,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <Button
           type="button"
           size="icon"
-          className="rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground" // Updated styling
           onClick={handleSend}
         >
           <Send className="h-5 w-5" />

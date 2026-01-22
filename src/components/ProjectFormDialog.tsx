@@ -224,7 +224,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   if (loadingTeamMembers) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full"> {/* Added w-full */}
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
@@ -236,7 +236,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full"> {/* Added w-full */}
+      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800">
             {isEditMode ? "Edit Project" : "Create New Project"}

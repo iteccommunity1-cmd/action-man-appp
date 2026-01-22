@@ -90,7 +90,7 @@ const ProjectDetails: React.FC = () => {
 
   if (isLoading || loadingTeamMembers) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         <p className="ml-4 text-xl text-gray-600">Loading project details...</p>
       </div>
@@ -100,7 +100,7 @@ const ProjectDetails: React.FC = () => {
   if (isError) {
     showError("Failed to load project details: " + error.message);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"> {/* Updated background */}
         <p className="text-xl text-red-600">Error loading project details. Please try again.</p>
         <Link to="/" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           Back to Projects
@@ -111,7 +111,7 @@ const ProjectDetails: React.FC = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"> {/* Updated background */}
         <p className="text-xl text-gray-600">Project not found or you do not have access.</p>
         <Link to="/" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           Back to Projects
@@ -125,7 +125,7 @@ const ProjectDetails: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen flex flex-col items-center bg-background p-4 sm:p-6 lg:p-8"> {/* Updated background */}
       <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"> {/* Adjusted for mobile stacking */}
         <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
@@ -147,7 +147,7 @@ const ProjectDetails: React.FC = () => {
         </div>
       </div>
 
-      <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200 mb-8">
+      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8"> {/* Applied glass-card */}
         <CardHeader className="pb-4">
           <CardTitle className="text-3xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"> {/* Adjusted for mobile stacking */}
             {project.title}

@@ -27,7 +27,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 export const ProjectStatusChart: React.FC<ProjectStatusChartProps> = ({ data }) => {
   return (
-    <Card className="rounded-xl shadow-lg border border-gray-200 h-full flex flex-col">
+    <Card className="rounded-xl glass-card h-full flex flex-col"> {/* Applied glass-card */}
       <CardHeader className="pb-4">
         <CardTitle className="text-2xl font-bold text-gray-800">Project Status Overview</CardTitle>
       </CardHeader>

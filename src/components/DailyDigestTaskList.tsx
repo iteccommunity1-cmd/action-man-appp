@@ -184,7 +184,7 @@ export const DailyDigestTaskList: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 gap-4"> {/* Ensure grid is single column on mobile */}
           {tasks!.map((task) => (
-            <Card key={task.id} className="rounded-xl shadow-sm border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <Card key={task.id} className="rounded-xl glass-card"> {/* Applied glass-card */}
               <CardContent className="p-4 flex items-start space-x-4">
                 <Checkbox
                   checked={task.status === 'completed'}

@@ -142,11 +142,12 @@ export const DashboardOverview: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0">
+    <div className="flex flex-col items-center w-full max-w-7xl gap-6 p-4 sm:p-0"> {/* Adjusted gap */}
       <WelcomeCard /> {/* Replaced static welcome message with dynamic WelcomeCard */}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
-        <Card className="rounded-xl shadow-md border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full"> {/* Bento grid layout */}
+        {/* KPI Cards */}
+        <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">Total Projects</CardTitle>
             <LayoutDashboard className="h-5 w-5 text-blue-600" />
@@ -156,7 +157,7 @@ export const DashboardOverview: React.FC = () => {
             <p className="text-xs text-muted-foreground mt-1">All projects you've created</p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-md border-gray-200 bg-gradient-to-br from-green-50 to-teal-50">
+        <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">Completed Projects</CardTitle>
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -166,7 +167,7 @@ export const DashboardOverview: React.FC = () => {
             <p className="text-xs text-muted-foreground mt-1">Projects marked as finished</p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl shadow-md border-gray-200 bg-gradient-to-br from-red-50 to-orange-50">
+        <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">Overdue Tasks</CardTitle>
             <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -176,20 +177,18 @@ export const DashboardOverview: React.FC = () => {
             <p className="text-xs text-muted-foreground mt-1">Tasks past their due date</p>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-8">
-        <div className="w-full">
-          <ProjectStatusChart data={dashboardData?.projectStatusCounts || []} />
-        </div>
-        <div className="w-full">
+        <div className="col-span-1 md:col-span-2 lg:col-span-1"> {/* Adjusted span for better flow */}
           <UpcomingTasksWidget />
         </div>
       </div>
 
-      <div className="w-full mb-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Calendar</h3>
-        <ProjectTaskCalendar events={dashboardData?.calendarEvents || []} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full"> {/* Bento grid for charts and calendar */}
+        <div className="lg:col-span-2">
+          <ProjectTaskCalendar events={dashboardData?.calendarEvents || []} />
+        </div>
+        <div className="lg:col-span-1">
+          <ProjectStatusChart data={dashboardData?.projectStatusCounts || []} />
+        </div>
       </div>
 
       <div className="w-full">
