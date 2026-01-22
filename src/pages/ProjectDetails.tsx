@@ -17,7 +17,8 @@ import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { MilestoneList } from '@/components/MilestoneList';
 import { GoalList } from '@/components/GoalList';
-import { MetricList } from '@/components/MetricList'; // Import MetricList
+import { MetricList } from '@/components/MetricList';
+import { ProjectFilesList } from '@/components/ProjectFilesList'; // Import ProjectFilesList
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -215,6 +216,11 @@ const ProjectDetails: React.FC = () => {
       {/* Metrics (KPIs, etc.) Section */}
       <div className="w-full max-w-3xl mx-auto mb-8">
         <MetricList projectId={project.id} />
+      </div>
+
+      {/* Project Files Section */}
+      <div className="w-full max-w-3xl mx-auto mb-8">
+        <ProjectFilesList projectId={project.id} />
       </div>
 
       <TaskFormDialog
