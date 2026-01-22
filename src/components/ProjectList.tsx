@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Project } from '@/types/project';
@@ -45,7 +45,8 @@ export const ProjectList: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<ProjectStatus>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  const queryKey = ['projects', currentUser?.id, filterStatus, sortOrder];
+  // Memoize queryKey to ensure its reference stability
+  const queryKey = useMemo(() => ['projects', currentUser?.id, filterStatus, sortOrder], [currentUser?.id, filterStatus, sortOrder]);
 
   const { data: projects, isLoading, isError, error } = useQuery<Project[], Error>({
     queryKey: queryKey,
@@ -131,8 +132,7 @@ export const ProjectList: React.FC = () => {
     return () => {
       supabase.removeChannel(projectsChannel);
     };
-  }, [supabase, currentUser?.id, queryClient, filterStatus, sortOrder, queryKey]);
-
+  }, [supabase, currentUser?.id, queryClient, queryKey]); // Updated dependencies
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
@@ -172,7 +172,6 @@ export const ProjectList: React.FC = () => {
       } else {
         showSuccess("Project deleted successfully!");
         // No need to invalidateQueries here, real-time listener will handle it
-        // queryClient.invalidateQueries({ queryKey: ['projects'] });
 
         // Send notifications to all assigned members (excluding the current user)
         const projectDeleter = currentUser;
@@ -221,7 +220,6 @@ export const ProjectList: React.FC = () => {
       } else {
         showSuccess(`Project status updated to "${newStatus.replace('-', ' ')}"!`);
         // No need to invalidateQueries here, real-time listener will handle it
-        // queryClient.invalidateQueries({ queryKey: ['projects'] });
 
         // Send notifications to all assigned members (excluding the current user)
         const projectUpdater = currentUser;
@@ -252,14 +250,12 @@ export const ProjectList: React.FC = () => {
   const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
     setEditingProject(null);
-    // No need to invalidateQueries here, real-time listener will handle it
-    // queryClient.invalidateQueries({ queryKey: ['projects'] });
+    queryClient.invalidateQueries({ queryKey: queryKey }); // Use memoized queryKey
   };
 
   const handleCreateDialogClose = () => {
     setIsCreateProjectDialogOpen(false);
-    // No need to invalidateQueries here, real-time listener will handle it
-    // queryClient.invalidateQueries({ queryKey: ['projects'] });
+    queryClient.invalidateQueries({ queryKey: queryKey }); // Use memoized queryKey
   };
 
   if (isLoading) {
@@ -346,13 +342,13 @@ export const ProjectList: React.FC = () => {
         project={editingProject}
         isOpen={isEditDialogOpen}
         onClose={handleEditDialogClose}
-        onSave={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+        onSave={() => queryClient.invalidateQueries({ queryKey: queryKey })}
       />
 
       <ProjectFormDialog
         isOpen={isCreateProjectDialogOpen}
         onClose={handleCreateDialogClose}
-        onSave={() => queryClient.invalidateQueries({ queryKey: ['projects'] })}
+        onSave={() => queryClient.invalidateQueries({ queryKey: queryKey })}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
