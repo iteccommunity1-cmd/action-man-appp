@@ -4,7 +4,9 @@ import { useUser } from '@/contexts/UserContext';
 import { Notification } from '@/types/notification';
 import { showError } from '@/utils/toast';
 
-export const useNotifications = () => {
+type NotificationFilterType = Notification['type'] | 'all';
+
+export const useNotifications = (filterType: NotificationFilterType = 'all') => {
   const { currentUser } = useUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -18,11 +20,16 @@ export const useNotifications = () => {
 
     const fetchNotifications = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
+        .eq('user_id', currentUser.id);
+
+      if (filterType !== 'all') {
+        query = query.eq('type', filterType);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error("[useNotifications] Error fetching notifications:", error);
@@ -37,15 +44,19 @@ export const useNotifications = () => {
     fetchNotifications();
 
     // Realtime subscription for new notifications
+    // Note: Realtime subscriptions don't support filtering by 'type' directly in the filter clause
+    // so we'll filter in client-side for new inserts/updates if a filter is active.
     const channel = supabase
-      .channel(`notifications_for_user_${currentUser.id}`)
+      .channel(`notifications_for_user_${currentUser.id}_${filterType}`) // Unique channel name for filter
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUser.id}` },
         (payload) => {
           const newNotification = payload.new as Notification;
-          setNotifications((prev) => [newNotification, ...prev]);
-          setUnreadCount((prev) => prev + 1);
+          if (filterType === 'all' || newNotification.type === filterType) { // Client-side filter
+            setNotifications((prev) => [newNotification, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+          }
         }
       )
       .on(
@@ -53,9 +64,14 @@ export const useNotifications = () => {
         { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUser.id}` },
         (payload) => {
           const updatedNotification = payload.new as Notification;
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n))
-          );
+          setNotifications((prev) => {
+            const updated = prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n));
+            // If filter is active, ensure updated notification still matches or remove it
+            if (filterType !== 'all' && updatedNotification.type !== filterType) {
+              return updated.filter(n => n.id !== updatedNotification.id);
+            }
+            return updated;
+          });
           setUnreadCount((prev) =>
             updatedNotification.read ? Math.max(0, prev - 1) : prev + 1
           );
@@ -66,7 +82,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentUser?.id]);
+  }, [supabase, currentUser?.id, filterType]);
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase
@@ -77,6 +93,20 @@ export const useNotifications = () => {
     if (error) {
       console.error("[useNotifications] Error marking notification as read:", error);
       showError("Failed to mark notification as read.");
+    } else {
+      // State will be updated via real-time subscription
+    }
+  };
+
+  const markAsUnread = async (notificationId: string) => {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: false })
+      .eq('id', notificationId);
+
+    if (error) {
+      console.error("[useNotifications] Error marking notification as unread:", error);
+      showError("Failed to mark notification as unread.");
     } else {
       // State will be updated via real-time subscription
     }
@@ -99,5 +129,5 @@ export const useNotifications = () => {
     }
   };
 
-  return { notifications, unreadCount, loading, markAsRead, markAllAsRead };
+  return { notifications, unreadCount, loading, markAsRead, markAsUnread, markAllAsRead };
 };
