@@ -15,7 +15,8 @@ import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
-import { MilestoneList } from '@/components/MilestoneList'; // Import MilestoneList
+import { MilestoneList } from '@/components/MilestoneList';
+import { GoalList } from '@/components/GoalList'; // Import GoalList
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -205,15 +206,10 @@ const ProjectDetails: React.FC = () => {
         <MilestoneList projectId={project.id} />
       </div>
 
-      {/* Placeholder for Goals */}
-      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">Goals</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Goals tracking coming soon!</p>
-        </CardContent>
-      </Card>
+      {/* Goals Section */}
+      <div className="w-full max-w-3xl mx-auto mb-8">
+        <GoalList projectId={project.id} />
+      </div>
 
       {/* Placeholder for Metrics (KPIs, etc.) */}
       <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
