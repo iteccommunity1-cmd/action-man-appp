@@ -340,7 +340,7 @@ export const ChatLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+    <div className="flex flex-grow min-h-screen sm:min-h-[500px] w-full max-w-6xl mx-auto rounded-none sm:rounded-xl shadow-none sm:shadow-2xl overflow-hidden border-none sm:border border-gray-200"> {/* Adjusted rounded corners and shadow for mobile */}
       {/* Mobile: Show ChatRoomList if no active room, else show ChatWindow */}
       {isMobile ? (
         activeChatRoomId ? (
@@ -370,7 +370,7 @@ export const ChatLayout: React.FC = () => {
                 onSelectChatRoom={setActiveChatRoomId}
               />
             </div>
-            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-b-xl"> {/* Adjusted rounded corners */}
+            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-b-none sm:rounded-b-xl"> {/* Adjusted rounded corners */}
               <Button
                 onClick={() => setIsCreateRoomDialogOpen(true)}
                 className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"

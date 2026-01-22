@@ -15,7 +15,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
   onSelectChatRoom,
 }) => {
   return (
-    <div className="flex flex-col h-full bg-sidebar rounded-l-xl sm:rounded-xl border-r sm:border-r-0 border-sidebar-border overflow-y-auto"> {/* Adjusted rounded corners and border for mobile */}
+    <div className="flex flex-col h-full bg-sidebar rounded-none sm:rounded-xl border-r-0 sm:border-r border-sidebar-border overflow-y-auto"> {/* Adjusted rounded corners and border for mobile */}
       <div className="p-4 border-b border-sidebar-border">
         <h3 className="text-xl font-semibold text-sidebar-foreground">Chatrooms</h3>
       </div>

@@ -123,7 +123,7 @@ export const ProfileForm: React.FC = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200 w-full"> {/* Added w-full */}
+    <div className="max-w-full sm:max-w-2xl mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-lg border border-gray-200 w-full"> {/* Adjusted max-w and padding for responsiveness */}
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">My Profile</h2>
       <div className="flex justify-center mb-6">
         <Avatar className="h-24 w-24 rounded-full border-4 border-blue-200 shadow-md">

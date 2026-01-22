@@ -229,7 +229,7 @@ export const ProjectList: React.FC = () => {
           <p className="text-sm mt-2">Click "Create New Project" to get started!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Adjusted grid for responsiveness */}
           {projects!.map((project) => (
             <ProjectCard
               key={project.id}

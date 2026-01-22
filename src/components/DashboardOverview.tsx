@@ -118,7 +118,7 @@ export const DashboardOverview: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0">
+    <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0"> {/* Adjusted padding for mobile */}
       <div className="w-full bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-4">
         <h2 className="text-4xl font-bold text-gray-800 mb-2">
           Hello, {currentUser?.name || 'User'}!

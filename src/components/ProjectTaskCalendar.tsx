@@ -108,7 +108,7 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
                   </div>
                 </PopoverTrigger>
                 {dayEvents.length > 0 && (
-                  <PopoverContent className="w-80 p-0 rounded-xl shadow-lg border border-gray-200">
+                  <PopoverContent className="w-full sm:w-80 p-0 rounded-xl shadow-lg border border-gray-200"> {/* Adjusted width for mobile */}
                     <div className="p-4 border-b border-gray-200">
                       <h4 className="font-semibold text-lg text-gray-800">Events on {format(day, 'PPP')}</h4>
                     </div>

@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Sidebar is always rendered, but its visibility is controlled internally by useIsMobile and Sheet */}
       <Sidebar />
-      <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col relative">
+      <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col relative"> {/* Adjusted padding: p-4 for mobile, sm:p-6, lg:p-8 for larger screens */}
         <div className="absolute top-4 right-4 z-10">
           <NotificationBell />
         </div>

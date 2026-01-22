@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   };
 
   const renderSidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 rounded-l-xl">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 rounded-l-xl sm:rounded-none"> {/* Adjusted rounded corners for mobile sheet */}
       <div className="flex items-center justify-center p-4 border-b border-sidebar-border mb-6">
         <h1 className="text-2xl font-bold text-sidebar-primary">Dyad App</h1>
       </div>

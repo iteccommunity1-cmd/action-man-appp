@@ -109,9 +109,9 @@ export const UpcomingTasksWidget: React.FC = () => {
           <div className="space-y-4">
             {tasks!.map((task: Task) => (
               <Link to={`/projects/${task.project_id}`} key={task.id} className="block hover:bg-gray-50 rounded-lg transition-colors duration-200 p-3 -mx-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between"> {/* Adjusted for mobile stacking */}
                   <p className="font-medium text-gray-800 text-base">{task.title}</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mt-1 sm:mt-0"> {/* Adjusted margin for mobile */}
                     <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getPriorityBadgeColor(task.priority))}>
                       {getPriorityLabel(task.priority)}
                     </Badge>

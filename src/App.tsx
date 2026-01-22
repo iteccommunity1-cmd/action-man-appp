@@ -21,7 +21,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4"> {/* Added p-4 for mobile padding */}
         <p className="text-lg text-gray-600">Loading user session...</p>
       </div>
     );

@@ -67,8 +67,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-r-xl shadow-lg sm:rounded-xl"> {/* Adjusted rounded corners for mobile */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-xl sm:rounded-t-xl flex items-center"> {/* Adjusted rounded corners */}
+    <div className="flex flex-col h-full bg-white rounded-none sm:rounded-xl shadow-lg"> {/* Adjusted rounded corners for mobile */}
+      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-none sm:rounded-t-xl flex items-center"> {/* Adjusted rounded corners */}
         {isMobile && onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-white hover:bg-blue-700 rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -123,7 +123,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         )}
       </ScrollArea>
-      <div className="p-4 border-t border-gray-200 flex items-center gap-2 bg-gray-50 rounded-br-xl sm:rounded-b-xl"> {/* Adjusted rounded corners */}
+      <div className="p-4 border-t border-gray-200 flex items-center gap-2 bg-gray-50 rounded-b-none sm:rounded-b-xl"> {/* Adjusted rounded corners */}
         <Input
           placeholder="Type your message..."
           className="flex-grow rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
