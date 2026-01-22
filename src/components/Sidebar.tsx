@@ -7,10 +7,11 @@ import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
-  onLinkClick?: () => void; // New optional prop for closing the sidebar
+  isSidebarOpen: boolean; // New prop to control open/closed state
+  onLinkClick?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) => {
   const { currentUser, signOut } = useUser();
   const location = useLocation();
 
@@ -24,32 +25,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
   const handleSignOut = async () => {
     await signOut();
     if (onLinkClick) {
-      onLinkClick(); // Close sidebar after sign out
+      onLinkClick();
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 bg-dot-pattern">
-      <div className="flex items-center justify-center p-4 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
+    <div
+      className={cn(
+        "flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 bg-dot-pattern transition-all duration-300 ease-in-out",
+        isSidebarOpen ? "w-full" : "w-[72px] items-center" // Adjust width and alignment
+      )}
+    >
+      <div className={cn("flex items-center p-4 border-b border-sidebar-border", isSidebarOpen ? "justify-center" : "justify-center")}>
+        {isSidebarOpen ? (
+          <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
+        ) : (
+          <Home className="h-7 w-7 text-sidebar-primary" /> // Icon when collapsed
+        )}
       </div>
 
       {currentUser && (
-        <div className="flex items-center gap-3 p-3 mb-6 bg-sidebar-accent rounded-lg">
+        <div className={cn("flex gap-3 p-3 mb-6 bg-sidebar-accent rounded-lg", isSidebarOpen ? "items-center" : "flex-col items-center")}>
           <Avatar className="h-10 w-10 border-2 border-sidebar-primary">
             <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
             <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
               {currentUser.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-sidebar-primary-foreground text-base">{currentUser.name}</span>
-            <span className="text-xs text-muted-foreground">{currentUser.email}</span>
-          </div>
+          {isSidebarOpen && (
+            <div className="flex flex-col">
+              <span className="font-semibold text-sidebar-primary-foreground text-base">{currentUser.name}</span>
+              <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+            </div>
+          )}
         </div>
       )}
 
-      <nav className="flex-grow space-y-2">
+      <nav className="flex-grow space-y-2 w-full">
         {navItems.map((item) => (
           <Link
             key={item.label}
@@ -58,24 +70,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
               "flex items-center gap-3 p-3 rounded-lg transition-colors duration-200",
               location.pathname === item.href
                 ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              !isSidebarOpen && "justify-center" // Center icon when collapsed
             )}
-            onClick={onLinkClick} // Call onLinkClick when a navigation link is clicked
+            onClick={onLinkClick}
           >
             <item.icon className="h-5 w-5" />
-            <span className="font-medium">{item.label}</span>
+            {isSidebarOpen && <span className="font-medium">{item.label}</span>}
           </Link>
         ))}
       </nav>
 
-      <div className="mt-auto pt-4 border-t border-sidebar-border">
+      <div className="mt-auto pt-4 border-t border-sidebar-border w-full">
         <Button
           onClick={handleSignOut}
           variant="ghost"
-          className="w-full justify-start text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg"
+          className={cn(
+            "w-full justify-start text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg",
+            !isSidebarOpen && "justify-center" // Center icon when collapsed
+          )}
         >
-          <LogOut className="h-5 w-5 mr-3" />
-          Logout
+          <LogOut className="h-5 w-5" />
+          {isSidebarOpen && <span className="ml-3">Logout</span>}
         </Button>
       </div>
     </div>

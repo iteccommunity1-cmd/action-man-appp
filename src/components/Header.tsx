@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
 import { ChevronLeft, Home, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,11 @@ import { NotificationBell } from './NotificationBell';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from './Sidebar';
-import { useQuery } from '@tanstack/react-query'; // Import useQuery for fetching dynamic titles
-import { supabase } from '@/integrations/supabase/client'; // Import supabase
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const routeNameMap: Record<string, string> = {
-  '': 'Dashboard', // For '/'
+  '': 'Dashboard',
   'chat': 'Chat',
   'projects': 'Projects',
   'profile': 'Profile',
@@ -18,29 +18,30 @@ const routeNameMap: Record<string, string> = {
   'notifications': 'Notifications',
 };
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to control sidebar visibility
 
   const showBackButton = location.pathname !== '/';
 
-  // Logic to determine current page title
   const pathnames = location.pathname.split('/').filter((x) => x);
-  let currentPageTitle = routeNameMap['']; // Default to Dashboard
+  let currentPageTitle = routeNameMap[''];
 
-  // Determine the main title for the current page
   if (pathnames.length > 0) {
     const lastSegment = pathnames[pathnames.length - 1];
     currentPageTitle = routeNameMap[lastSegment] || lastSegment;
 
-    // If it's a project details page, fetch the project title
     if (lastSegment === params.id && pathnames[pathnames.length - 2] === 'projects') {
       const projectId = params.id;
       const { data: fetchedProjectTitle } = useQuery<string, Error>({
-        queryKey: ['projectTitle', projectId], // Reuse the query key from breadcrumbs
+        queryKey: ['projectTitle', projectId],
         queryFn: async () => {
           if (!projectId) return 'Unknown Project';
           const { data, error } = await supabase
@@ -63,17 +64,21 @@ export const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm bg-dot-pattern">
       <div className="flex items-center gap-2">
-        {isMobile && (
-          <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+        {isMobile ? (
+          <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar}> {/* Use isSidebarOpen and toggleSidebar from Layout */}
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-primary/20">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar onLinkClick={() => setIsSidebarOpen(false)} />
+              <Sidebar isSidebarOpen={true} onLinkClick={toggleSidebar} /> {/* Always open inside sheet, toggleSheet on link click */}
             </SheetContent>
           </Sheet>
+        ) : (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="rounded-full text-foreground hover:bg-primary/20">
+            <Menu className="h-6 w-6" />
+          </Button>
         )}
         {showBackButton && (
           <Button
