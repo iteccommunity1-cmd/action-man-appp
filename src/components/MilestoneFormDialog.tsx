@@ -39,7 +39,6 @@ import { showSuccess, showError } from "@/utils/toast";
 import { Milestone } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-// import { useTeamMembers } from '@/hooks/useTeamMembers'; // No longer needed
 import { sendNotification } from '@/utils/notifications';
 
 const formSchema = z.object({
@@ -65,7 +64,6 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
   onClose,
 }) => {
   const { currentUser } = useUser();
-  // const { teamMembers } = useTeamMembers(); // Removed as it's not directly used
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
