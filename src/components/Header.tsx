@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
 import { ChevronLeft, Home, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const params = useParams();
   const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State to control sidebar visibility
 
   const showBackButton = location.pathname !== '/';
 
@@ -63,14 +64,14 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm bg-dot-pattern">
       <div className="flex items-center gap-2">
         {isMobile && (
-          <Sheet>
+          <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-primary/20">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar />
+              <Sidebar onLinkClick={() => setIsSidebarOpen(false)} />
             </SheetContent>
           </Sheet>
         )}

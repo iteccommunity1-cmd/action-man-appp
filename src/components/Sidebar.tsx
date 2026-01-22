@@ -6,15 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/lib/utils';
 
-// Removed SheetContent import as it's no longer directly rendered here.
-
 interface SidebarProps {
-  // No longer needs onLinkClick
+  onLinkClick?: () => void; // New optional prop for closing the sidebar
 }
 
-export const Sidebar: React.FC<SidebarProps> = () => {
+export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick }) => {
   const { currentUser, signOut } = useUser();
-  // Removed useIsMobile as this component will now be rendered by parents who decide its context.
   const location = useLocation();
 
   const navItems = [
@@ -26,6 +23,9 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    if (onLinkClick) {
+      onLinkClick(); // Close sidebar after sign out
+    }
   };
 
   return (
@@ -60,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )}
+            onClick={onLinkClick} // Call onLinkClick when a navigation link is clicked
           >
             <item.icon className="h-5 w-5" />
             <span className="font-medium">{item.label}</span>
