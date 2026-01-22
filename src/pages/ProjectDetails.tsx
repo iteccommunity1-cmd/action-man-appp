@@ -16,7 +16,8 @@ import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { MilestoneList } from '@/components/MilestoneList';
-import { GoalList } from '@/components/GoalList'; // Import GoalList
+import { GoalList } from '@/components/GoalList';
+import { MetricList } from '@/components/MetricList'; // Import MetricList
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -211,15 +212,10 @@ const ProjectDetails: React.FC = () => {
         <GoalList projectId={project.id} />
       </div>
 
-      {/* Placeholder for Metrics (KPIs, etc.) */}
-      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">Metrics & KPIs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Key Performance Indicators and other metrics tracking coming soon!</p>
-        </CardContent>
-      </Card>
+      {/* Metrics (KPIs, etc.) Section */}
+      <div className="w-full max-w-3xl mx-auto mb-8">
+        <MetricList projectId={project.id} />
+      </div>
 
       <TaskFormDialog
         projectId={project.id}
