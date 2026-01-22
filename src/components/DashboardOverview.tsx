@@ -8,28 +8,31 @@ import { Loader2, LayoutDashboard, CheckCircle, AlertTriangle } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import { isPast } from 'date-fns';
+import { ProjectTaskCalendar } from './ProjectTaskCalendar'; // Import the new calendar component
+import { CalendarEvent } from '@/types/calendar'; // Import the new CalendarEvent type
 
 export const DashboardOverview: React.FC = () => {
   const { currentUser, isLoadingUser } = useUser();
 
-  const { data: stats, isLoading: isLoadingStats, isError: isStatsError, error: statsError } = useQuery<{
+  const { data: dashboardData, isLoading: isLoadingDashboard, isError: isDashboardError, error: dashboardError } = useQuery<{
     totalProjects: number;
     completedProjects: number;
     overdueTasks: number;
+    calendarEvents: CalendarEvent[];
   }, Error>({
-    queryKey: ['dashboardStats', currentUser?.id],
+    queryKey: ['dashboardData', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) {
         throw new Error("User not logged in.");
       }
 
       // Fetch total projects
-      const { count: totalProjectsCount, error: projectsError } = await supabase
+      const { count: totalProjectsCount, error: projectsCountError } = await supabase
         .from('projects')
         .select('id', { count: 'exact' })
         .eq('user_id', currentUser.id);
 
-      if (projectsError) throw projectsError;
+      if (projectsCountError) throw projectsCountError;
 
       // Fetch completed projects
       const { count: completedProjectsCount, error: completedProjectsError } = await supabase
@@ -40,29 +43,63 @@ export const DashboardOverview: React.FC = () => {
 
       if (completedProjectsError) throw completedProjectsError;
 
-      // Fetch all non-completed tasks for the user to calculate overdue tasks client-side
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select('due_date, status')
-        .or(`user_id.eq.${currentUser.id},assigned_to.eq.${currentUser.id}`)
-        .neq('status', 'completed');
+      // Fetch all projects for calendar
+      const { data: projectsData, error: projectsDataError } = await supabase
+        .from('projects')
+        .select('id, title, deadline, status')
+        .eq('user_id', currentUser.id);
 
-      if (tasksError) throw tasksError;
+      if (projectsDataError) throw projectsDataError;
+
+      // Fetch all tasks for calendar and overdue calculation
+      const { data: tasksData, error: tasksDataError } = await supabase
+        .from('tasks')
+        .select('id, title, due_date, status, project_id')
+        .or(`user_id.eq.${currentUser.id},assigned_to.eq.${currentUser.id}`);
+
+      if (tasksDataError) throw tasksDataError;
 
       const overdueTasksCount = (tasksData || []).filter(task =>
         task.due_date && isPast(new Date(task.due_date)) && task.status !== 'completed'
       ).length;
 
+      const calendarEvents: CalendarEvent[] = [];
+
+      (projectsData || []).forEach(project => {
+        calendarEvents.push({
+          id: project.id,
+          title: project.title,
+          date: new Date(project.deadline),
+          type: 'project',
+          status: project.status,
+          link: `/projects/${project.id}`
+        });
+      });
+
+      (tasksData || []).forEach(task => {
+        if (task.due_date) {
+          calendarEvents.push({
+            id: task.id,
+            title: task.title,
+            date: new Date(task.due_date),
+            type: 'task',
+            status: task.status,
+            link: `/projects/${task.project_id}`
+          });
+        }
+      });
+
       return {
         totalProjects: totalProjectsCount || 0,
         completedProjects: completedProjectsCount || 0,
         overdueTasks: overdueTasksCount,
+        calendarEvents,
       };
     },
     enabled: !!currentUser?.id && !isLoadingUser,
   });
 
-  if (isLoadingUser || isLoadingStats) {
+  if (isLoadingUser || isLoadingDashboard) {
     return (
       <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-white rounded-xl shadow-lg border border-gray-200">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
@@ -71,8 +108,8 @@ export const DashboardOverview: React.FC = () => {
     );
   }
 
-  if (isStatsError) {
-    showError("Failed to load dashboard statistics: " + statsError.message);
+  if (isDashboardError) {
+    showError("Failed to load dashboard statistics: " + dashboardError.message);
     return (
       <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-white rounded-xl shadow-lg border border-gray-200">
         <p className="text-xl text-red-600">Error loading dashboard statistics.</p>
@@ -96,7 +133,7 @@ export const DashboardOverview: React.FC = () => {
             <LayoutDashboard className="h-5 w-5 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{stats?.totalProjects}</div>
+            <div className="text-3xl font-bold text-gray-900">{dashboardData?.totalProjects}</div>
             <p className="text-xs text-muted-foreground mt-1">All projects you've created</p>
           </CardContent>
         </Card>
@@ -106,7 +143,7 @@ export const DashboardOverview: React.FC = () => {
             <CheckCircle className="h-5 w-5 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{stats?.completedProjects}</div>
+            <div className="text-3xl font-bold text-gray-900">{dashboardData?.completedProjects}</div>
             <p className="text-xs text-muted-foreground mt-1">Projects marked as finished</p>
           </CardContent>
         </Card>
@@ -116,10 +153,15 @@ export const DashboardOverview: React.FC = () => {
             <AlertTriangle className="h-5 w-5 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{stats?.overdueTasks}</div>
+            <div className="text-3xl font-bold text-gray-900">{dashboardData?.overdueTasks}</div>
             <p className="text-xs text-muted-foreground mt-1">Tasks past their due date</p>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="w-full mb-8">
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Calendar</h3>
+        <ProjectTaskCalendar events={dashboardData?.calendarEvents || []} />
       </div>
 
       <div className="flex flex-col lg:flex-row items-start justify-center w-full gap-8">
