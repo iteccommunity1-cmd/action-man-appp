@@ -1,19 +1,63 @@
 import React from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { ChevronLeft, Home } from 'lucide-react';
+import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
+import { ChevronLeft, Home, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from './NotificationBell';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import { Sidebar } from './Sidebar'; // Import Sidebar for mobile menu
+import { Sidebar } from './Sidebar';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery for fetching dynamic titles
+import { supabase } from '@/integrations/supabase/client'; // Import supabase
+
+const routeNameMap: Record<string, string> = {
+  '': 'Dashboard', // For '/'
+  'chat': 'Chat',
+  'projects': 'Projects',
+  'profile': 'Profile',
+  'daily-digest': 'Daily Digest',
+  'notifications': 'Notifications',
+};
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   const isMobile = useIsMobile();
 
   const showBackButton = location.pathname !== '/';
+
+  // Logic to determine current page title
+  const pathnames = location.pathname.split('/').filter((x) => x);
+  let currentPageTitle = routeNameMap['']; // Default to Dashboard
+
+  // Determine the main title for the current page
+  if (pathnames.length > 0) {
+    const lastSegment = pathnames[pathnames.length - 1];
+    currentPageTitle = routeNameMap[lastSegment] || lastSegment;
+
+    // If it's a project details page, fetch the project title
+    if (lastSegment === params.id && pathnames[pathnames.length - 2] === 'projects') {
+      const projectId = params.id;
+      const { data: fetchedProjectTitle } = useQuery<string, Error>({
+        queryKey: ['projectTitle', projectId], // Reuse the query key from breadcrumbs
+        queryFn: async () => {
+          if (!projectId) return 'Unknown Project';
+          const { data, error } = await supabase
+            .from('projects')
+            .select('title')
+            .eq('id', projectId)
+            .single();
+          if (error) {
+            console.error("[Header] Error fetching project title:", error);
+            return 'Unknown Project';
+          }
+          return data?.title || 'Unknown Project';
+        },
+        enabled: !!projectId,
+      });
+      currentPageTitle = fetchedProjectTitle || 'Loading...';
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm">
@@ -26,7 +70,7 @@ export const Header: React.FC = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar /> {/* Sidebar is now rendered directly here */}
+              <Sidebar />
             </SheetContent>
           </Sheet>
         )}
@@ -40,8 +84,10 @@ export const Header: React.FC = () => {
             <ChevronLeft className="h-6 w-6" />
           </Button>
         )}
-        <h1 className="text-xl font-bold text-foreground">Action Manager</h1>
       </div>
+      <h1 className="text-xl font-bold text-foreground absolute left-1/2 -translate-x-1/2">
+        {currentPageTitle}
+      </h1>
       <div className="flex items-center gap-4">
         <NotificationBell />
         <Link to="/">
