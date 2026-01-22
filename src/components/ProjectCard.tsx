@@ -122,8 +122,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
               <span className="text-sm text-muted-foreground">No members assigned</span>
             )}
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
     </Card>
   );
 };

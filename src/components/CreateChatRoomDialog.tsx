@@ -197,7 +197,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
   if (loadingTeamMembers) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground">
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground glass-card">
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="ml-3 text-lg text-muted-foreground">Loading team members...</p>
@@ -209,7 +209,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground">
+      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground glass-card">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">Create New Chat Room</DialogTitle>
           <DialogDescription className="text-muted-foreground">

@@ -104,7 +104,7 @@ const NotificationsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8 bg-background rounded-xl shadow-lg border border-border w-full max-w-3xl mx-auto min-h-[400px]">
+      <div className="flex items-center justify-center p-8 bg-background rounded-xl shadow-lg border border-border w-full max-w-3xl mx-auto min-h-[400px] glass-card">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="ml-3 text-lg text-muted-foreground">Loading notifications...</p>
       </div>
@@ -213,7 +213,7 @@ const NotificationsPage: React.FC = () => {
       </Card>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground glass-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">

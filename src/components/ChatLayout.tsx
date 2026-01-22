@@ -324,7 +324,7 @@ export const ChatLayout: React.FC = () => {
 
   if (overallLoading) {
     return (
-      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card"> {/* Updated styling */}
+      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card glass-card"> {/* Updated styling */}
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         <p className="ml-4 text-xl text-gray-600">Loading chat rooms and team members...</p>
       </div>
@@ -333,14 +333,14 @@ export const ChatLayout: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card"> {/* Updated styling */}
+      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card glass-card"> {/* Updated styling */}
         <p className="text-lg text-red-600">User not authenticated for chat.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-grow min-h-screen sm:min-h-[500px] w-full max-w-6xl mx-auto rounded-none sm:rounded-xl shadow-none sm:shadow-2xl overflow-hidden border-none sm:border border-border"> {/* Adjusted rounded corners and shadow for mobile */}
+    <div className="flex flex-grow min-h-screen sm:min-h-[500px] w-full max-w-6xl mx-auto rounded-none sm:rounded-xl shadow-none sm:shadow-2xl overflow-hidden border-none sm:border border-border glass-card"> {/* Adjusted rounded corners and shadow for mobile */}
       {/* Mobile: Show ChatRoomList if no active room, else show ChatWindow */}
       {isMobile ? (
         activeChatRoomId ? (

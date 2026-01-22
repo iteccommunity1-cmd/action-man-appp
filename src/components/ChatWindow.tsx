@@ -67,7 +67,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-none sm:rounded-xl shadow-lg"> {/* Updated styling */}
+    <div className="flex flex-col h-full bg-card rounded-none sm:rounded-xl shadow-lg glass-card"> {/* Updated styling */}
       <div className="p-4 border-b border-border bg-gradient-to-r from-primary to-blue-600 text-primary-foreground rounded-t-none sm:rounded-t-xl flex items-center"> {/* Updated styling */}
         {isMobile && onBack && (
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-primary-foreground hover:bg-primary/80 rounded-full">
