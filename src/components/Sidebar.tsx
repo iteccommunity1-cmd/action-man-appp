@@ -1,21 +1,21 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Import useLocation
-import { Home, MessageCircle, User, LogOut, ListTodo } from 'lucide-react'; // Removed Menu icon
+import { Link, useLocation } from 'react-router-dom';
+import { Home, MessageCircle, User, LogOut, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { SheetContent } from '@/components/ui/sheet'; // Only SheetContent is needed here now
+
+// Removed SheetContent import as it's no longer directly rendered here.
 
 interface SidebarProps {
-  // onLinkClick?: () => void; // Removed as it's no longer needed
+  // No longer needs onLinkClick
 }
 
 export const Sidebar: React.FC<SidebarProps> = () => {
   const { currentUser, signOut } = useUser();
-  const isMobile = useIsMobile();
-  const location = useLocation(); // Use useLocation to get current path
+  // Removed useIsMobile as this component will now be rendered by parents who decide its context.
+  const location = useLocation();
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -28,10 +28,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
     await signOut();
   };
 
-  const renderSidebarContent = () => (
+  return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4">
       <div className="flex items-center justify-center p-4 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1> {/* Updated app name */}
+        <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
       </div>
 
       {currentUser && (
@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             className={cn(
               "flex items-center gap-3 p-3 rounded-lg transition-colors duration-200",
               location.pathname === item.href
-                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md" // Active state
+                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )}
           >
@@ -77,17 +77,6 @@ export const Sidebar: React.FC<SidebarProps> = () => {
           Logout
         </Button>
       </div>
-    </div>
-  );
-
-  if (isMobile) {
-    // On mobile, the Sidebar content is rendered inside a Sheet, triggered by the Header
-    return <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">{renderSidebarContent()}</SheetContent>;
-  }
-
-  return (
-    <div className="w-1/4 min-w-[280px] max-w-[300px] flex-shrink-0 h-full rounded-xl overflow-hidden">
-      {renderSidebarContent()}
     </div>
   );
 };

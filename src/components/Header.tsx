@@ -26,7 +26,7 @@ export const Header: React.FC = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar />
+              <Sidebar /> {/* Sidebar is now rendered directly here */}
             </SheetContent>
           </Sheet>
         )}
