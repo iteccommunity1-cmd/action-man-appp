@@ -140,6 +140,7 @@ export const ProjectList: React.FC = () => {
               relatedId: project.id,
               pushTitle: `Project Update: ${project.title}`,
               pushBody: `${projectUpdater.name} changed status to "${newStatus.replace('-', ' ')}".`,
+              pushIcon: currentUser.avatar,
               pushUrl: `/projects/${project.id}`,
             });
           }
