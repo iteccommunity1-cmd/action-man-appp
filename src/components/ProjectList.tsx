@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Project } from '@/types/project';
@@ -45,8 +45,10 @@ export const ProjectList: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<ProjectStatus>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
+  const queryKey = ['projects', currentUser?.id, filterStatus, sortOrder];
+
   const { data: projects, isLoading, isError, error } = useQuery<Project[], Error>({
-    queryKey: ['projects', currentUser?.id, filterStatus, sortOrder],
+    queryKey: queryKey,
     queryFn: async () => {
       if (!currentUser?.id) {
         throw new Error("User not logged in.");
@@ -72,6 +74,66 @@ export const ProjectList: React.FC = () => {
     enabled: !!currentUser?.id,
   });
 
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const projectsChannel = supabase
+      .channel(`projects_for_user_${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'projects', filter: `user_id=eq.${currentUser.id}` },
+        (payload) => {
+          const newProject = payload.new as Project;
+          queryClient.setQueryData(queryKey, (oldData: Project[] | undefined) => {
+            if (!oldData) return [newProject];
+            // Apply client-side filtering and sorting for new inserts
+            const updatedData = [...oldData, newProject];
+            return updatedData
+              .filter(p => filterStatus === 'all' || p.status === filterStatus)
+              .sort((a, b) => {
+                if (sortOrder === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+              });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'projects', filter: `user_id=eq.${currentUser.id}` },
+        (payload) => {
+          const updatedProject = payload.new as Project;
+          queryClient.setQueryData(queryKey, (oldData: Project[] | undefined) => {
+            if (!oldData) return [];
+            const updated = oldData.map(p => p.id === updatedProject.id ? updatedProject : p);
+            // Re-apply filtering and sorting after update
+            return updated
+              .filter(p => filterStatus === 'all' || p.status === filterStatus)
+              .sort((a, b) => {
+                if (sortOrder === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+              });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'projects', filter: `user_id=eq.${currentUser.id}` },
+        (payload) => {
+          const deletedProject = payload.old as Project;
+          queryClient.setQueryData(queryKey, (oldData: Project[] | undefined) => {
+            if (!oldData) return [];
+            return oldData.filter(p => p.id !== deletedProject.id);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(projectsChannel);
+    };
+  }, [supabase, currentUser?.id, queryClient, filterStatus, sortOrder, queryKey]);
+
+
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
     setIsEditDialogOpen(true);
@@ -83,9 +145,22 @@ export const ProjectList: React.FC = () => {
   };
 
   const confirmDeleteProject = async () => {
-    if (!projectToDeleteId) return;
+    if (!projectToDeleteId || !currentUser?.id) return;
 
     try {
+      // Fetch project details before deleting to get assigned members for notification
+      const { data: projectToDelete, error: fetchError } = await supabase
+        .from('projects')
+        .select('title, assigned_members')
+        .eq('id', projectToDeleteId)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching project details for deletion:", fetchError);
+        showError("Failed to delete project: Could not retrieve project details.");
+        return;
+      }
+
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -96,7 +171,28 @@ export const ProjectList: React.FC = () => {
         showError("Failed to delete project: " + error.message);
       } else {
         showSuccess("Project deleted successfully!");
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        // No need to invalidateQueries here, real-time listener will handle it
+        // queryClient.invalidateQueries({ queryKey: ['projects'] });
+
+        // Send notifications to all assigned members (excluding the current user)
+        const projectDeleter = currentUser;
+        const assignedMembersForNotification = (projectToDelete?.assigned_members || []).filter((memberId: string) => memberId !== projectDeleter.id);
+
+        for (const memberId of assignedMembersForNotification) {
+          const member = teamMembers.find(tm => tm.id === memberId);
+          if (member) {
+            sendNotification({
+              userId: member.id,
+              message: `${projectDeleter.name} deleted project: "${projectToDelete?.title || 'An unknown project'}".`,
+              type: 'project_deletion',
+              relatedId: projectToDeleteId, // Still pass the ID even if project is gone
+              pushTitle: `Project Deleted: ${projectToDelete?.title || 'An unknown project'}`,
+              pushBody: `${projectDeleter.name} deleted "${projectToDelete?.title || 'a project'}".`,
+              pushIcon: currentUser.avatar,
+              pushUrl: `/projects`, // Redirect to projects list as the project is gone
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Unexpected error deleting project:", error);
@@ -124,7 +220,8 @@ export const ProjectList: React.FC = () => {
         showError("Failed to update project status: " + error.message);
       } else {
         showSuccess(`Project status updated to "${newStatus.replace('-', ' ')}"!`);
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        // No need to invalidateQueries here, real-time listener will handle it
+        // queryClient.invalidateQueries({ queryKey: ['projects'] });
 
         // Send notifications to all assigned members (excluding the current user)
         const projectUpdater = currentUser;
@@ -155,12 +252,14 @@ export const ProjectList: React.FC = () => {
   const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
     setEditingProject(null);
-    queryClient.invalidateQueries({ queryKey: ['projects'] });
+    // No need to invalidateQueries here, real-time listener will handle it
+    // queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
   const handleCreateDialogClose = () => {
     setIsCreateProjectDialogOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['projects'] });
+    // No need to invalidateQueries here, real-time listener will handle it
+    // queryClient.invalidateQueries({ queryKey: ['projects'] });
   };
 
   if (isLoading) {
