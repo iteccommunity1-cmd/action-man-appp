@@ -48,10 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       )}
       <div
-        className={cn(
-          "flex flex-col flex-grow transition-all duration-300 ease-in-out",
-          !isMobile && isSidebarOpen ? "ml-0" : (!isMobile && "ml-0") // Adjust margin if sidebar is collapsed on desktop
-        )}
+        className="flex flex-col flex-grow transition-all duration-300 ease-in-out"
       >
         <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <AppBreadcrumbs />
