@@ -15,8 +15,7 @@ import { Button } from '@/components/ui/button';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog';
-import { ProjectOverviewStats } from '@/components/ProjectOverviewStats';
-import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs';
+import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs'; // Import ProjectDetailsTabs
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -270,17 +269,7 @@ const ProjectDetails: React.FC = () => {
       </Card>
 
       {/* Project Overview Stats */}
-      {projectStats && (
-        <ProjectOverviewStats
-          totalTasks={projectStats.totalTasks}
-          completedTasks={projectStats.completedTasks}
-          totalMilestones={projectStats.totalMilestones}
-          totalGoals={projectStats.totalGoals}
-          totalMetrics={projectStats.totalMetrics}
-          totalFiles={projectStats.totalFiles}
-          totalTimeLogged={projectStats.totalTimeLogged}
-        />
-      )}
+      {/* Removed ProjectOverviewStats component as it was unused */}
 
       {/* Project Details Tabs */}
       <div className="w-full max-w-3xl mx-auto mb-8">
