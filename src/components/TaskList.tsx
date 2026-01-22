@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Task } from '@/types/task';
@@ -51,8 +51,10 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
   const [filterStatus, setFilterStatus] = useState<TaskStatusFilter>('all');
   const [sortOrder, setSortOrder] = useState<TaskSortOrder>('priority_high');
 
+  const queryKey = useMemo(() => ['tasks', projectId, filterStatus, sortOrder], [projectId, filterStatus, sortOrder]);
+
   const { data: tasks, isLoading, isError, error } = useQuery<Task[], Error>({
-    queryKey: ['tasks', projectId, filterStatus, sortOrder],
+    queryKey: queryKey,
     queryFn: async () => {
       if (!currentUser?.id) {
         throw new Error("User not logged in.");
@@ -100,6 +102,79 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
     enabled: !!currentUser?.id,
   });
 
+  useEffect(() => {
+    if (!currentUser?.id || !projectId) return;
+
+    const tasksChannel = supabase
+      .channel(`tasks_for_project_${projectId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'tasks', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          const newTask = payload.new as Task;
+          queryClient.setQueryData(queryKey, (oldData: Task[] | undefined) => {
+            if (!oldData) return [newTask];
+            const updatedData = [...oldData, newTask];
+            return updatedData
+              .filter(t => filterStatus === 'all' || t.status === filterStatus)
+              .sort((a, b) => {
+                // Re-apply sorting logic
+                switch (sortOrder) {
+                  case 'newest': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                  case 'due_date_asc': return (a.due_date ? new Date(a.due_date).getTime() : Infinity) - (b.due_date ? new Date(b.due_date).getTime() : Infinity);
+                  case 'due_date_desc': return (b.due_date ? new Date(b.due_date).getTime() : -Infinity) - (a.due_date ? new Date(a.due_date).getTime() : -Infinity);
+                  case 'priority_high': return (b.priority || 0) - (a.priority || 0);
+                  case 'priority_low': return (a.priority || 0) - (b.priority || 0);
+                  default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                }
+              });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'tasks', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          const updatedTask = payload.new as Task;
+          queryClient.setQueryData(queryKey, (oldData: Task[] | undefined) => {
+            if (!oldData) return [];
+            const updated = oldData.map(t => t.id === updatedTask.id ? updatedTask : t);
+            return updated
+              .filter(t => filterStatus === 'all' || t.status === filterStatus)
+              .sort((a, b) => {
+                // Re-apply sorting logic
+                switch (sortOrder) {
+                  case 'newest': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                  case 'due_date_asc': return (a.due_date ? new Date(a.due_date).getTime() : Infinity) - (b.due_date ? new Date(b.due_date).getTime() : Infinity);
+                  case 'due_date_desc': return (b.due_date ? new Date(b.due_date).getTime() : -Infinity) - (a.due_date ? new Date(a.due_date).getTime() : -Infinity);
+                  case 'priority_high': return (b.priority || 0) - (a.priority || 0);
+                  case 'priority_low': return (a.priority || 0) - (b.priority || 0);
+                  default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                }
+              });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'tasks', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          const deletedTask = payload.old as Task;
+          queryClient.setQueryData(queryKey, (oldData: Task[] | undefined) => {
+            if (!oldData) return [];
+            return oldData.filter(t => t.id !== deletedTask.id);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tasksChannel);
+    };
+  }, [supabase, currentUser?.id, projectId, queryClient, queryKey, filterStatus, sortOrder]);
+
   const getStatusBadgeColor = (status: Task['status'], dueDate?: string) => {
     if (status === 'completed') return 'bg-green-500 text-white';
     if (status === 'overdue' || (dueDate && isPast(new Date(dueDate)))) return 'bg-red-500 text-white';
@@ -145,9 +220,9 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
         showError("Failed to update task status: " + error.message);
       } else {
         showSuccess(`Task marked as ${newStatus}!`);
-        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+        // State will be updated via real-time subscription
 
-        // Send notification to assigned user if different from current user
+        // Send notification if assigned_to changed or was set
         if (task.assigned_to && task.assigned_to !== currentUser?.id) {
           const assignedMember = teamMembers.find(member => member.id === task.assigned_to);
           if (assignedMember) {
@@ -190,7 +265,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
         showError("Failed to update task priority: " + error.message);
       } else {
         showSuccess(`Task priority updated to ${getPriorityLabel(newPriority)}!`);
-        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+        // State will be updated via real-time subscription
 
         // Send notification to assigned user if different from current user
         const updatedTask = tasks?.find(t => t.id === taskId);
@@ -234,7 +309,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
         showError("Failed to delete task: " + error.message);
       } else {
         showSuccess("Task deleted successfully!");
-        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+        // State will be updated via real-time subscription
       }
     } catch (error) {
       console.error("Unexpected error deleting task:", error);
