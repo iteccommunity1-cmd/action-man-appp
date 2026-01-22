@@ -49,9 +49,6 @@ export const WelcomeCard: React.FC = () => {
         <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 drop-shadow-lg text-primary-foreground"> {/* Changed text color */}
           {greeting}, {currentUser?.name || 'User'}!
         </h2>
-        <p className="text-lg sm:text-xl font-medium drop-shadow-md text-primary-foreground/90"> {/* Changed text color */}
-          Welcome to your dashboard.
-        </p>
       </CardContent>
     </Card>
   );
