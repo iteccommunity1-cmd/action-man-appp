@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react"; // Removed Loader2
+import { CalendarIcon, PlusCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,9 @@ import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Milestone } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+// import { useTeamMembers } from '@/hooks/useTeamMembers'; // No longer needed
+import { sendNotification } from '@/utils/notifications';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -62,6 +65,7 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
   onClose,
 }) => {
   const { currentUser } = useUser();
+  // const { teamMembers } = useTeamMembers(); // Removed as it's not directly used
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,6 +74,21 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
       dueDate: undefined,
       status: "pending",
     },
+  });
+
+  // Fetch project details to get the project creator's ID and assigned members
+  const { data: projectDetails } = useQuery<{ user_id: string; title: string; assigned_members: string[] }, Error>({
+    queryKey: ['projectDetailsForMilestone', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('user_id, title, assigned_members')
+        .eq('id', projectId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId && isOpen,
   });
 
   React.useEffect(() => {
@@ -118,6 +137,32 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
         } else {
           showSuccess("Milestone updated successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} updated milestone "${title}" in project "${projectDetails.title}" to status "${status.replace('-', ' ')}".`;
+            const pushTitle = `Milestone Updated: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} updated "${title}" to "${status.replace('-', ' ')}".`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'milestone_update',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       } else {
         // Create new milestone
@@ -138,6 +183,32 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
         } else {
           showSuccess("Milestone created successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} created a new milestone: "${title}" in project "${projectDetails.title}".`;
+            const pushTitle = `New Milestone: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} created "${title}".`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'milestone_creation',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       }
     } catch (error) {
