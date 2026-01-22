@@ -20,6 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { sendNotification } from '@/utils/notifications';
 import { supabase } from '@/integrations/supabase/client'; // Direct import
@@ -30,6 +38,9 @@ interface TaskListProps {
   onEditTask: (task: Task) => void;
 }
 
+type TaskStatusFilter = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
+type TaskSortOrder = 'newest' | 'oldest' | 'due_date_asc' | 'due_date_desc' | 'priority_high' | 'priority_low';
+
 export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEditTask }) => {
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
@@ -37,18 +48,49 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [taskToDeleteId, setTaskToDeleteId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<TaskStatusFilter>('all');
+  const [sortOrder, setSortOrder] = useState<TaskSortOrder>('priority_high');
 
   const { data: tasks, isLoading, isError, error } = useQuery<Task[], Error>({
-    queryKey: ['tasks', projectId],
+    queryKey: ['tasks', projectId, filterStatus, sortOrder],
     queryFn: async () => {
       if (!currentUser?.id) {
         throw new Error("User not logged in.");
       }
-      const { data, error } = await supabase
+      let query = supabase
         .from('tasks')
         .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .eq('project_id', projectId);
+
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus);
+      }
+
+      switch (sortOrder) {
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'oldest':
+          query = query.order('created_at', { ascending: true });
+          break;
+        case 'due_date_asc':
+          query = query.order('due_date', { ascending: true, nullsFirst: false });
+          break;
+        case 'due_date_desc':
+          query = query.order('due_date', { ascending: false, nullsFirst: true });
+          break;
+        case 'priority_high':
+          query = query.order('priority', { ascending: false }); // Removed nullsLast
+          break;
+        case 'priority_low':
+          query = query.order('priority', { ascending: true }); // Removed nullsFirst
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
@@ -67,6 +109,26 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       case 'pending':
       default:
         return 'bg-yellow-500 text-white';
+    }
+  };
+
+  const getPriorityBadgeColor = (priority: number | undefined) => {
+    switch (priority) {
+      case 3: return 'bg-red-600 text-white'; // Urgent
+      case 2: return 'bg-orange-500 text-white'; // High
+      case 1: return 'bg-yellow-500 text-gray-800'; // Medium
+      case 0:
+      default: return 'bg-gray-300 text-gray-800'; // Low
+    }
+  };
+
+  const getPriorityLabel = (priority: number | undefined) => {
+    switch (priority) {
+      case 3: return 'Urgent';
+      case 2: return 'High';
+      case 1: return 'Medium';
+      case 0:
+      default: return 'Low';
     }
   };
 
@@ -157,11 +219,46 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
         <h3 className="text-2xl font-bold text-gray-800">Tasks</h3>
         <Button onClick={onAddTask} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">
           <PlusCircle className="h-5 w-5 mr-2" /> Add Task
         </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="filter-status" className="text-gray-700">Filter by Status:</Label>
+          <Select value={filterStatus} onValueChange={(value: TaskStatusFilter) => setFilterStatus(value)}>
+            <SelectTrigger id="filter-status" className="w-[180px] rounded-lg border-gray-300">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg shadow-md">
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Label htmlFor="sort-order" className="text-gray-700">Sort by:</Label>
+          <Select value={sortOrder} onValueChange={(value: TaskSortOrder) => setSortOrder(value)}>
+            <SelectTrigger id="sort-order" className="w-[180px] rounded-lg border-gray-300">
+              <SelectValue placeholder="Sort order" />
+            </SelectTrigger>
+            <SelectContent className="rounded-lg shadow-md">
+              <SelectItem value="priority_high">Priority (High to Low)</SelectItem>
+              <SelectItem value="priority_low">Priority (Low to High)</SelectItem>
+              <SelectItem value="due_date_asc">Due Date (Soonest)</SelectItem>
+              <SelectItem value="due_date_desc">Due Date (Latest)</SelectItem>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {tasks!.length === 0 ? (
@@ -192,6 +289,9 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
                     <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getStatusBadgeColor(task.status, task.due_date))}>
                       {task.status.replace('-', ' ')}
+                    </Badge>
+                    <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getPriorityBadgeColor(task.priority))}>
+                      {getPriorityLabel(task.priority)}
                     </Badge>
                     {task.due_date && (
                       <span className="flex items-center">
