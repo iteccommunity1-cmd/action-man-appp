@@ -7,8 +7,8 @@ import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit, Timer } from 'lucide-react'; // Import Timer icon
-import { format } from 'date-fns';
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit, Timer } from 'lucide-react';
+import { format, differenceInMinutes } from 'date-fns'; // Import differenceInMinutes
 import { cn } from '@/lib/utils';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,8 @@ import { MilestoneList } from '@/components/MilestoneList';
 import { GoalList } from '@/components/GoalList';
 import { MetricList } from '@/components/MetricList';
 import { ProjectFilesList } from '@/components/ProjectFilesList';
-import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog'; // Import TimeEntryFormDialog
+import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog';
+import { ProjectOverviewStats } from '@/components/ProjectOverviewStats'; // Import ProjectOverviewStats
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,7 +33,7 @@ const ProjectDetails: React.FC = () => {
   const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false);
-  const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false); // State for time entry dialog
+  const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false);
 
   const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
     queryKey: ['project', id],
@@ -54,6 +55,66 @@ const ProjectDetails: React.FC = () => {
     },
     enabled: !!id && !!currentUser?.id,
   });
+
+  // New queries for project overview stats
+  const { data: projectStats, isLoading: isLoadingStats } = useQuery<{
+    totalTasks: number;
+    completedTasks: number;
+    totalMilestones: number;
+    totalGoals: number;
+    totalMetrics: number;
+    totalFiles: number;
+    totalTimeLogged: number; // in hours
+  }, Error>({
+    queryKey: ['projectStats', id],
+    queryFn: async () => {
+      if (!id) return { totalTasks: 0, completedTasks: 0, totalMilestones: 0, totalGoals: 0, totalMetrics: 0, totalFiles: 0, totalTimeLogged: 0 };
+
+      const [
+        tasksCount,
+        completedTasksCount,
+        milestonesCount,
+        goalsCount,
+        metricsCount,
+        filesCount,
+        timeEntriesData,
+      ] = await Promise.all([
+        supabase.from('tasks').select('id', { count: 'exact' }).eq('project_id', id),
+        supabase.from('tasks').select('id', { count: 'exact' }).eq('project_id', id).eq('status', 'completed'),
+        supabase.from('milestones').select('id', { count: 'exact' }).eq('project_id', id),
+        supabase.from('goals').select('id', { count: 'exact' }).eq('project_id', id),
+        supabase.from('metrics').select('id', { count: 'exact' }).eq('project_id', id),
+        supabase.from('project_files').select('id', { count: 'exact' }).eq('project_id', id),
+        supabase.from('time_entries').select('start_time, end_time').eq('project_id', id),
+      ]);
+
+      if (tasksCount.error) throw tasksCount.error;
+      if (completedTasksCount.error) throw completedTasksCount.error;
+      if (milestonesCount.error) throw milestonesCount.error;
+      if (goalsCount.error) throw goalsCount.error;
+      if (metricsCount.error) throw metricsCount.error;
+      if (filesCount.error) throw filesCount.error;
+      if (timeEntriesData.error) throw timeEntriesData.error;
+
+      const totalTimeLoggedMinutes = (timeEntriesData.data || []).reduce((sum, entry) => {
+        const start = new Date(entry.start_time);
+        const end = new Date(entry.end_time);
+        return sum + differenceInMinutes(end, start);
+      }, 0);
+
+      return {
+        totalTasks: tasksCount.count || 0,
+        completedTasks: completedTasksCount.count || 0,
+        totalMilestones: milestonesCount.count || 0,
+        totalGoals: goalsCount.count || 0,
+        totalMetrics: metricsCount.count || 0,
+        totalFiles: filesCount.count || 0,
+        totalTimeLogged: totalTimeLoggedMinutes / 60, // Convert minutes to hours
+      };
+    },
+    enabled: !!id,
+  });
+
 
   const getStatusBadgeColor = (status: Project['status']) => {
     switch (status) {
@@ -83,6 +144,7 @@ const ProjectDetails: React.FC = () => {
     setIsTaskFormDialogOpen(false);
     setEditingTask(null);
     queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+    queryClient.invalidateQueries({ queryKey: ['projectStats', id] }); // Invalidate stats to update task counts
   };
 
   const handleEditProject = () => {
@@ -96,11 +158,10 @@ const ProjectDetails: React.FC = () => {
 
   const handleTimeEntryDialogClose = () => {
     setIsTimeEntryDialogOpen(false);
-    // Optionally invalidate queries related to time entries if you add a time entry list
-    // queryClient.invalidateQueries({ queryKey: ['timeEntries', id] });
+    queryClient.invalidateQueries({ queryKey: ['projectStats', id] }); // Invalidate stats to update time logged
   };
 
-  if (isLoading || loadingTeamMembers) {
+  if (isLoading || loadingTeamMembers || isLoadingStats) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
@@ -144,7 +205,7 @@ const ProjectDetails: React.FC = () => {
         </Link>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
-            onClick={() => setIsTimeEntryDialogOpen(true)} // Button to open time entry dialog
+            onClick={() => setIsTimeEntryDialogOpen(true)}
             className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 w-full sm:w-auto"
           >
             <Timer className="h-5 w-5 mr-2" /> Log Time
@@ -212,6 +273,20 @@ const ProjectDetails: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Project Overview Stats */}
+      {projectStats && (
+        <ProjectOverviewStats
+          // project={project} // Removed unused prop
+          totalTasks={projectStats.totalTasks}
+          completedTasks={projectStats.completedTasks}
+          totalMilestones={projectStats.totalMilestones}
+          totalGoals={projectStats.totalGoals}
+          totalMetrics={projectStats.totalMetrics}
+          totalFiles={projectStats.totalFiles}
+          totalTimeLogged={projectStats.totalTimeLogged}
+        />
+      )}
+
       {/* Task List Section */}
       <div className="w-full max-w-3xl mx-auto mb-8">
         <TaskList projectId={project.id} onAddTask={handleAddTask} onEditTask={handleEditTask} />
@@ -257,7 +332,7 @@ const ProjectDetails: React.FC = () => {
         projectId={project.id}
         isOpen={isTimeEntryDialogOpen}
         onClose={handleTimeEntryDialogClose}
-        onSave={handleTimeEntryDialogClose} // Invalidate relevant queries here if needed
+        onSave={handleTimeEntryDialogClose}
       />
     </div>
   );
