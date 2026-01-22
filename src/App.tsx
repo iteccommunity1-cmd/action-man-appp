@@ -22,8 +22,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <p className="text-lg text-gray-600">Loading user session...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
+        <p className="text-lg text-foreground">Loading user session...</p>
       </div>
     );
   }

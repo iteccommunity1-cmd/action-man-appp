@@ -1,12 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Home, MessageCircle, User, LogOut, Menu, ListTodo } from 'lucide-react'; // Added ListTodo icon
+import { Link, useLocation } from 'react-router-dom'; // Import useLocation
+import { Home, MessageCircle, User, LogOut, ListTodo } from 'lucide-react'; // Removed Menu icon
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile sidebar
+import { SheetContent } from '@/components/ui/sheet'; // Only SheetContent is needed here now
 
 interface SidebarProps {
   // onLinkClick?: () => void; // Removed as it's no longer needed
@@ -15,23 +15,23 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = () => {
   const { currentUser, signOut } = useUser();
   const isMobile = useIsMobile();
+  const location = useLocation(); // Use useLocation to get current path
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: ListTodo, label: "Daily Digest", href: "/daily-digest" }, // New Daily Digest item
+    { icon: ListTodo, label: "Daily Digest", href: "/daily-digest" },
     { icon: MessageCircle, label: "Chat", href: "/chat" },
     { icon: User, label: "Profile", href: "/profile" },
   ];
 
   const handleSignOut = async () => {
     await signOut();
-    // if (onLinkClick) onLinkClick(); // Removed
   };
 
   const renderSidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4"> {/* Removed explicit rounded corners here */}
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4">
       <div className="flex items-center justify-center p-4 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-sidebar-primary">Dyad App</h1>
+        <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1> {/* Updated app name */}
       </div>
 
       {currentUser && (
@@ -54,10 +54,11 @@ export const Sidebar: React.FC<SidebarProps> = () => {
           <Link
             key={item.label}
             to={item.href}
-            // onClick={onLinkClick} // Removed
             className={cn(
-              "flex items-center gap-3 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200",
-              // Add active state styling if needed, e.g., based on current path
+              "flex items-center gap-3 p-3 rounded-lg transition-colors duration-200",
+              location.pathname === item.href
+                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md" // Active state
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -80,22 +81,12 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   );
 
   if (isMobile) {
-    return (
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 rounded-full bg-white shadow-md">
-            <Menu className="h-6 w-6 text-gray-700" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl">
-          {renderSidebarContent()}
-        </SheetContent>
-      </Sheet>
-    );
+    // On mobile, the Sidebar content is rendered inside a Sheet, triggered by the Header
+    return <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">{renderSidebarContent()}</SheetContent>;
   }
 
   return (
-    <div className="w-1/4 min-w-[280px] max-w-[300px] flex-shrink-0 h-full rounded-xl"> {/* Added rounded-xl here for desktop */}
+    <div className="w-1/4 min-w-[280px] max-w-[300px] flex-shrink-0 h-full rounded-xl overflow-hidden">
       {renderSidebarContent()}
     </div>
   );

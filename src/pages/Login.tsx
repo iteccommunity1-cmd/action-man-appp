@@ -21,9 +21,9 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Welcome Back!</h2>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
+      <div className="w-full max-w-md bg-card p-8 rounded-xl shadow-lg border border-border text-card-foreground"> {/* Updated card styles */}
+        <h2 className="text-3xl font-bold text-center mb-8">Welcome Back!</h2>
         <Auth
           supabaseClient={supabase}
           appearance={{
@@ -33,7 +33,7 @@ const Login = () => {
                 colors: {
                   brand: 'hsl(var(--primary))', // Use our primary color
                   brandAccent: 'hsl(var(--primary-foreground))', // Use primary-foreground for accent
-                  inputBackground: 'hsl(var(--background))',
+                  inputBackground: 'hsl(var(--input))',
                   inputBorder: 'hsl(var(--border))',
                   inputBorderHover: 'hsl(var(--primary))',
                   inputBorderFocus: 'hsl(var(--primary))',
@@ -46,7 +46,7 @@ const Login = () => {
               },
             },
           }}
-          theme="light"
+          theme="dark" // Set theme to dark to match the new background
           providers={[]} // Only email/password by default
           redirectTo={window.location.origin + '/'}
         />
