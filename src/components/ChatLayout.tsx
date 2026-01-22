@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
 import { ChatRoom, Message } from '@/types/chat';
@@ -8,25 +8,30 @@ import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { CreateChatRoomDialog } from './CreateChatRoomDialog';
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
-import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
-import { supabase } from '@/integrations/supabase/client'; // Direct import
-import { TeamMember } from '@/types/project'; // Import TeamMember type
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { TeamMember } from '@/types/project';
+import { sendNotification } from '@/utils/notifications';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 export const ChatLayout: React.FC = () => {
   const { currentUser } = useUser();
-  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loadingChatRooms, setLoadingChatRooms] = useState(true); // Renamed to be specific
+  const [loadingChatRooms, setLoadingChatRooms] = useState(true);
   const [isCreateRoomDialogOpen, setIsCreateRoomDialogOpen] = useState(false);
   const [typingUsers, setTypingUsers] = useState<{ id: string; name: string }[]>([]);
+  const isMobile = useIsMobile(); // Use the hook
 
   const typingStatusRef = useRef(new Map<string, { name: string; timeout: NodeJS.Timeout }>());
+
+  // Derive activeChatRoom from activeChatRoomId
+  const activeChatRoom = chatRooms.find(room => room.id === activeChatRoomId);
 
   const fetchChatRooms = async () => {
     setLoadingChatRooms(true);
@@ -38,7 +43,7 @@ export const ChatLayout: React.FC = () => {
     const { data: roomsData, error: roomsError } = await supabase
       .from('chat_rooms')
       .select('*')
-      .contains('members', [currentUser.id]) // Filter rooms where current user is a member
+      .contains('members', [currentUser.id])
       .order('created_at', { ascending: false });
 
     if (roomsError) {
@@ -49,7 +54,7 @@ export const ChatLayout: React.FC = () => {
         roomsData.map(async (room) => {
           const { data: lastMessageData, error: lastMessageError } = await supabase
             .from('messages')
-            .select('content, created_at, sender_name') // Fetch sender_name
+            .select('content, created_at, sender_name')
             .eq('chat_room_id', room.id)
             .order('created_at', { ascending: false })
             .limit(1)
@@ -62,41 +67,37 @@ export const ChatLayout: React.FC = () => {
           let roomName = room.name;
           let roomAvatar = room.avatar;
 
-          // For private chats, always derive name and avatar from members
           if (room.type === 'private' && room.members && currentUser) {
             const allMembers = [currentUser, ...teamMembers];
             const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
             const otherMembersDetails = otherMemberIds
               .map((id: string) => allMembers.find(member => member.id === id))
-              .filter(Boolean) as TeamMember[]; // Cast to TeamMember[] after filtering
+              .filter(Boolean) as TeamMember[];
 
             if (otherMembersDetails.length === 1) {
               roomName = otherMembersDetails[0]!.name;
               roomAvatar = otherMembersDetails[0]!.avatar;
             } else if (otherMembersDetails.length > 1) {
               roomName = otherMembersDetails.map((m: TeamMember) => m.name).join(', ');
-              roomAvatar = otherMembersDetails[0]!.avatar; // Use first member's avatar for group private chat
+              roomAvatar = otherMembersDetails[0]!.avatar;
             } else if (otherMemberIds.length === 0 && room.members.includes(currentUser.id)) {
-              // Self-chat
               roomName = currentUser.name;
               roomAvatar = currentUser.avatar;
             } else {
-              roomName = "Unknown Private Chat"; // Fallback
+              roomName = "Unknown Private Chat";
               roomAvatar = `https://api.dicebear.com/8.x/adventurer/svg?seed=default`;
             }
           } else if (room.type === 'project') {
-            // For project chats, use the stored name and avatar
             roomName = room.name;
             roomAvatar = room.avatar;
           }
-
 
           return {
             ...room,
             name: roomName,
             avatar: roomAvatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${room.name}`,
-            lastMessage: lastMessageData?.content || undefined, // Set to undefined if no message
-            lastSenderName: lastMessageData?.sender_name || undefined, // Set to undefined if no message
+            lastMessage: lastMessageData?.content || undefined,
+            lastSenderName: lastMessageData?.sender_name || undefined,
           };
         })
       );
@@ -112,7 +113,6 @@ export const ChatLayout: React.FC = () => {
         setActiveChatRoomId(stateActiveRoomId);
       } else if (queryActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === queryActiveRoomId)) {
         setActiveChatRoomId(queryActiveRoomId);
-        // Clear the query param from URL to avoid re-triggering on refresh
         navigate(location.pathname, { replace: true });
       }
       else if (localStorageActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === localStorageActiveRoomId)) {
@@ -128,7 +128,7 @@ export const ChatLayout: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!loadingTeamMembers) { // Only fetch chat rooms once team members are loaded
+    if (!loadingTeamMembers) {
       fetchChatRooms();
     }
 
@@ -138,8 +138,8 @@ export const ChatLayout: React.FC = () => {
         const newRoom = payload.new as ChatRoom;
         const roomToAdd = {
           ...newRoom,
-          lastMessage: undefined, // No last message initially
-          lastSenderName: undefined, // No last sender initially
+          lastMessage: undefined,
+          lastSenderName: undefined,
           avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
         };
         setChatRooms((prev) => [roomToAdd, ...prev]);
@@ -150,7 +150,7 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]); // Add location.search and navigate to dependencies
+  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]);
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -258,14 +258,12 @@ export const ChatLayout: React.FC = () => {
       console.error("Error sending message:", error);
       showError("Failed to send message.");
     } else {
-      const activeChatRoom = chatRooms.find(room => room.id === activeChatRoomId);
       if (activeChatRoom && activeChatRoom.members && teamMembers) {
         const mentionedUsers: TeamMember[] = [];
         const allPossibleMentions = [...teamMembers, currentUser].filter(Boolean) as TeamMember[];
 
         for (const member of allPossibleMentions) {
-          if (member.id !== currentUser!.id) { // Don't notify self for mentions
-            // Regex to find @[Full Name] or @[First Name]
+          if (member.id !== currentUser!.id) {
             const mentionPattern = new RegExp(`@(${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${member.name.split(' ')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
             if (mentionPattern.test(messageContent)) {
               mentionedUsers.push(member);
@@ -273,7 +271,6 @@ export const ChatLayout: React.FC = () => {
           }
         }
 
-        // Send specific "mention" notifications to mentioned users
         for (const mentionedUser of mentionedUsers) {
           sendNotification({
             userId: mentionedUser.id,
@@ -287,7 +284,6 @@ export const ChatLayout: React.FC = () => {
           });
         }
 
-        // Send general "new message" notifications to other members who were not explicitly mentioned
         const recipientIds = activeChatRoom.members.filter(memberId =>
           memberId !== currentUser!.id && !mentionedUsers.some(mu => mu.id === memberId)
         );
@@ -324,8 +320,7 @@ export const ChatLayout: React.FC = () => {
     });
   };
 
-  const activeChatRoom = chatRooms.find((room) => room.id === activeChatRoomId);
-  const overallLoading = loadingChatRooms || loadingTeamMembers; // Combined loading state
+  const overallLoading = loadingChatRooms || loadingTeamMembers;
 
   if (overallLoading) {
     return (
@@ -346,39 +341,83 @@ export const ChatLayout: React.FC = () => {
 
   return (
     <div className="flex flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-      <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0 flex flex-col">
-        <div className="flex-grow">
-          <ChatRoomList
-            chatRooms={chatRooms}
-            activeChatRoomId={activeChatRoomId}
-            onSelectChatRoom={setActiveChatRoomId}
-          />
-        </div>
-        <div className="p-4 border-t border-sidebar-border bg-sidebar">
-          <Button
-            onClick={() => setIsCreateRoomDialogOpen(true)}
-            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
-          >
-            <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
-          </Button>
-        </div>
-      </div>
-      <div className="flex-grow">
-        {activeChatRoom ? (
-          <ChatWindow
-            chatRoomName={activeChatRoom.name}
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            currentUserId={currentUser!.id}
-            onTypingStatusChange={handleTypingStatusChange}
-            typingUsers={typingUsers}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
-            Select a chatroom or create a new one to start messaging
+      {/* Mobile: Show ChatRoomList if no active room, else show ChatWindow */}
+      {isMobile ? (
+        activeChatRoomId ? (
+          <div className="flex-grow">
+            {activeChatRoom ? (
+              <ChatWindow
+                chatRoomName={activeChatRoom.name}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                currentUserId={currentUser!.id}
+                onTypingStatusChange={handleTypingStatusChange}
+                typingUsers={typingUsers}
+                onBack={() => setActiveChatRoomId(null)} // Back button for mobile
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-xl">
+                Select a chatroom or create a new one to start messaging
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        ) : (
+          <div className="w-full flex flex-col">
+            <div className="flex-grow">
+              <ChatRoomList
+                chatRooms={chatRooms}
+                activeChatRoomId={activeChatRoomId}
+                onSelectChatRoom={setActiveChatRoomId}
+              />
+            </div>
+            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-b-xl"> {/* Adjusted rounded corners */}
+              <Button
+                onClick={() => setIsCreateRoomDialogOpen(true)}
+                className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+              >
+                <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
+              </Button>
+            </div>
+          </div>
+        )
+      ) : (
+        /* Desktop: Show both side-by-side */
+        <>
+          <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0 flex flex-col">
+            <div className="flex-grow">
+              <ChatRoomList
+                chatRooms={chatRooms}
+                activeChatRoomId={activeChatRoomId}
+                onSelectChatRoom={setActiveChatRoomId}
+              />
+            </div>
+            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-bl-xl"> {/* Adjusted rounded corners */}
+              <Button
+                onClick={() => setIsCreateRoomDialogOpen(true)}
+                className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+              >
+                <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
+              </Button>
+            </div>
+          </div>
+          <div className="flex-grow">
+            {activeChatRoom ? (
+              <ChatWindow
+                chatRoomName={activeChatRoom.name}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                currentUserId={currentUser!.id}
+                onTypingStatusChange={handleTypingStatusChange}
+                typingUsers={typingUsers}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-white rounded-r-xl">
+                Select a chatroom or create a new one to start messaging
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <CreateChatRoomDialog
         isOpen={isCreateRoomDialogOpen}

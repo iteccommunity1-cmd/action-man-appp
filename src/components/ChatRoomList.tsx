@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { ChatRoom } from '@/types/chat'; // Import ChatRoom from shared types
+import { ChatRoom } from '@/types/chat';
 
 interface ChatRoomListProps {
   chatRooms: ChatRoom[];
@@ -15,7 +15,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
   onSelectChatRoom,
 }) => {
   return (
-    <div className="flex flex-col h-full bg-sidebar rounded-l-xl border-r border-sidebar-border overflow-y-auto">
+    <div className="flex flex-col h-full bg-sidebar rounded-l-xl sm:rounded-xl border-r sm:border-r-0 border-sidebar-border overflow-y-auto"> {/* Adjusted rounded corners and border for mobile */}
       <div className="p-4 border-b border-sidebar-border">
         <h3 className="text-xl font-semibold text-sidebar-foreground">Chatrooms</h3>
       </div>
