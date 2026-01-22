@@ -8,19 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit, Timer } from 'lucide-react';
-import { format, differenceInMinutes } from 'date-fns'; // Import differenceInMinutes
+import { format, differenceInMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
-import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
-import { MilestoneList } from '@/components/MilestoneList';
-import { GoalList } from '@/components/GoalList';
-import { MetricList } from '@/components/MetricList';
-import { ProjectFilesList } from '@/components/ProjectFilesList';
 import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog';
-import { ProjectOverviewStats } from '@/components/ProjectOverviewStats'; // Import ProjectOverviewStats
+import { ProjectOverviewStats } from '@/components/ProjectOverviewStats';
+import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs'; // Import ProjectDetailsTabs
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -276,7 +272,6 @@ const ProjectDetails: React.FC = () => {
       {/* Project Overview Stats */}
       {projectStats && (
         <ProjectOverviewStats
-          // project={project} // Removed unused prop
           totalTasks={projectStats.totalTasks}
           completedTasks={projectStats.completedTasks}
           totalMilestones={projectStats.totalMilestones}
@@ -287,29 +282,13 @@ const ProjectDetails: React.FC = () => {
         />
       )}
 
-      {/* Task List Section */}
+      {/* Project Details Tabs */}
       <div className="w-full max-w-3xl mx-auto mb-8">
-        <TaskList projectId={project.id} onAddTask={handleAddTask} onEditTask={handleEditTask} />
-      </div>
-
-      {/* Milestones Section */}
-      <div className="w-full max-w-3xl mx-auto mb-8">
-        <MilestoneList projectId={project.id} />
-      </div>
-
-      {/* Goals Section */}
-      <div className="w-full max-w-3xl mx-auto mb-8">
-        <GoalList projectId={project.id} />
-      </div>
-
-      {/* Metrics (KPIs, etc.) Section */}
-      <div className="w-full max-w-3xl mx-auto mb-8">
-        <MetricList projectId={project.id} />
-      </div>
-
-      {/* Project Files Section */}
-      <div className="w-full max-w-3xl mx-auto mb-8">
-        <ProjectFilesList projectId={project.id} />
+        <ProjectDetailsTabs
+          projectId={project.id}
+          onAddTask={handleAddTask}
+          onEditTask={handleEditTask}
+        />
       </div>
 
       <TaskFormDialog
