@@ -31,17 +31,17 @@ const Login = () => {
             variables: {
               default: {
                 colors: {
-                  brand: 'hsl(224.3 76.3% 48%)', // A vibrant blue
-                  brandAccent: 'hsl(224.3 76.3% 38%)', // A darker blue for hover
-                  inputBackground: 'hsl(0 0% 100%)',
-                  inputBorder: 'hsl(214.3 31.8% 91.4%)',
-                  inputBorderHover: 'hsl(224.3 76.3% 48%)',
-                  inputBorderFocus: 'hsl(224.3 76.3% 48%)',
-                  inputText: 'hsl(222.2 84% 4.9%)',
+                  brand: 'hsl(var(--primary))', // Use our primary color
+                  brandAccent: 'hsl(var(--primary-foreground))', // Use primary-foreground for accent
+                  inputBackground: 'hsl(var(--background))',
+                  inputBorder: 'hsl(var(--border))',
+                  inputBorderHover: 'hsl(var(--primary))',
+                  inputBorderFocus: 'hsl(var(--primary))',
+                  inputText: 'hsl(var(--foreground))',
                 },
                 radii: {
-                  borderRadiusButton: '0.75rem', // Rounded buttons
-                  inputBorderRadius: '0.75rem', // Corrected property name
+                  borderRadiusButton: 'var(--radius)', // Use our global radius
+                  inputBorderRadius: 'var(--radius)', // Use our global radius
                 },
               },
             },
