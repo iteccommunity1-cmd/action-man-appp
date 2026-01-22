@@ -8,7 +8,7 @@ import { sendNotification } from '@/utils/notifications'; // Import sendNotifica
 // You can generate VAPID keys using a tool like web-push-codelab.glitch.me
 // or by running `npx web-push generate-vapid-keys` in your terminal.
 // The public key will be used here, and the private key will be set as a Supabase Edge Function secret.
-const VAPID_PUBLIC_KEY = "YOUR_NEW_VAPID_PUBLIC_KEY_HERE"; 
+const VAPID_PUBLIC_KEY = "BIQ9UqvHau2-lnObQgJSkSHyjd1TFdScNWUY1h6GFz5fwFuC7RfcAqf-VxTuPyyIpDnz_67Q1sjJ9Lf988EGYGM"; 
 
 export const usePushNotifications = () => {
   const { currentUser } = useUser();
