@@ -388,7 +388,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground glass-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
