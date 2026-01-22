@@ -308,7 +308,6 @@ export const MilestoneFormDialog: React.FC<MilestoneFormDialogProps> = ({
                     </FormControl>
                     <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem> {/* Added in-progress for consistency, though not in schema default */}
                       <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="overdue">Overdue</SelectItem>
                     </SelectContent>
