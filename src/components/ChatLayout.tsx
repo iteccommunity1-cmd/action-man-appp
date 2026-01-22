@@ -64,7 +64,7 @@ export const ChatLayout: React.FC = () => {
             const allMembers = [currentUser, ...teamMembers];
             const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
             const otherMembersDetails = otherMemberIds
-              .map((id: string) => allMembers.find(member => member.id === id)) // Fixed: Explicitly type 'id' as string
+              .map((id: string) => allMembers.find(member => member.id === id))
               .filter(Boolean);
             
             if (otherMembersDetails.length === 1) {
@@ -167,7 +167,7 @@ export const ChatLayout: React.FC = () => {
           sender_id: msg.sender_id,
           sender_name: msg.sender_name,
           sender_avatar: msg.sender_avatar,
-          timestamp: msg.created_at,
+          // Removed timestamp as it's redundant with created_at
         })));
       }
     };
@@ -185,7 +185,7 @@ export const ChatLayout: React.FC = () => {
             sender_id: newMessage.sender_id,
             sender_name: newMessage.sender_name,
             sender_avatar: newMessage.sender_avatar,
-            timestamp: newMessage.created_at,
+            // Removed timestamp as it's redundant with created_at
           },
         ]);
         setChatRooms((prevRooms) =>

@@ -51,7 +51,7 @@ const formSchema = z.object({
   deadline: z.date({
     required_error: "A deadline date is required.",
   }),
-  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']).optional(), // Optional for creation
+  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']), // Made non-optional
 });
 
 interface ProjectFormDialogProps {
@@ -161,7 +161,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             title,
             assigned_members: assignedMembers,
             deadline: deadline.toISOString(),
-            status: status || 'pending', // Use default 'pending' if not explicitly set
+            status: status, // Use status directly from form values
             chat_room_id: chat_room_id, // Link the created chat room
           })
           .select();

@@ -15,6 +15,5 @@ export interface Message {
   sender_name: string; // Changed to snake_case
   sender_avatar?: string; // Changed to snake_case
   content: string;
-  timestamp: string;
   created_at: string; // Added for Supabase
 }
