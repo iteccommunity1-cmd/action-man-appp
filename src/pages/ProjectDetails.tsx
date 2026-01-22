@@ -7,13 +7,14 @@ import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit } from 'lucide-react'; // Added Edit icon
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
+import { ProjectFormDialog } from '@/components/ProjectFormDialog'; // Import ProjectFormDialog
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { supabase } from '@/integrations/supabase/client'; // Direct import
 
@@ -25,6 +26,7 @@ const ProjectDetails: React.FC = () => {
 
   const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false); // State for project edit dialog
 
   const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
     queryKey: ['project', id],
@@ -77,6 +79,15 @@ const ProjectDetails: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks', id] });
   };
 
+  const handleEditProject = () => {
+    setIsProjectEditDialogOpen(true);
+  };
+
+  const handleProjectFormClose = () => {
+    setIsProjectEditDialogOpen(false);
+    queryClient.invalidateQueries({ queryKey: ['project', id] }); // Refresh project details after edit
+  };
+
   if (isLoading || loadingTeamMembers) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -119,13 +130,21 @@ const ProjectDetails: React.FC = () => {
         <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
-        {project.chat_room_id && (
-          <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }}>
-            <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
-              <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
-            </Button>
-          </Link>
-        )}
+        <div className="flex gap-2">
+          <Button
+            onClick={handleEditProject}
+            className="rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2"
+          >
+            <Edit className="h-5 w-5 mr-2" /> Edit Project
+          </Button>
+          {project.chat_room_id && (
+            <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }}>
+              <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
+                <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200 mb-8">
@@ -138,6 +157,9 @@ const ProjectDetails: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {project.description && (
+            <p className="text-lg text-gray-700 leading-relaxed">{project.description}</p>
+          )}
           <div className="flex items-center text-lg text-gray-700">
             <CalendarDays className="h-5 w-5 mr-3 text-blue-500" />
             <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
@@ -183,6 +205,15 @@ const ProjectDetails: React.FC = () => {
         isOpen={isTaskFormDialogOpen}
         onClose={handleTaskFormClose}
       />
+
+      {project && (
+        <ProjectFormDialog
+          project={project}
+          isOpen={isProjectEditDialogOpen}
+          onClose={handleProjectFormClose}
+          onSave={handleProjectFormClose} // Close and refresh on save
+        />
+      )}
     </div>
   );
 };

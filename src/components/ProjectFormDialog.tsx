@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2
 import { supabase } from '@/integrations/supabase/client'; // Direct import
@@ -45,13 +46,14 @@ const formSchema = z.object({
   title: z.string().min(2, {
     message: "Project title must be at least 2 characters.",
   }),
+  description: z.string().optional(), // New: Description field
   assignedMembers: z.array(z.string()).min(1, {
     message: "Please assign at least one team member.",
   }),
   deadline: z.date({
     required_error: "A deadline date is required.",
   }),
-  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']), // Made non-optional
+  status: z.enum(['pending', 'in-progress', 'completed', 'overdue']),
 });
 
 interface ProjectFormDialogProps {
@@ -75,9 +77,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      description: "", // Default for new projects
       assignedMembers: [],
       deadline: undefined,
-      status: 'pending', // Default status for new projects
+      status: 'pending',
     },
   });
 
@@ -86,6 +89,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
       if (isEditMode && project) {
         form.reset({
           title: project.title,
+          description: project.description || "", // Set description for editing
           assignedMembers: project.assigned_members,
           deadline: new Date(project.deadline),
           status: project.status,
@@ -94,6 +98,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
         // Reset for new project creation
         form.reset({
           title: "",
+          description: "",
           assignedMembers: [],
           deadline: undefined,
           status: 'pending',
@@ -108,7 +113,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
       return;
     }
 
-    const { title, assignedMembers, deadline, status } = values;
+    const { title, description, assignedMembers, deadline, status } = values;
 
     try {
       if (isEditMode && project) {
@@ -117,6 +122,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           .from('projects')
           .update({
             title,
+            description: description || null, // Save description
             assigned_members: assignedMembers,
             deadline: deadline.toISOString(),
             status,
@@ -159,9 +165,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           .insert({
             user_id: currentUser.id,
             title,
+            description: description || null, // Save description
             assigned_members: assignedMembers,
             deadline: deadline.toISOString(),
-            status: status, // Use status directly from form values
+            status: status,
             chat_room_id: chat_room_id, // Link the created chat room
           })
           .select();
@@ -230,6 +237,20 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Provide a detailed description of the project..." {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="assignedMembers"
               render={({ field }) => (
                 <FormItem>
@@ -287,7 +308,6 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               )}
             />
 
-            {/* Status field is now always visible */}
             <FormField
               control={form.control}
               name="status"

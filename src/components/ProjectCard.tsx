@@ -89,6 +89,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {project.description && (
+          <p className="text-sm text-gray-700 leading-relaxed">{project.description}</p>
+        )}
         <div className="flex items-center text-sm text-gray-600">
           <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
           <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
