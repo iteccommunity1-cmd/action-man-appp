@@ -48,6 +48,7 @@ const formSchema = z.object({
   status: z.enum(['pending', 'in-progress', 'completed', 'overdue']),
   assignedTo: z.string().optional(), // Single assigned member
   dueDate: z.date().optional(),
+  priority: z.string().default('0'), // New: Priority as string to match Select value
 });
 
 interface TaskFormDialogProps {
@@ -73,6 +74,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       status: "pending",
       assignedTo: undefined,
       dueDate: undefined,
+      priority: "0", // Default priority to Low
     },
   });
 
@@ -84,6 +86,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         status: task.status,
         assignedTo: task.assigned_to || undefined,
         dueDate: task.due_date ? new Date(task.due_date) : undefined,
+        priority: String(task.priority || 0), // Set priority from task, default to 0
       });
     } else if (isOpen && !task) {
       // Reset for new task creation
@@ -93,6 +96,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         status: "pending",
         assignedTo: undefined,
         dueDate: undefined,
+        priority: "0", // Default priority to Low
       });
     }
   }, [task, isOpen, form]);
@@ -103,7 +107,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       return;
     }
 
-    const { title, description, status, assignedTo, dueDate } = values;
+    const { title, description, status, assignedTo, dueDate, priority } = values;
 
     try {
       if (task) {
@@ -116,6 +120,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
             status,
             assigned_to: assignedTo,
             due_date: dueDate ? dueDate.toISOString() : null,
+            priority: parseInt(priority), // Convert priority back to number
           })
           .eq('id', task.id);
 
@@ -138,6 +143,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
             status,
             assigned_to: assignedTo,
             due_date: dueDate ? dueDate.toISOString() : null,
+            priority: parseInt(priority), // Convert priority back to number
           })
           .select();
 
@@ -295,6 +301,30 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                       <SelectItem value="in-progress">In Progress</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Priority</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-lg shadow-md">
+                      <SelectItem value="0">Low</SelectItem>
+                      <SelectItem value="1">Medium</SelectItem>
+                      <SelectItem value="2">High</SelectItem>
+                      <SelectItem value="3">Urgent</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

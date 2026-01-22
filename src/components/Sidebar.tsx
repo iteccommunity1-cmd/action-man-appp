@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, MessageCircle, User, LogOut, Menu } from 'lucide-react';
+import { Home, MessageCircle, User, LogOut, Menu, ListTodo } from 'lucide-react'; // Added ListTodo icon
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -18,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
+    { icon: ListTodo, label: "Daily Digest", href: "/daily-digest" }, // New Daily Digest item
     { icon: MessageCircle, label: "Chat", href: "/chat" },
     { icon: User, label: "Profile", href: "/profile" },
   ];

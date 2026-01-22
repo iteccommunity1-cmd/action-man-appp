@@ -11,6 +11,7 @@ import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
+import DailyDigest from "./pages/DailyDigest"; // Import the new DailyDigest page
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/daily-digest"
+                element={
+                  <ProtectedRoute>
+                    <DailyDigest />
                   </ProtectedRoute>
                 }
               />
