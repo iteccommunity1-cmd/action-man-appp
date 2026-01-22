@@ -11,7 +11,8 @@ import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
-import DailyDigest from "./pages/DailyDigest"; // Import the new DailyDigest page
+import DailyDigest from "./pages/DailyDigest";
+import NotificationsPage from "./pages/Notifications"; // Import the new NotificationsPage
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4"> {/* Added p-4 for mobile padding */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <p className="text-lg text-gray-600">Loading user session...</p>
       </div>
     );
@@ -31,13 +32,13 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" replace />;
   }
 
-  return <Layout>{children}</Layout>; // Wrap children with Layout
+  return <Layout>{children}</Layout>;
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Sonner /> {/* Only Sonner is used for toasts */}
+      <Sonner />
       <BrowserRouter>
         <SupabaseProvider>
           <UserProvider>
@@ -80,6 +81,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <DailyDigest />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <NotificationsPage />
                   </ProtectedRoute>
                 }
               />

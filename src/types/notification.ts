@@ -6,4 +6,5 @@ export interface Notification {
   type?: string; // e.g., 'chat_mention', 'task_update', 'project_deadline'
   related_id?: string; // ID of the related entity (chat room, task, project)
   created_at: string;
+  pushUrl?: string; // Added pushUrl for navigation from push notifications
 }

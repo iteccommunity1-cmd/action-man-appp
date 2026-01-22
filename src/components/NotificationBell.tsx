@@ -5,8 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
-import { Notification } from '@/types/notification'; // Import Notification type
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Notification } from '@/types/notification';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 
 export const NotificationBell: React.FC = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
@@ -18,14 +18,18 @@ export const NotificationBell: React.FC = () => {
     if (notification.related_id) {
       switch (notification.type) {
         case 'task_update':
-          // Assuming related_id for task_update is the project_id
+        case 'project_assignment':
+        case 'project_status_update':
+        case 'task_priority_update':
           navigate(`/projects/${notification.related_id}`);
           break;
         case 'chat_mention':
-          // Assuming related_id for chat_mention is the chat_room_id
+        case 'chat_message':
           navigate('/chat', { state: { activeChatRoomId: notification.related_id } });
           break;
-        // Add more cases for other notification types as needed
+        case 'test_notification':
+          navigate(notification.pushUrl || '/profile');
+          break;
         default:
           // Optionally navigate to a generic notifications page or home
           // navigate('/');
@@ -46,7 +50,7 @@ export const NotificationBell: React.FC = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full max-w-xs p-0 rounded-xl shadow-lg border border-gray-200"> {/* Adjusted width for mobile */}
+      <PopoverContent className="w-full max-w-xs p-0 rounded-xl shadow-lg border border-gray-200">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h4 className="font-semibold text-lg text-gray-800">Notifications</h4>
           {unreadCount > 0 && (
@@ -87,6 +91,13 @@ export const NotificationBell: React.FC = () => {
             </div>
           </ScrollArea>
         )}
+        <div className="p-2 border-t border-gray-200 flex justify-center">
+          <Link to="/notifications" className="w-full">
+            <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-800 text-sm rounded-lg">
+              View All Notifications
+            </Button>
+          </Link>
+        </div>
       </PopoverContent>
     </Popover>
   );
