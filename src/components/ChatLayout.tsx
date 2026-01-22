@@ -244,34 +244,65 @@ export const ChatLayout: React.FC = () => {
   const handleSendMessage = async (content: string) => {
     if (!activeChatRoomId || !content.trim() || !currentUser) return;
 
+    const messageContent = content.trim();
+
     const { error } = await supabase.from('messages').insert({
       chat_room_id: activeChatRoomId,
       sender_id: currentUser!.id,
       sender_name: currentUser!.name,
       sender_avatar: currentUser!.avatar,
-      content: content.trim(),
+      content: messageContent,
     });
 
     if (error) {
       console.error("Error sending message:", error);
       showError("Failed to send message.");
     } else {
-      // Send notifications to all other members of the chat room
       const activeChatRoom = chatRooms.find(room => room.id === activeChatRoomId);
-      if (activeChatRoom && activeChatRoom.members) {
-        const recipientIds = activeChatRoom.members.filter(memberId => memberId !== currentUser!.id);
+      if (activeChatRoom && activeChatRoom.members && teamMembers) {
+        const mentionedUsers: TeamMember[] = [];
+        const allPossibleMentions = [...teamMembers, currentUser].filter(Boolean) as TeamMember[];
+
+        for (const member of allPossibleMentions) {
+          if (member.id !== currentUser!.id) { // Don't notify self for mentions
+            // Regex to find @[Full Name] or @[First Name]
+            const mentionPattern = new RegExp(`@(${member.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${member.name.split(' ')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            if (mentionPattern.test(messageContent)) {
+              mentionedUsers.push(member);
+            }
+          }
+        }
+
+        // Send specific "mention" notifications to mentioned users
+        for (const mentionedUser of mentionedUsers) {
+          sendNotification({
+            userId: mentionedUser.id,
+            message: `${currentUser!.name} mentioned you in "${activeChatRoom.name}": "${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}"`,
+            type: 'chat_mention',
+            relatedId: activeChatRoomId,
+            pushTitle: `You were mentioned in ${activeChatRoom.name}`,
+            pushBody: `${currentUser!.name}: ${messageContent.substring(0, 100)}${messageContent.length > 100 ? '...' : ''}`,
+            pushIcon: currentUser!.avatar,
+            pushUrl: `/chat?activeChatRoomId=${activeChatRoomId}`,
+          });
+        }
+
+        // Send general "new message" notifications to other members who were not explicitly mentioned
+        const recipientIds = activeChatRoom.members.filter(memberId =>
+          memberId !== currentUser!.id && !mentionedUsers.some(mu => mu.id === memberId)
+        );
         for (const recipientId of recipientIds) {
           const recipient = teamMembers.find(tm => tm.id === recipientId);
           if (recipient) {
             sendNotification({
               userId: recipient.id,
-              message: `${currentUser!.name} sent a message in "${activeChatRoom.name}": "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
+              message: `${currentUser!.name} sent a message in "${activeChatRoom.name}": "${messageContent.substring(0, 50)}${messageContent.length > 50 ? '...' : ''}"`,
               type: 'chat_message',
               relatedId: activeChatRoomId,
               pushTitle: `New Message in ${activeChatRoom.name}`,
-              pushBody: `${currentUser!.name}: ${content.trim().substring(0, 100)}${content.trim().length > 100 ? '...' : ''}`,
-              pushIcon: currentUser!.avatar, // Use sender's avatar for push icon
-              pushUrl: `/chat?activeChatRoomId=${activeChatRoomId}`, // Use query param for chat navigation
+              pushBody: `${currentUser!.name}: ${messageContent.substring(0, 100)}${messageContent.length > 100 ? '...' : ''}`,
+              pushIcon: currentUser!.avatar,
+              pushUrl: `/chat?activeChatRoomId=${activeChatRoomId}`,
             });
           }
         }
