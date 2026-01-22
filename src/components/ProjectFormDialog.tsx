@@ -224,10 +224,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   if (loadingTeamMembers) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground">
           <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-3 text-lg text-muted-foreground">Loading team members...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -236,12 +236,12 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
+      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-800">
+          <DialogTitle className="text-2xl font-bold text-foreground">
             {isEditMode ? "Edit Project" : "Create New Project"}
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-muted-foreground">
             {isEditMode ? "Make changes to your project here. Click save when you're done." : "Fill in the details to create a new project."}
           </DialogDescription>
         </DialogHeader>
@@ -252,7 +252,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Project Title</FormLabel>
+                  <FormLabel className="text-foreground">Project Title</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Develop new marketing website" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
@@ -266,7 +266,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Description (Optional)</FormLabel>
+                  <FormLabel className="text-foreground">Description (Optional)</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Provide a detailed description of the project..." {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
@@ -280,7 +280,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               name="assignedMembers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Assigned Team Members</FormLabel>
+                  <FormLabel className="text-foreground">Assigned Team Members</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={memberOptions}
@@ -299,7 +299,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               name="deadline"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="text-gray-700">Deadline Date</FormLabel>
+                  <FormLabel className="text-foreground">Deadline Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -339,7 +339,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">Status</FormLabel>
+                  <FormLabel className="text-foreground">Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
