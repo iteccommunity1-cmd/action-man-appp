@@ -8,8 +8,9 @@ import { Loader2, LayoutDashboard, CheckCircle, AlertTriangle } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import { isPast } from 'date-fns';
-import { ProjectTaskCalendar } from './ProjectTaskCalendar'; // Import the new calendar component
-import { CalendarEvent } from '@/types/calendar'; // Import the new CalendarEvent type
+import { ProjectTaskCalendar } from './ProjectTaskCalendar';
+import { CalendarEvent } from '@/types/calendar';
+import { ProjectStatusChart } from './ProjectStatusChart'; // Import the new chart component
 
 export const DashboardOverview: React.FC = () => {
   const { currentUser, isLoadingUser } = useUser();
@@ -19,6 +20,7 @@ export const DashboardOverview: React.FC = () => {
     completedProjects: number;
     overdueTasks: number;
     calendarEvents: CalendarEvent[];
+    projectStatusCounts: { name: string; value: number; color: string }[];
   }, Error>({
     queryKey: ['dashboardData', currentUser?.id],
     queryFn: async () => {
@@ -43,7 +45,7 @@ export const DashboardOverview: React.FC = () => {
 
       if (completedProjectsError) throw completedProjectsError;
 
-      // Fetch all projects for calendar
+      // Fetch all projects for calendar and status chart
       const { data: projectsData, error: projectsDataError } = await supabase
         .from('projects')
         .select('id, title, deadline, status')
@@ -89,11 +91,32 @@ export const DashboardOverview: React.FC = () => {
         }
       });
 
+      // Aggregate project statuses for the chart
+      const statusCounts = (projectsData || []).reduce((acc, project) => {
+        acc[project.status] = (acc[project.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const projectStatusColors: Record<string, string> = {
+        'pending': '#FBBF24', // Yellow
+        'in-progress': '#3B82F6', // Blue
+        'completed': '#10B981', // Green
+        'overdue': '#EF4444', // Red
+      };
+
+      const projectStatusChartData = Object.entries(statusCounts).map(([status, value]) => ({
+        name: status.replace('-', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value,
+        color: projectStatusColors[status] || '#9CA3AF', // Default gray
+      }));
+
+
       return {
         totalProjects: totalProjectsCount || 0,
         completedProjects: completedProjectsCount || 0,
         overdueTasks: overdueTasksCount,
         calendarEvents,
+        projectStatusCounts: projectStatusChartData,
       };
     },
     enabled: !!currentUser?.id && !isLoadingUser,
@@ -118,7 +141,7 @@ export const DashboardOverview: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0"> {/* Adjusted padding for mobile */}
+    <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0">
       <div className="w-full bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-4">
         <h2 className="text-4xl font-bold text-gray-800 mb-2">
           Hello, {currentUser?.name || 'User'}!
@@ -159,19 +182,23 @@ export const DashboardOverview: React.FC = () => {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-8">
+        <div className="w-full">
+          <ProjectStatusChart data={dashboardData?.projectStatusCounts || []} />
+        </div>
+        <div className="w-full">
+          <UpcomingTasksWidget />
+        </div>
+      </div>
+
       <div className="w-full mb-8">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Calendar</h3>
         <ProjectTaskCalendar events={dashboardData?.calendarEvents || []} />
       </div>
 
-      <div className="flex flex-col lg:flex-row items-start justify-center w-full gap-8">
-        <div className="w-full lg:w-2/3 flex flex-col gap-8">
-          <h3 className="text-2xl font-bold text-gray-800">Your Projects</h3>
-          <ProjectList />
-        </div>
-        <div className="w-full lg:w-1/3">
-          <UpcomingTasksWidget />
-        </div>
+      <div className="w-full">
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Projects</h3>
+        <ProjectList />
       </div>
     </div>
   );
