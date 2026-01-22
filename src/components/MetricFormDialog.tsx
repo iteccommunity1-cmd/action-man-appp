@@ -38,6 +38,8 @@ import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Metric } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -82,6 +84,21 @@ export const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
       unit: "",
       lastUpdated: undefined,
     },
+  });
+
+  // Fetch project details to get the project creator's ID and assigned members
+  const { data: projectDetails } = useQuery<{ user_id: string; title: string; assigned_members: string[] }, Error>({
+    queryKey: ['projectDetailsForMetric', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('user_id, title, assigned_members')
+        .eq('id', projectId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId && isOpen,
   });
 
   React.useEffect(() => {
@@ -139,6 +156,32 @@ export const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
         } else {
           showSuccess("Metric updated successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} updated metric "${name}" in project "${projectDetails.title}". Current value: ${currentValue || 'N/A'} ${unit || ''}.`;
+            const pushTitle = `Metric Updated: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} updated "${name}". Current: ${currentValue || 'N/A'} ${unit || ''}.`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'metric_update',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       } else {
         // Create new metric
@@ -162,6 +205,32 @@ export const MetricFormDialog: React.FC<MetricFormDialogProps> = ({
         } else {
           showSuccess("Metric created successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} created a new metric: "${name}" in project "${projectDetails.title}". Target: ${targetValue || 'N/A'} ${unit || ''}.`;
+            const pushTitle = `New Metric: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} created "${name}". Target: ${targetValue || 'N/A'} ${unit || ''}.`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'metric_creation',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       }
     } catch (error) {
