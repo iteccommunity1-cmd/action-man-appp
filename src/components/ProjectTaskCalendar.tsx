@@ -72,7 +72,7 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="grid grid-cols-7 text-center text-sm font-medium text-muted-foreground mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
             <div key={day} className="py-2">{day}</div>
           ))}
         </div>
