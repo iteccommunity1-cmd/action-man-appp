@@ -90,7 +90,7 @@ const ProjectDetails: React.FC = () => {
 
   if (isLoading || loadingTeamMembers) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         <p className="ml-4 text-xl text-gray-600">Loading project details...</p>
       </div>
@@ -100,9 +100,9 @@ const ProjectDetails: React.FC = () => {
   if (isError) {
     showError("Failed to load project details: " + error.message);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"> {/* Updated background */}
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
         <p className="text-xl text-red-600">Error loading project details. Please try again.</p>
-        <Link to="/" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
+        <Link to="/projects" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           Back to Projects
         </Link>
       </div>
@@ -111,9 +111,9 @@ const ProjectDetails: React.FC = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4"> {/* Updated background */}
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
         <p className="text-xl text-gray-600">Project not found or you do not have access.</p>
-        <Link to="/" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
+        <Link to="/projects" className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           Back to Projects
         </Link>
       </div>
@@ -125,12 +125,12 @@ const ProjectDetails: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background p-4 sm:p-6 lg:p-8"> {/* Updated background */}
-      <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"> {/* Adjusted for mobile stacking */}
-        <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
+    <div className="min-h-screen flex flex-col items-center bg-background p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <Link to="/projects" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto"> {/* Adjusted for mobile stacking */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             onClick={handleEditProject}
             className="rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 w-full sm:w-auto"
@@ -147,9 +147,9 @@ const ProjectDetails: React.FC = () => {
         </div>
       </div>
 
-      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8"> {/* Applied glass-card */}
+      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
         <CardHeader className="pb-4">
-          <CardTitle className="text-3xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"> {/* Adjusted for mobile stacking */}
+          <CardTitle className="text-3xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             {project.title}
             <Badge className={cn("rounded-full px-3 py-1 text-sm font-medium", getStatusBadgeColor(project.status))}>
               {project.status.replace('-', ' ')}
@@ -195,9 +195,39 @@ const ProjectDetails: React.FC = () => {
       </Card>
 
       {/* Task List Section */}
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto mb-8">
         <TaskList projectId={project.id} onAddTask={handleAddTask} onEditTask={handleEditTask} />
       </div>
+
+      {/* Placeholder for Milestones */}
+      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-gray-800">Milestones</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Milestones tracking coming soon!</p>
+        </CardContent>
+      </Card>
+
+      {/* Placeholder for Goals */}
+      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-gray-800">Goals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Goals tracking coming soon!</p>
+        </CardContent>
+      </Card>
+
+      {/* Placeholder for Metrics (KPIs, etc.) */}
+      <Card className="w-full max-w-3xl rounded-xl glass-card mb-8">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-gray-800">Metrics & KPIs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Key Performance Indicators and other metrics tracking coming soon!</p>
+        </CardContent>
+      </Card>
 
       <TaskFormDialog
         projectId={project.id}

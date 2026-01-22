@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, MessageCircle, User, LogOut, ListTodo } from 'lucide-react';
+import { Home, MessageCircle, User, LogOut, ListTodo, ListChecks } from 'lucide-react'; // Import ListChecks icon
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -17,6 +17,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
+    { icon: ListChecks, label: "Projects", href: "/projects" }, // Added Projects link
     { icon: ListTodo, label: "Daily Digest", href: "/daily-digest" },
     { icon: MessageCircle, label: "Chat", href: "/chat" },
     { icon: User, label: "Profile", href: "/profile" },
@@ -36,11 +37,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
         isSidebarOpen ? "w-full" : "w-[72px] items-center" // Adjust width and alignment
       )}
     >
-      <div className={cn("flex items-center p-4 border-b border-sidebar-border", isSidebarOpen ? "justify-center" : "justify-center")}>
+      <div className={cn("flex items-center p-4 border-b border-sidebar-border", isSidebarOpen ? "justify-start" : "justify-center")}>
         {isSidebarOpen ? (
           <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
         ) : (
-          <Home className="h-7 w-7 text-sidebar-primary" /> // Icon when collapsed
+          <Home className="h-7 w-7 text-sidebar-primary" />
         )}
       </div>
 

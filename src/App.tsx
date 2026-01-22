@@ -12,7 +12,8 @@ import Login from "./pages/Login";
 import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
 import DailyDigest from "./pages/DailyDigest";
-import NotificationsPage from "./pages/Notifications"; // Import the new NotificationsPage
+import NotificationsPage from "./pages/Notifications";
+import Projects from "./pages/Projects"; // Import the new Projects page
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <p className="text-lg text-foreground">Loading user session...</p>
       </div>
     );
@@ -49,6 +50,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Index />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/projects"
+                element={
+                  <ProtectedRoute>
+                    <Projects />
                   </ProtectedRoute>
                 }
               />

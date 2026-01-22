@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 const routeNameMap: Record<string, string> = {
   '': 'Dashboard',
   'chat': 'Chat',
-  'projects': 'Projects',
+  'projects': 'Projects', // Added Projects to the map
   'profile': 'Profile',
   'daily-digest': 'Daily Digest',
   'notifications': 'Notifications',
@@ -65,14 +65,14 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, toggleSidebar }) 
     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm bg-dot-pattern">
       <div className="flex items-center gap-2">
         {isMobile ? (
-          <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar}> {/* Use isSidebarOpen and toggleSidebar from Layout */}
+          <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-primary/20">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar isSidebarOpen={true} onLinkClick={toggleSidebar} /> {/* Always open inside sheet, toggleSheet on link click */}
+              <Sidebar isSidebarOpen={true} onLinkClick={toggleSidebar} />
             </SheetContent>
           </Sheet>
         ) : (
