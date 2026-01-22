@@ -116,8 +116,8 @@ export const ProfileForm: React.FC = () => {
   if (isLoadingUser) {
     return (
       <div className="flex items-center justify-center p-8 bg-card rounded-xl shadow-lg border border-border w-full max-w-md"> {/* Updated styling */}
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading profile...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-3 text-lg text-muted-foreground">Loading profile...</p>
       </div>
     );
   }

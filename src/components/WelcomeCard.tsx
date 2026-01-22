@@ -46,10 +46,10 @@ export const WelcomeCard: React.FC = () => {
     >
       <div className="absolute inset-0 bg-black opacity-20 rounded-xl"></div> {/* Overlay for text readability, reduced opacity */}
       <CardContent className="relative z-10 text-center p-4">
-        <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 drop-shadow-lg">
+        <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 drop-shadow-lg text-primary-foreground"> {/* Changed text color */}
           {greeting}, {currentUser?.name || 'User'}!
         </h2>
-        <p className="text-lg sm:text-xl font-medium drop-shadow-md">
+        <p className="text-lg sm:text-xl font-medium drop-shadow-md text-primary-foreground/90"> {/* Changed text color */}
           Welcome to your dashboard.
         </p>
       </CardContent>

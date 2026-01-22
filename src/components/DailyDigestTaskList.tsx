@@ -157,8 +157,8 @@ export const DailyDigestTaskList: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading your tasks...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" /> {/* Changed text color */}
+        <p className="ml-3 text-lg text-muted-foreground">Loading your tasks...</p> {/* Changed text color */}
       </div>
     );
   }
@@ -166,7 +166,7 @@ export const DailyDigestTaskList: React.FC = () => {
   if (isError) {
     showError("Failed to load tasks: " + error.message);
     return (
-      <div className="text-center p-8 text-red-600">
+      <div className="text-center p-8 text-destructive"> {/* Changed text color */}
         <p>Error loading tasks for your daily digest. Please try again later.</p>
       </div>
     );
@@ -174,10 +174,10 @@ export const DailyDigestTaskList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-bold text-gray-800">Your Daily Digest</h3>
+      <h3 className="text-2xl font-bold text-foreground">Your Daily Digest</h3> {/* Changed text color */}
 
       {tasks!.length === 0 ? (
-        <div className="text-center text-gray-500 p-8 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <div className="text-center text-muted-foreground p-8 border border-dashed border-border rounded-xl bg-muted/20"> {/* Changed text/border/bg colors */}
           <p className="text-lg">No personal tasks found.</p>
           <p className="text-sm mt-2">Tasks created by you or assigned to you will appear here.</p>
         </div>
@@ -189,19 +189,19 @@ export const DailyDigestTaskList: React.FC = () => {
                 <Checkbox
                   checked={task.status === 'completed'}
                   onCheckedChange={() => handleToggleTaskStatus(task)}
-                  className="mt-1 h-5 w-5 rounded-md border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"
+                  className="mt-1 h-5 w-5 rounded-md border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                 />
                 <div className="flex-grow">
                   <CardTitle className={cn(
-                    "text-lg font-semibold text-gray-800",
-                    task.status === 'completed' && "line-through text-gray-500"
+                    "text-lg font-semibold text-foreground", /* Changed text color */
+                    task.status === 'completed' && "line-through text-muted-foreground" /* Changed text color */
                   )}>
                     {task.title}
                   </CardTitle>
                   {task.description && (
-                    <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{task.description}</p> /* Changed text color */
                   )}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-muted-foreground"> {/* Changed text color */}
                     <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getStatusBadgeColor(task.status, task.due_date))}>
                       {task.status.replace('-', ' ')}
                     </Badge>
@@ -210,13 +210,13 @@ export const DailyDigestTaskList: React.FC = () => {
                     </Badge>
                     {task.due_date && (
                       <span className="flex items-center">
-                        <CalendarDays className="h-4 w-4 mr-1 text-purple-500" />
+                        <CalendarDays className="h-4 w-4 mr-1 text-primary" /> {/* Changed icon color */}
                         Due: {format(new Date(task.due_date), 'PPP')}
                       </span>
                     )}
                     {task.assigned_to && task.assigned_to === currentUser?.id && (
                       <span className="flex items-center">
-                        <UserRound className="h-4 w-4 mr-1 text-indigo-500" />
+                        <UserRound className="h-4 w-4 mr-1 text-secondary" /> {/* Changed icon color */}
                         Assigned to you
                       </span>
                     )}
@@ -232,7 +232,7 @@ export const DailyDigestTaskList: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
                     onClick={() => handlePriorityChange(task.id, task.priority || 0, 'up')}
                     disabled={(task.priority || 0) >= 3}
                   >
@@ -241,7 +241,7 @@ export const DailyDigestTaskList: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
                     onClick={() => handlePriorityChange(task.id, task.priority || 0, 'down')}
                     disabled={(task.priority || 0) <= 0}
                   >
