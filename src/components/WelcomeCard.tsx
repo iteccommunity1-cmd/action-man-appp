@@ -27,7 +27,7 @@ export const WelcomeCard: React.FC = () => {
       currentBgColor = 'from-yellow-200 to-orange-400';
     } else {
       currentGreeting = 'Good Evening';
-      currentImage = 'https://images.unsplash.com/photo-1532828399077-377272727272?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; // Evening/night sky
+      currentImage = 'https://images.unsplash.com/photo-1532828399077-377272727272?q=80&w=2070&auto=format&fit=fit&crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; // Evening/night sky
       currentBgColor = 'from-indigo-400 to-purple-600';
     }
 
