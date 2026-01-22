@@ -95,6 +95,8 @@ const NotificationsPage: React.FC = () => {
           navigate(notification.pushUrl || '/profile');
           break;
         default:
+          // Optionally navigate to a generic notifications page or home
+          // navigate('/');
           break;
       }
     }
