@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Loader2, FileText, Download, Trash2, UploadCloud } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, FileText, Download, Trash2, UploadCloud } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import {
   AlertDialog,
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+// import { cn } from '@/lib/utils'; // Removed unused import
 
 interface ProjectFile {
   id: string;
