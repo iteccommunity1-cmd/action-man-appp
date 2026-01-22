@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format } from "date-fns";
+import { format, differenceInMinutes } from "date-fns"; // Added differenceInMinutes
 import { CalendarIcon, Clock, PlusCircle, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -36,9 +36,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client'; // Corrected import
 import { useQuery } from '@tanstack/react-query';
 import { Task } from '@/types/task';
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 const timeEntryFormSchema = z.object({
   taskId: z.string().optional(),
@@ -100,6 +101,21 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
     enabled: !!projectId && isOpen,
   });
 
+  // Fetch project details to get the project creator's ID
+  const { data: projectDetails } = useQuery<{ user_id: string; title: string }, Error>({
+    queryKey: ['projectDetailsForTimeEntry', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('user_id, title')
+        .eq('id', projectId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId && isOpen,
+  });
+
   const form = useForm<z.infer<typeof timeEntryFormSchema>>({
     resolver: zodResolver(timeEntryFormSchema),
     defaultValues: {
@@ -154,6 +170,40 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
         showSuccess("Time entry logged successfully!");
         onSave();
         onClose();
+
+        const timeSpentMinutes = differenceInMinutes(endTime, startTime);
+        const timeSpentString = `${Math.floor(timeSpentMinutes / 60)}h ${timeSpentMinutes % 60}m`;
+
+        // Notify project creator
+        if (projectDetails?.user_id && projectDetails.user_id !== currentUser.id) {
+          sendNotification({
+            userId: projectDetails.user_id,
+            message: `${currentUser.name} logged ${timeSpentString} for project "${projectDetails.title}".`,
+            type: 'time_entry',
+            relatedId: projectId,
+            pushTitle: `New Time Entry for ${projectDetails.title}`,
+            pushBody: `${currentUser.name} logged ${timeSpentString}.`,
+            pushIcon: currentUser.avatar,
+            pushUrl: `/projects/${projectId}`,
+          });
+        }
+
+        // Notify assigned task member if a task is selected and they are not the current user
+        if (taskId) {
+          const associatedTask = tasks?.find(t => t.id === taskId);
+          if (associatedTask?.assigned_to && associatedTask.assigned_to !== currentUser.id) {
+            sendNotification({
+              userId: associatedTask.assigned_to,
+              message: `${currentUser.name} logged ${timeSpentString} for task "${associatedTask.title}" in project "${projectDetails?.title}".`,
+              type: 'time_entry',
+              relatedId: projectId,
+              pushTitle: `Time Logged for Your Task`,
+              pushBody: `${currentUser.name} logged ${timeSpentString} for "${associatedTask.title}".`,
+              pushIcon: currentUser.avatar,
+              pushUrl: `/projects/${projectId}`,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("[TimeEntryFormDialog] Unexpected error logging time:", error);
