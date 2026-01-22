@@ -50,19 +50,19 @@ export const NotificationBell: React.FC = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full max-w-xs p-0 rounded-xl shadow-lg border border-gray-200">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h4 className="font-semibold text-lg text-gray-800">Notifications</h4>
+      <PopoverContent className="w-full max-w-xs p-0 rounded-xl shadow-lg border border-border bg-card text-card-foreground">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h4 className="font-semibold text-lg text-foreground">Notifications</h4>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-blue-600 hover:text-blue-800 text-sm rounded-lg">
+            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-primary hover:text-primary/80 text-sm rounded-lg">
               Mark all as read
             </Button>
           )}
         </div>
         {loading ? (
-          <div className="p-4 text-center text-gray-500">Loading notifications...</div>
+          <div className="p-4 text-center text-muted-foreground">Loading notifications...</div>
         ) : notifications.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No new notifications.</div>
+          <div className="p-4 text-center text-muted-foreground">No new notifications.</div>
         ) : (
           <ScrollArea className="h-[300px]">
             <div className="flex flex-col">
@@ -70,30 +70,30 @@ export const NotificationBell: React.FC = () => {
                 <div
                   key={notification.id}
                   className={cn(
-                    "flex items-start p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors",
-                    !notification.read ? "bg-blue-50" : ""
+                    "flex items-start p-4 border-b border-border/50 last:border-b-0 cursor-pointer transition-colors",
+                    !notification.read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-card hover:bg-muted/20"
                   )}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex-grow">
-                    <p className={cn("text-sm", !notification.read ? "font-medium text-gray-900" : "text-gray-700")}>
+                    <p className={cn("text-sm", !notification.read ? "font-medium text-foreground" : "text-muted-foreground")}>
                       {notification.message}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground/80 mt-1">
                       {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
                   {!notification.read && (
-                    <CheckCircle2 className="h-4 w-4 text-blue-500 ml-2 flex-shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary ml-2 flex-shrink-0" />
                   )}
                 </div>
               ))}
             </div>
           </ScrollArea>
         )}
-        <div className="p-2 border-t border-gray-200 flex justify-center">
+        <div className="p-2 border-t border-border flex justify-center">
           <Link to="/notifications" className="w-full">
-            <Button variant="ghost" className="w-full text-blue-600 hover:text-blue-800 text-sm rounded-lg">
+            <Button variant="ghost" className="w-full text-primary hover:text-primary/80 text-sm rounded-lg">
               View All Notifications
             </Button>
           </Link>
