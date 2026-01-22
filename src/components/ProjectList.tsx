@@ -165,8 +165,8 @@ export const ProjectList: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading projects...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-3 text-lg text-muted-foreground">Loading projects...</p>
       </div>
     );
   }
@@ -174,7 +174,7 @@ export const ProjectList: React.FC = () => {
   if (isError) {
     showError("Failed to load projects: " + error.message);
     return (
-      <div className="text-center p-8 text-red-600">
+      <div className="text-center p-8 text-destructive">
         <p>Error loading projects. Please try again later.</p>
       </div>
     );
@@ -183,10 +183,10 @@ export const ProjectList: React.FC = () => {
   return (
     <div className="w-full">
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
-        <h3 className="text-2xl font-bold text-gray-800">Your Projects</h3>
+        <h3 className="text-2xl font-bold text-foreground">Your Projects</h3>
         <Button
           onClick={() => setIsCreateProjectDialogOpen(true)}
-          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 w-full sm:w-auto"
+          className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 w-full sm:w-auto"
         >
           <PlusCircle className="h-5 w-5 mr-2" /> Create New Project
         </Button>
@@ -194,12 +194,12 @@ export const ProjectList: React.FC = () => {
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
         <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="filter-status" className="text-gray-700">Filter by Status:</Label>
+          <Label htmlFor="filter-status" className="text-foreground">Filter by Status:</Label>
           <Select value={filterStatus} onValueChange={(value: ProjectStatus) => setFilterStatus(value)}>
-            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
+            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg shadow-md">
+            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="in-progress">In Progress</SelectItem>
@@ -210,12 +210,12 @@ export const ProjectList: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="sort-order" className="text-gray-700">Sort by:</Label>
+          <Label htmlFor="sort-order" className="text-foreground">Sort by:</Label>
           <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
+            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Sort order" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg shadow-md">
+            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
               <SelectItem value="newest">Newest First</SelectItem>
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
@@ -224,7 +224,7 @@ export const ProjectList: React.FC = () => {
       </div>
 
       {projects!.length === 0 ? (
-        <div className="text-center text-gray-500 p-8 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <div className="text-center text-muted-foreground p-8 border border-dashed border-border rounded-xl bg-muted/20">
           <p className="text-lg">No projects found matching your criteria.</p>
           <p className="text-sm mt-2">Click "Create New Project" to get started!</p>
         </div>
@@ -256,16 +256,16 @@ export const ProjectList: React.FC = () => {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6">
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-gray-800">Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogTitle className="text-xl font-bold text-foreground">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               This action cannot be undone. This will permanently delete your project.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-4">
-            <AlertDialogCancel className="rounded-lg px-4 py-2">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteProject} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">
+            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteProject} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

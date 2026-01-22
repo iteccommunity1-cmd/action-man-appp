@@ -23,9 +23,10 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
       <div className="w-full max-w-md bg-card p-8 rounded-xl shadow-lg border border-border text-card-foreground"> {/* Updated card styles */}
-        <h2 className="text-3xl font-bold text-center mb-8">Welcome Back!</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-foreground">Welcome Back!</h2>
         <Auth
           supabaseClient={supabase}
+          providers={[]}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -38,6 +39,12 @@ const Login = () => {
                   inputBorderHover: 'hsl(var(--primary))',
                   inputBorderFocus: 'hsl(var(--primary))',
                   inputText: 'hsl(var(--foreground))',
+                  defaultButtonBackground: 'hsl(var(--secondary))',
+                  defaultButtonBackgroundHover: 'hsl(var(--secondary)/80%)',
+                  defaultButtonBorder: 'hsl(var(--border))',
+                  defaultButtonText: 'hsl(var(--secondary-foreground))',
+                  anchorTextColor: 'hsl(var(--primary))', // Corrected property name
+                  anchorTextHoverColor: 'hsl(var(--primary)/80%)', // Corrected property name
                 },
                 radii: {
                   borderRadiusButton: 'var(--radius)', // Use our global radius
@@ -47,7 +54,6 @@ const Login = () => {
             },
           }}
           theme="dark" // Set theme to dark to match the new background
-          providers={[]} // Only email/password by default
           redirectTo={window.location.origin + '/'}
         />
       </div>

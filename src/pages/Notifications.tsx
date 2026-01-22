@@ -87,8 +87,8 @@ const NotificationsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8 bg-background rounded-xl shadow-lg border border-border w-full max-w-3xl mx-auto min-h-[400px]"> {/* Updated background */}
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading notifications...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-3 text-lg text-muted-foreground">Loading notifications...</p>
       </div>
     );
   }
@@ -96,13 +96,13 @@ const NotificationsPage: React.FC = () => {
   return (
     <div className="w-full max-w-3xl mx-auto p-4 sm:p-0 bg-background"> {/* Updated background */}
       <div className="flex items-center justify-between mb-6">
-        <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
+        <Link to="/" className="flex items-center text-primary hover:text-primary/80 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Dashboard
         </Link>
         <Button
           onClick={markAllAsRead}
           disabled={unreadCount === 0}
-          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+          className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2"
         >
           <CheckCircle2 className="h-5 w-5 mr-2" /> Mark All As Read
         </Button>
@@ -110,14 +110,14 @@ const NotificationsPage: React.FC = () => {
 
       <Card className="rounded-xl glass-card"> {/* Applied glass-card */}
         <CardHeader className="pb-4">
-          <CardTitle className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <Bell className="h-8 w-8 text-blue-600" />
+          <CardTitle className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Bell className="h-8 w-8 text-primary" />
             All Notifications
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {notifications.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-muted-foreground">
               <p className="text-lg">You're all caught up!</p>
               <p className="text-sm mt-2">No notifications to display.</p>
             </div>
@@ -128,15 +128,15 @@ const NotificationsPage: React.FC = () => {
                   <div
                     key={notification.id}
                     className={cn(
-                      "flex items-start p-4 border-b border-gray-100 last:border-b-0 transition-colors duration-200",
-                      !notification.read ? "bg-blue-50 hover:bg-blue-100" : "bg-white hover:bg-gray-50"
+                      "flex items-start p-4 border-b border-border last:border-b-0 transition-colors duration-200",
+                      !notification.read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-card hover:bg-muted/20"
                     )}
                   >
                     <div className="flex-grow cursor-pointer" onClick={() => handleNotificationAction(notification)}>
-                      <p className={cn("text-base", !notification.read ? "font-semibold text-gray-900" : "text-gray-700")}>
+                      <p className={cn("text-base", !notification.read ? "font-medium text-foreground" : "text-muted-foreground")}>
                         {notification.message}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground/80 mt-1">
                         {new Date(notification.created_at).toLocaleString()}
                       </p>
                     </div>
@@ -144,19 +144,19 @@ const NotificationsPage: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                        className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
                         onClick={(e) => {
                           e.stopPropagation();
                           markAsRead(notification.id);
                         }}
                         disabled={notification.read}
                       >
-                        {notification.read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4 text-blue-600" />}
+                        {notification.read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4 text-primary" />}
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="rounded-full h-8 w-8 text-red-600 hover:bg-red-50"
+                        className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/20"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNotification(notification.id);
@@ -174,16 +174,16 @@ const NotificationsPage: React.FC = () => {
       </Card>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6">
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-gray-800">Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete this notification? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-4">
-            <AlertDialogCancel className="rounded-lg px-4 py-2">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteNotification} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">
+            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteNotification} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

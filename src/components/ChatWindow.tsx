@@ -68,9 +68,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-card rounded-none sm:rounded-xl shadow-lg"> {/* Updated styling */}
-      <div className="p-4 border-b border-border bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-none sm:rounded-t-xl flex items-center"> {/* Updated styling */}
+      <div className="p-4 border-b border-border bg-gradient-to-r from-primary to-blue-600 text-primary-foreground rounded-t-none sm:rounded-t-xl flex items-center"> {/* Updated styling */}
         {isMobile && onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-white hover:bg-blue-700 rounded-full">
+          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-primary-foreground hover:bg-primary/80 rounded-full">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         )}
@@ -87,7 +87,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {message.sender_id !== currentUserId && (
               <Avatar className="h-8 w-8 rounded-full border border-border"> {/* Updated styling */}
                 <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
-                <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
                   {message.sender_name.charAt(0)}
                 </AvatarFallback>
               </Avatar>

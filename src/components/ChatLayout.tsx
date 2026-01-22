@@ -356,7 +356,7 @@ export const ChatLayout: React.FC = () => {
                 onBack={() => setActiveChatRoomId(null)} // Back button for mobile
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-card rounded-xl"> {/* Updated styling */}
+              <div className="flex items-center justify-center h-full text-muted-foreground text-lg bg-card rounded-xl"> {/* Updated styling */}
                 Select a chatroom or create a new one to start messaging
               </div>
             )}
@@ -373,7 +373,7 @@ export const ChatLayout: React.FC = () => {
             <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-b-none sm:rounded-b-xl"> {/* Adjusted rounded corners */}
               <Button
                 onClick={() => setIsCreateRoomDialogOpen(true)}
-                className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2"
               >
                 <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
               </Button>
@@ -394,7 +394,7 @@ export const ChatLayout: React.FC = () => {
             <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-bl-xl"> {/* Adjusted rounded corners */}
               <Button
                 onClick={() => setIsCreateRoomDialogOpen(true)}
-                className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2"
               >
                 <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
               </Button>
@@ -411,7 +411,7 @@ export const ChatLayout: React.FC = () => {
                 typingUsers={typingUsers}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500 text-lg bg-card rounded-r-xl"> {/* Updated styling */}
+              <div className="flex items-center justify-center h-full text-muted-foreground text-lg bg-card rounded-r-xl"> {/* Updated styling */}
                 Select a chatroom or create a new one to start messaging
               </div>
             )}

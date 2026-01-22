@@ -124,11 +124,11 @@ export const ProfileForm: React.FC = () => {
 
   return (
     <div className="max-w-full sm:max-w-2xl mx-auto p-4 sm:p-6 bg-card rounded-xl shadow-lg border border-border w-full"> {/* Updated styling */}
-      <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">My Profile</h2>
+      <h2 className="text-3xl font-bold text-center mb-8 text-foreground">My Profile</h2>
       <div className="flex justify-center mb-6">
-        <Avatar className="h-24 w-24 rounded-full border-4 border-blue-200 shadow-md">
+        <Avatar className="h-24 w-24 rounded-full border-4 border-primary/50 shadow-md">
           <AvatarImage src={form.watch("avatar_url") || currentUser?.avatar} alt={currentUser?.name} />
-          <AvatarFallback className="bg-blue-500 text-white text-3xl font-semibold">
+          <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-semibold">
             {currentUser?.name?.charAt(0) || 'U'}
           </AvatarFallback>
         </Avatar>
@@ -140,9 +140,9 @@ export const ProfileForm: React.FC = () => {
             name="first_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700">First Name</FormLabel>
+                <FormLabel className="text-foreground">First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <Input placeholder="John" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,9 +153,9 @@ export const ProfileForm: React.FC = () => {
             name="last_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700">Last Name</FormLabel>
+                <FormLabel className="text-foreground">Last Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <Input placeholder="Doe" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -166,9 +166,9 @@ export const ProfileForm: React.FC = () => {
             name="avatar_url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-700">Avatar URL</FormLabel>
+                <FormLabel className="text-foreground">Avatar URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://example.com/avatar.jpg" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                  <Input placeholder="https://example.com/avatar.jpg" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -180,34 +180,34 @@ export const ProfileForm: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {isSubscribed ? (
-                  <BellRing className="h-5 w-5 text-blue-600" />
+                  <BellRing className="h-5 w-5 text-primary" />
                 ) : (
-                  <BellOff className="h-5 w-5 text-gray-500" />
+                  <BellOff className="h-5 w-5 text-muted-foreground" />
                 )}
-                <FormLabel className="text-gray-700 text-base">Push Notifications</FormLabel>
+                <FormLabel className="text-foreground text-base">Push Notifications</FormLabel>
               </div>
               {isLoadingPush ? (
-                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
               ) : (
                 <Switch
                   checked={isSubscribed}
                   onCheckedChange={handlePushNotificationToggle}
                   disabled={permissionStatus === 'denied'}
-                  className="data-[state=checked]:bg-blue-600"
+                  className="data-[state=checked]:bg-primary"
                 />
               )}
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Receive notifications directly to your device, even when the app is closed.
             </p>
             {permissionStatus === 'denied' && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 Notifications are blocked by your browser. Please enable them in your browser settings.
               </p>
             )}
           </div>
 
-          <Button type="submit" className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg transition-colors duration-200">
+          <Button type="submit" className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-lg transition-colors duration-200">
             Save Profile
           </Button>
         </form>

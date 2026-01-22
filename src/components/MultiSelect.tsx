@@ -44,7 +44,7 @@ export function MultiSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between rounded-lg min-h-[40px] flex flex-wrap items-center"
+          className="w-full justify-between rounded-lg min-h-[40px] flex flex-wrap items-center border-border bg-input text-foreground hover:bg-input/80"
         >
           <div className="flex flex-wrap gap-1">
             {selected.length > 0 ? (
@@ -54,7 +54,7 @@ export function MultiSelect({
                   <Badge
                     key={value}
                     variant="secondary"
-                    className="rounded-full px-2 py-1 flex items-center gap-1"
+                    className="rounded-full px-2 py-1 flex items-center gap-1 bg-secondary text-secondary-foreground"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelect(value);
@@ -72,9 +72,9 @@ export function MultiSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-lg">
-        <Command className="rounded-lg">
-          <CommandInput placeholder="Search..." />
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl shadow-lg border border-border bg-card text-card-foreground">
+        <Command className="rounded-xl">
+          <CommandInput placeholder="Search..." className="border-b border-border" />
           <CommandList>
             <CommandEmpty>No item found.</CommandEmpty>
             <CommandGroup>
@@ -83,7 +83,7 @@ export function MultiSelect({
                   key={option.value}
                   value={option.value}
                   onSelect={() => handleSelect(option.value)}
-                  className="rounded-lg"
+                  className="rounded-lg data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground"
                 >
                   <Check
                     className={cn(

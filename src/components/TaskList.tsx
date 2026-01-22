@@ -248,8 +248,8 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
   if (isLoading || loadingTeamMembers) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading tasks...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-3 text-lg text-muted-foreground">Loading tasks...</p>
       </div>
     );
   }
@@ -257,7 +257,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
   if (isError) {
     showError("Failed to load tasks: " + error.message);
     return (
-      <div className="text-center p-8 text-red-600">
+      <div className="text-center p-8 text-destructive">
         <p>Error loading tasks. Please try again later.</p>
       </div>
     );
@@ -266,20 +266,20 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
-        <h3 className="text-2xl font-bold text-gray-800">Tasks</h3>
-        <Button onClick={onAddTask} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
+        <h3 className="text-2xl font-bold text-foreground">Tasks</h3>
+        <Button onClick={onAddTask} className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
           <PlusCircle className="h-5 w-5 mr-2" /> Add Task
         </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
         <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="filter-status" className="text-gray-700">Filter by Status:</Label>
+          <Label htmlFor="filter-status" className="text-foreground">Filter by Status:</Label>
           <Select value={filterStatus} onValueChange={(value: TaskStatusFilter) => setFilterStatus(value)}>
-            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
+            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg shadow-md">
+            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="in-progress">In Progress</SelectItem>
@@ -290,12 +290,12 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="sort-order" className="text-gray-700">Sort by:</Label>
+          <Label htmlFor="sort-order" className="text-foreground">Sort by:</Label>
           <Select value={sortOrder} onValueChange={(value: TaskSortOrder) => setSortOrder(value)}>
-            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
+            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Sort order" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg shadow-md">
+            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
               <SelectItem value="priority_high">Priority (High to Low)</SelectItem>
               <SelectItem value="priority_low">Priority (Low to High)</SelectItem>
               <SelectItem value="due_date_asc">Due Date (Soonest)</SelectItem>
@@ -308,7 +308,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       </div>
 
       {tasks!.length === 0 ? (
-        <div className="text-center text-gray-500 p-8 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+        <div className="text-center text-muted-foreground p-8 border border-dashed border-border rounded-xl bg-muted/20">
           <p className="text-lg">No tasks for this project yet.</p>
           <p className="text-sm mt-2">Click "Add Task" to create your first one!</p>
         </div>
@@ -320,19 +320,19 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                 <Checkbox
                   checked={task.status === 'completed'}
                   onCheckedChange={() => handleToggleTaskStatus(task)}
-                  className="mt-1 h-5 w-5 rounded-md border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"
+                  className="mt-1 h-5 w-5 rounded-md border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                 />
                 <div className="flex-grow">
                   <CardTitle className={cn(
-                    "text-lg font-semibold text-gray-800",
-                    task.status === 'completed' && "line-through text-gray-500"
+                    "text-lg font-semibold text-foreground",
+                    task.status === 'completed' && "line-through text-muted-foreground"
                   )}>
                     {task.title}
                   </CardTitle>
                   {task.description && (
-                    <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-muted-foreground">
                     <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getStatusBadgeColor(task.status, task.due_date))}>
                       {task.status.replace('-', ' ')}
                     </Badge>
@@ -357,7 +357,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
                     onClick={() => handlePriorityChange(task.id, task.priority || 0, 'up')}
                     disabled={(task.priority || 0) >= 3}
                   >
@@ -366,7 +366,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
                     onClick={() => handlePriorityChange(task.id, task.priority || 0, 'down')}
                     disabled={(task.priority || 0) <= 0}
                   >
@@ -374,10 +374,10 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                   </Button>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100" onClick={() => onEditTask(task)}>
+                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30" onClick={() => onEditTask(task)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => handleDeleteTask(task.id)}>
+                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/20" onClick={() => handleDeleteTask(task.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -388,16 +388,16 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6">
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-gray-800">Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete this task? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-4">
-            <AlertDialogCancel className="rounded-lg px-4 py-2">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTask} className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2">
+            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTask} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

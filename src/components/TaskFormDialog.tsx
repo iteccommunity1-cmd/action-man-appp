@@ -245,7 +245,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                 <FormItem>
                   <FormLabel className="text-gray-700">Task Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Implement user authentication" {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                    <Input placeholder="e.g., Implement user authentication" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -259,7 +259,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                 <FormItem>
                   <FormLabel className="text-gray-700">Description (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Detailed description of the task..." {...field} className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" />
+                    <Textarea placeholder="Detailed description of the task..." {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -274,11 +274,11 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                   <FormLabel className="text-gray-700">Assigned To (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
                         <SelectValue placeholder="Select a team member" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-lg shadow-md">
+                    <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
                       <SelectItem value="">Unassigned</SelectItem>
                       {memberOptions.map((member) => (
                         <SelectItem key={member.value} value={member.value}>
@@ -304,7 +304,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                         <Button
                           variant={"outline"}
                           className={cn(
-                            "w-full pl-3 text-left font-normal rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500",
+                            "w-full pl-3 text-left font-normal rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -317,7 +317,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-lg" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-xl shadow-lg border border-border bg-card text-card-foreground" align="start">
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -340,11 +340,11 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                   <FormLabel className="text-gray-700">Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
                         <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-lg shadow-md">
+                    <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="in-progress">In Progress</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
@@ -364,11 +364,11 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                   <FormLabel className="text-gray-700">Priority</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-lg shadow-md">
+                    <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
                       <SelectItem value="0">Low</SelectItem>
                       <SelectItem value="1">Medium</SelectItem>
                       <SelectItem value="2">High</SelectItem>
@@ -381,10 +381,10 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
             />
 
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2">
+              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">
                 Cancel
               </Button>
-              <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">
+              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
                 {task ? "Save Changes" : <><PlusCircle className="h-4 w-4 mr-2" /> Create Task</>}
               </Button>
             </DialogFooter>
