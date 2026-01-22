@@ -7,26 +7,26 @@ import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit } from 'lucide-react'; // Added Edit icon
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { showError } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
 import { TaskList } from '@/components/TaskList';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
-import { ProjectFormDialog } from '@/components/ProjectFormDialog'; // Import ProjectFormDialog
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
-import { supabase } from '@/integrations/supabase/client'; // Direct import
+import { ProjectFormDialog } from '@/components/ProjectFormDialog';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useUser();
-  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const queryClient = useQueryClient();
 
   const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false); // State for project edit dialog
+  const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false);
 
   const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
     queryKey: ['project', id],
@@ -126,20 +126,20 @@ const ProjectDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-3xl mx-auto mb-6 flex justify-between items-center">
+      <div className="w-full max-w-3xl mx-auto mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"> {/* Adjusted for mobile stacking */}
         <Link to="/" className="flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg transition-colors duration-200">
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto"> {/* Adjusted for mobile stacking */}
           <Button
             onClick={handleEditProject}
-            className="rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2"
+            className="rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 w-full sm:w-auto"
           >
             <Edit className="h-5 w-5 mr-2" /> Edit Project
           </Button>
           {project.chat_room_id && (
-            <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }}>
-              <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2">
+            <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }} className="w-full sm:w-auto">
+              <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 w-full">
                 <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
               </Button>
             </Link>
@@ -149,7 +149,7 @@ const ProjectDetails: React.FC = () => {
 
       <Card className="w-full max-w-3xl rounded-xl shadow-lg border border-gray-200 mb-8">
         <CardHeader className="pb-4">
-          <CardTitle className="text-3xl font-bold text-gray-800 flex items-center justify-between">
+          <CardTitle className="text-3xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"> {/* Adjusted for mobile stacking */}
             {project.title}
             <Badge className={cn("rounded-full px-3 py-1 text-sm font-medium", getStatusBadgeColor(project.status))}>
               {project.status.replace('-', ' ')}
@@ -211,7 +211,7 @@ const ProjectDetails: React.FC = () => {
           project={project}
           isOpen={isProjectEditDialogOpen}
           onClose={handleProjectFormClose}
-          onSave={handleProjectFormClose} // Close and refresh on save
+          onSave={handleProjectFormClose}
         />
       )}
     </div>

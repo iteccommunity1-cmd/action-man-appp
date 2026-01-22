@@ -25,16 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client'; // Direct import
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import useTeamMembers
+import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/utils/notifications';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
 type SortOrder = 'newest' | 'oldest';
 
 export const ProjectList: React.FC = () => {
   const { currentUser } = useUser();
-  const { teamMembers } = useTeamMembers(); // Use teamMembers to get names for notifications
+  const { teamMembers } = useTeamMembers();
   const queryClient = useQueryClient();
 
   const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false);
@@ -124,7 +124,7 @@ export const ProjectList: React.FC = () => {
         showError("Failed to update project status: " + error.message);
       } else {
         showSuccess(`Project status updated to "${newStatus.replace('-', ' ')}"!`);
-        queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
 
         // Send notifications to all assigned members (excluding the current user)
         const projectUpdater = currentUser;
@@ -186,17 +186,17 @@ export const ProjectList: React.FC = () => {
         <h3 className="text-2xl font-bold text-gray-800">Your Projects</h3>
         <Button
           onClick={() => setIsCreateProjectDialogOpen(true)}
-          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4"
+          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 w-full sm:w-auto"
         >
           <PlusCircle className="h-5 w-5 mr-2" /> Create New Project
         </Button>
       </div>
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
           <Label htmlFor="filter-status" className="text-gray-700">Filter by Status:</Label>
           <Select value={filterStatus} onValueChange={(value: ProjectStatus) => setFilterStatus(value)}>
-            <SelectTrigger id="filter-status" className="w-[180px] rounded-lg border-gray-300">
+            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent className="rounded-lg shadow-md">
@@ -209,10 +209,10 @@ export const ProjectList: React.FC = () => {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
           <Label htmlFor="sort-order" className="text-gray-700">Sort by:</Label>
           <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-            <SelectTrigger id="sort-order" className="w-[180px] rounded-lg border-gray-300">
+            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-gray-300"> {/* Adjusted width for mobile */}
               <SelectValue placeholder="Sort order" />
             </SelectTrigger>
             <SelectContent className="rounded-lg shadow-md">
@@ -236,7 +236,7 @@ export const ProjectList: React.FC = () => {
               project={project}
               onEdit={handleEditProject}
               onDelete={handleDeleteProject}
-              onStatusChange={handleStatusChange} // Pass the new handler
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

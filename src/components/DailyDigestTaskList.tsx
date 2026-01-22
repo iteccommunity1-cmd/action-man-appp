@@ -11,12 +11,12 @@ import { Loader2, CalendarDays, UserRound, ArrowUp, ArrowDown } from 'lucide-rea
 import { cn } from '@/lib/utils';
 import { showError, showSuccess } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import useTeamMembers
+import { sendNotification } from '@/utils/notifications';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 export const DailyDigestTaskList: React.FC = () => {
   const { currentUser } = useUser();
-  const { teamMembers } = useTeamMembers(); // Use teamMembers to get names for notifications
+  const { teamMembers } = useTeamMembers();
   const queryClient = useQueryClient();
 
   const { data: tasks, isLoading, isError, error } = useQuery<Task[], Error>({
@@ -28,10 +28,10 @@ export const DailyDigestTaskList: React.FC = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .or(`user_id.eq.${currentUser.id},assigned_to.eq.${currentUser.id}`) // Tasks created by or assigned to current user
-        .order('priority', { ascending: false }) // High priority first
-        .order('due_date', { ascending: true, nullsFirst: false }) // Then by due date
-        .order('created_at', { ascending: false }); // Finally by creation date
+        .or(`user_id.eq.${currentUser.id},assigned_to.eq.${currentUser.id}`)
+        .order('priority', { ascending: false })
+        .order('due_date', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
@@ -55,11 +55,11 @@ export const DailyDigestTaskList: React.FC = () => {
 
   const getPriorityBadgeColor = (priority: number | undefined) => {
     switch (priority) {
-      case 3: return 'bg-red-600 text-white'; // Urgent
-      case 2: return 'bg-orange-500 text-white'; // High
-      case 1: return 'bg-yellow-500 text-gray-800'; // Medium
+      case 3: return 'bg-red-600 text-white';
+      case 2: return 'bg-orange-500 text-white';
+      case 1: return 'bg-yellow-500 text-gray-800';
       case 0:
-      default: return 'bg-gray-300 text-gray-800'; // Low
+      default: return 'bg-gray-300 text-gray-800';
     }
   };
 
@@ -88,7 +88,6 @@ export const DailyDigestTaskList: React.FC = () => {
         showSuccess(`Task marked as ${newStatus}!`);
         queryClient.invalidateQueries({ queryKey: ['dailyDigestTasks'] });
 
-        // Send notification to assigned user if different from current user
         if (task.assigned_to && task.assigned_to !== currentUser?.id) {
           const assignedMember = teamMembers.find(member => member.id === task.assigned_to);
           if (assignedMember) {
@@ -96,7 +95,7 @@ export const DailyDigestTaskList: React.FC = () => {
               userId: assignedMember.id,
               message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
               type: 'task_status_update',
-              relatedId: task.project_id, // Use project_id for navigation
+              relatedId: task.project_id,
               pushTitle: `Task Status Update`,
               pushBody: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
               pushUrl: `/projects/${task.project_id}`,
@@ -113,12 +112,12 @@ export const DailyDigestTaskList: React.FC = () => {
   const handlePriorityChange = async (taskId: string, currentPriority: number, direction: 'up' | 'down') => {
     let newPriority = currentPriority;
     if (direction === 'up') {
-      newPriority = Math.min(3, currentPriority + 1); // Max priority is 3 (Urgent)
+      newPriority = Math.min(3, currentPriority + 1);
     } else {
-      newPriority = Math.max(0, currentPriority - 1); // Min priority is 0 (Low)
+      newPriority = Math.max(0, currentPriority - 1);
     }
 
-    if (newPriority === currentPriority) return; // No change needed
+    if (newPriority === currentPriority) return;
 
     try {
       const { error } = await supabase
@@ -133,7 +132,6 @@ export const DailyDigestTaskList: React.FC = () => {
         showSuccess(`Task priority updated to ${getPriorityLabel(newPriority)}!`);
         queryClient.invalidateQueries({ queryKey: ['dailyDigestTasks'] });
 
-        // Send notification to assigned user if different from current user
         const updatedTask = tasks?.find(t => t.id === taskId);
         if (updatedTask?.assigned_to && updatedTask.assigned_to !== currentUser?.id) {
           const assignedMember = teamMembers.find(member => member.id === updatedTask.assigned_to);
@@ -184,7 +182,7 @@ export const DailyDigestTaskList: React.FC = () => {
           <p className="text-sm mt-2">Tasks created by you or assigned to you will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-4"> {/* Ensure grid is single column on mobile */}
           {tasks!.map((task) => (
             <Card key={task.id} className="rounded-xl shadow-sm border-gray-200 hover:shadow-md transition-shadow duration-200">
               <CardContent className="p-4 flex items-start space-x-4">
