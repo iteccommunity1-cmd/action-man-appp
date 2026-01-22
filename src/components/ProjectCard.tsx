@@ -21,7 +21,7 @@ interface ProjectCardProps {
   project: Project;
   onEdit: (project: Project) => void;
   onDelete: (projectId: string) => void;
-  onStatusChange: (projectId: string, newStatus: Project['status']) => void; // New prop for status change
+  onStatusChange: (project: Project, newStatus: Project['status']) => void; // Changed to pass full project
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, onStatusChange }) => {
@@ -67,16 +67,16 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
                   <Edit className="h-4 w-4" /> Edit Project
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-yellow-50">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-yellow-50">
                   <PauseCircle className="h-4 w-4 text-yellow-600" /> Set to Pending
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-blue-50">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-blue-50">
                   <PlayCircle className="h-4 w-4 text-blue-600" /> Set to In Progress
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-green-50">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-600" /> Mark as Completed
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project.id, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-red-50">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-red-50">
                   <XCircle className="h-4 w-4 text-red-600" /> Mark as Overdue
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

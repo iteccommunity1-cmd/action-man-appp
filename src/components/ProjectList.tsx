@@ -26,12 +26,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client'; // Direct import
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import useTeamMembers
 
 type ProjectStatus = 'all' | 'pending' | 'in-progress' | 'completed' | 'overdue';
 type SortOrder = 'newest' | 'oldest';
 
 export const ProjectList: React.FC = () => {
   const { currentUser } = useUser();
+  const { teamMembers } = useTeamMembers(); // Use teamMembers to get names for notifications
   const queryClient = useQueryClient();
 
   const [isCreateProjectDialogOpen, setIsCreateProjectDialogOpen] = useState(false);
@@ -104,12 +107,17 @@ export const ProjectList: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (projectId: string, newStatus: Project['status']) => {
+  const handleStatusChange = async (project: Project, newStatus: Project['status']) => {
+    if (!currentUser?.id) {
+      showError("You must be logged in to update project status.");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('projects')
         .update({ status: newStatus })
-        .eq('id', projectId);
+        .eq('id', project.id);
 
       if (error) {
         console.error("Error updating project status:", error);
@@ -117,6 +125,25 @@ export const ProjectList: React.FC = () => {
       } else {
         showSuccess(`Project status updated to "${newStatus.replace('-', ' ')}"!`);
         queryClient.invalidateQueries({ queryKey: ['projects'] }); // Refresh the list
+
+        // Send notifications to all assigned members (excluding the current user)
+        const projectUpdater = currentUser;
+        const assignedMembersForNotification = project.assigned_members.filter(memberId => memberId !== projectUpdater.id);
+
+        for (const memberId of assignedMembersForNotification) {
+          const member = teamMembers.find(tm => tm.id === memberId);
+          if (member) {
+            sendNotification({
+              userId: member.id,
+              message: `${projectUpdater.name} updated the status of project "${project.title}" to "${newStatus.replace('-', ' ')}".`,
+              type: 'project_status_update',
+              relatedId: project.id,
+              pushTitle: `Project Update: ${project.title}`,
+              pushBody: `${projectUpdater.name} changed status to "${newStatus.replace('-', ' ')}".`,
+              pushUrl: `/projects/${project.id}`,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Unexpected error updating project status:", error);
