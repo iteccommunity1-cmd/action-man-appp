@@ -54,7 +54,7 @@ export const NotificationBell: React.FC = () => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h4 className="font-semibold text-lg text-gray-800">Notifications</h4>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-blue-600 hover:text-blue-800 text-sm">
+            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-blue-600 hover:text-blue-800 text-sm rounded-lg">
               Mark all as read
             </Button>
           )}
