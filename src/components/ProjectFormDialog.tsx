@@ -142,6 +142,26 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           showSuccess("Project updated successfully!");
           onSave();
           onClose();
+
+          // Send notifications to all assigned members (excluding the current user)
+          const projectUpdater = currentUser;
+          const assignedMembersForNotification = finalAssignedMembers.filter(memberId => memberId !== projectUpdater.id);
+
+          for (const memberId of assignedMembersForNotification) {
+            const member = teamMembers.find(tm => tm.id === memberId);
+            if (member) {
+              sendNotification({
+                userId: member.id,
+                message: `${projectUpdater.name} updated project: "${title}".`,
+                type: 'project_update',
+                relatedId: project.id,
+                pushTitle: `Project Updated: ${title}`,
+                pushBody: `${projectUpdater.name} made changes to "${title}".`,
+                pushIcon: currentUser.avatar,
+                pushUrl: `/projects/${project.id}`,
+              });
+            }
+          }
         }
       } else {
         // Create new project
