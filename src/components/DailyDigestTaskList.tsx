@@ -11,9 +11,12 @@ import { Loader2, CalendarDays, UserRound, ArrowUp, ArrowDown } from 'lucide-rea
 import { cn } from '@/lib/utils';
 import { showError, showSuccess } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import useTeamMembers
 
 export const DailyDigestTaskList: React.FC = () => {
   const { currentUser } = useUser();
+  const { teamMembers } = useTeamMembers(); // Use teamMembers to get names for notifications
   const queryClient = useQueryClient();
 
   const { data: tasks, isLoading, isError, error } = useQuery<Task[], Error>({
@@ -84,6 +87,22 @@ export const DailyDigestTaskList: React.FC = () => {
       } else {
         showSuccess(`Task marked as ${newStatus}!`);
         queryClient.invalidateQueries({ queryKey: ['dailyDigestTasks'] });
+
+        // Send notification to assigned user if different from current user
+        if (task.assigned_to && task.assigned_to !== currentUser?.id) {
+          const assignedMember = teamMembers.find(member => member.id === task.assigned_to);
+          if (assignedMember) {
+            sendNotification({
+              userId: assignedMember.id,
+              message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
+              type: 'task_status_update',
+              relatedId: task.project_id, // Use project_id for navigation
+              pushTitle: `Task Status Update`,
+              pushBody: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
+              pushUrl: `/projects/${task.project_id}`,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("[DailyDigestTaskList] Unexpected error updating task status:", error);
@@ -113,6 +132,23 @@ export const DailyDigestTaskList: React.FC = () => {
       } else {
         showSuccess(`Task priority updated to ${getPriorityLabel(newPriority)}!`);
         queryClient.invalidateQueries({ queryKey: ['dailyDigestTasks'] });
+
+        // Send notification to assigned user if different from current user
+        const updatedTask = tasks?.find(t => t.id === taskId);
+        if (updatedTask?.assigned_to && updatedTask.assigned_to !== currentUser?.id) {
+          const assignedMember = teamMembers.find(member => member.id === updatedTask.assigned_to);
+          if (assignedMember) {
+            sendNotification({
+              userId: assignedMember.id,
+              message: `${currentUser?.name || 'A user'} changed the priority of your task "${updatedTask.title}" to ${getPriorityLabel(newPriority)}.`,
+              type: 'task_priority_update',
+              relatedId: updatedTask.project_id,
+              pushTitle: `Task Priority Update`,
+              pushBody: `${currentUser?.name || 'A user'} changed priority of "${updatedTask.title}" to ${getPriorityLabel(newPriority)}.`,
+              pushUrl: `/projects/${updatedTask.project_id}`,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("[DailyDigestTaskList] Unexpected error updating task priority:", error);

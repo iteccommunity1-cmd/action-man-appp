@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, isPast } from 'date-fns';
-import { PlusCircle, Edit, Trash2, Loader2, CalendarDays, UserRound } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, CalendarDays, UserRound, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { showError, showSuccess } from '@/utils/toast';
 import {
@@ -154,7 +154,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
             sendNotification({
               userId: assignedMember.id,
               message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
-              type: 'task_update',
+              type: 'task_status_update',
               relatedId: projectId, // Pass projectId here for navigation
               pushTitle: `Task Status Update`,
               pushBody: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
@@ -165,6 +165,52 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       }
     } catch (error) {
       console.error("Unexpected error updating task status:", error);
+      showError("An unexpected error occurred.");
+    }
+  };
+
+  const handlePriorityChange = async (taskId: string, currentPriority: number, direction: 'up' | 'down') => {
+    let newPriority = currentPriority;
+    if (direction === 'up') {
+      newPriority = Math.min(3, currentPriority + 1); // Max priority is 3 (Urgent)
+    } else {
+      newPriority = Math.max(0, currentPriority - 1); // Min priority is 0 (Low)
+    }
+
+    if (newPriority === currentPriority) return; // No change needed
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ priority: newPriority })
+        .eq('id', taskId);
+
+      if (error) {
+        console.error("[TaskList] Error updating task priority:", error);
+        showError("Failed to update task priority: " + error.message);
+      } else {
+        showSuccess(`Task priority updated to ${getPriorityLabel(newPriority)}!`);
+        queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
+
+        // Send notification to assigned user if different from current user
+        const updatedTask = tasks?.find(t => t.id === taskId);
+        if (updatedTask?.assigned_to && updatedTask.assigned_to !== currentUser?.id) {
+          const assignedMember = teamMembers.find(member => member.id === updatedTask.assigned_to);
+          if (assignedMember) {
+            sendNotification({
+              userId: assignedMember.id,
+              message: `${currentUser?.name || 'A user'} changed the priority of your task "${updatedTask.title}" to ${getPriorityLabel(newPriority)}.`,
+              type: 'task_priority_update',
+              relatedId: projectId,
+              pushTitle: `Task Priority Update`,
+              pushBody: `${currentUser?.name || 'A user'} changed priority of "${updatedTask.title}" to ${getPriorityLabel(newPriority)}.`,
+              pushUrl: `/projects/${projectId}`,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[TaskList] Unexpected error updating task priority:", error);
       showError("An unexpected error occurred.");
     }
   };
@@ -306,6 +352,26 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                       </span>
                     )}
                   </div>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    onClick={() => handlePriorityChange(task.id, task.priority || 0, 'up')}
+                    disabled={(task.priority || 0) >= 3}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100"
+                    onClick={() => handlePriorityChange(task.id, task.priority || 0, 'down')}
+                    disabled={(task.priority || 0) <= 0}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
                 </div>
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-gray-600 hover:bg-gray-100" onClick={() => onEditTask(task)}>
