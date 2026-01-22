@@ -38,6 +38,8 @@ import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Goal } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -82,6 +84,21 @@ export const GoalFormDialog: React.FC<GoalFormDialogProps> = ({
       dueDate: undefined,
       status: "not_started",
     },
+  });
+
+  // Fetch project details to get the project creator's ID and assigned members
+  const { data: projectDetails } = useQuery<{ user_id: string; title: string; assigned_members: string[] }, Error>({
+    queryKey: ['projectDetailsForGoal', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('user_id, title, assigned_members')
+        .eq('id', projectId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId && isOpen,
   });
 
   React.useEffect(() => {
@@ -139,6 +156,32 @@ export const GoalFormDialog: React.FC<GoalFormDialogProps> = ({
         } else {
           showSuccess("Goal updated successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} updated goal "${title}" in project "${projectDetails.title}" to status "${status.replace(/_/g, ' ')}".`;
+            const pushTitle = `Goal Updated: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} updated "${title}" to "${status.replace(/_/g, ' ')}".`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'goal_update',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       } else {
         // Create new goal
@@ -162,6 +205,32 @@ export const GoalFormDialog: React.FC<GoalFormDialogProps> = ({
         } else {
           showSuccess("Goal created successfully!");
           onClose();
+
+          // Send notifications to project creator and assigned members
+          if (projectDetails) {
+            const notificationMessage = `${currentUser.name} created a new goal: "${title}" in project "${projectDetails.title}".`;
+            const pushTitle = `New Goal: ${projectDetails.title}`;
+            const pushBody = `${currentUser.name} created "${title}".`;
+            const pushUrl = `/projects/${projectId}`;
+
+            const recipients = new Set<string>();
+            if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+            projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+            recipients.delete(currentUser.id); // Don't notify self
+
+            for (const recipientId of Array.from(recipients)) {
+              sendNotification({
+                userId: recipientId,
+                message: notificationMessage,
+                type: 'goal_creation',
+                relatedId: projectId,
+                pushTitle,
+                pushBody,
+                pushIcon: currentUser.avatar,
+                pushUrl,
+              });
+            }
+          }
         }
       }
     } catch (error) {
