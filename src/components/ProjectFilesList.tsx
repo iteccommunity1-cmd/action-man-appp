@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-// import { cn } from '@/lib/utils'; // Removed unused import
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 interface ProjectFile {
   id: string;
@@ -44,7 +44,7 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<{ id: string; storage_path: string; } | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<{ id: string; storage_path: string; file_name: string } | null>(null);
 
   const { data: files, isLoading, isError, error } = useQuery<ProjectFile[], Error>({
     queryKey: ['projectFiles', projectId],
@@ -59,6 +59,21 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
         throw error;
       }
       return data || [];
+    },
+    enabled: !!projectId,
+  });
+
+  // Fetch project details to get the project creator's ID and assigned members for notifications
+  const { data: projectDetails } = useQuery<{ user_id: string; title: string; assigned_members: string[] }, Error>({
+    queryKey: ['projectDetailsForFiles', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('user_id, title, assigned_members')
+        .eq('id', projectId)
+        .single();
+      if (error) throw error;
+      return data;
     },
     enabled: !!projectId,
   });
@@ -104,6 +119,33 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
 
       showSuccess("File uploaded successfully!");
       queryClient.invalidateQueries({ queryKey: ['projectFiles', projectId] });
+
+      // Send notifications to project creator and assigned members
+      if (projectDetails) {
+        const notificationMessage = `${currentUser.name} uploaded a new file "${file.name}" to project "${projectDetails.title}".`;
+        const pushTitle = `New File Uploaded: ${projectDetails.title}`;
+        const pushBody = `${currentUser.name} uploaded "${file.name}".`;
+        const pushUrl = `/projects/${projectId}`;
+
+        const recipients = new Set<string>();
+        if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+        projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+        recipients.delete(currentUser.id); // Don't notify self
+
+        for (const recipientId of Array.from(recipients)) {
+          sendNotification({
+            userId: recipientId,
+            message: notificationMessage,
+            type: 'file_upload',
+            relatedId: projectId,
+            pushTitle,
+            pushBody,
+            pushIcon: currentUser.avatar,
+            pushUrl,
+          });
+        }
+      }
+
     } catch (error: any) {
       console.error("[ProjectFilesList] Error uploading file:", error);
       showError("Failed to upload file: " + error.message);
@@ -137,7 +179,7 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
     }
   };
 
-  const handleDeleteFile = (file: { id: string; storage_path: string; }) => {
+  const handleDeleteFile = (file: { id: string; storage_path: string; file_name: string }) => {
     setFileToDelete(file);
     setIsDeleteDialogOpen(true);
   };
@@ -168,6 +210,33 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
 
       showSuccess("File deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ['projectFiles', projectId] });
+
+      // Send notifications to project creator and assigned members
+      if (projectDetails) {
+        const notificationMessage = `${currentUser?.name || 'A user'} deleted file "${fileToDelete.file_name}" from project "${projectDetails.title}".`;
+        const pushTitle = `File Deleted: ${projectDetails.title}`;
+        const pushBody = `${currentUser?.name || 'A user'} deleted "${fileToDelete.file_name}".`;
+        const pushUrl = `/projects/${projectId}`;
+
+        const recipients = new Set<string>();
+        if (projectDetails.user_id) recipients.add(projectDetails.user_id);
+        projectDetails.assigned_members.forEach(memberId => recipients.add(memberId));
+        recipients.delete(currentUser?.id || ''); // Don't notify self
+
+        for (const recipientId of Array.from(recipients)) {
+          sendNotification({
+            userId: recipientId,
+            message: notificationMessage,
+            type: 'file_delete',
+            relatedId: projectId,
+            pushTitle,
+            pushBody,
+            pushIcon: currentUser?.avatar,
+            pushUrl,
+          });
+        }
+      }
+
     } catch (error: any) {
       console.error("[ProjectFilesList] Error deleting file:", error);
       showError("Failed to delete file: " + error.message);
@@ -266,7 +335,7 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
                       variant="ghost"
                       size="icon"
                       className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/20"
-                      onClick={() => handleDeleteFile({ id: file.id, storage_path: file.storage_path })}
+                      onClick={() => handleDeleteFile({ id: file.id, storage_path: file.storage_path, file_name: file.file_name })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
