@@ -72,8 +72,8 @@ export const UpcomingTasksWidget: React.FC = () => {
   if (isLoading) {
     return (
       <Card className="rounded-xl glass-card h-full flex items-center justify-center p-6"> {/* Applied glass-card */}
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-lg text-gray-600">Loading tasks...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" /> {/* Changed text color */}
+        <p className="ml-3 text-lg text-muted-foreground">Loading tasks...</p> {/* Changed text color */}
       </Card>
     );
   }
@@ -82,7 +82,7 @@ export const UpcomingTasksWidget: React.FC = () => {
     showError("Failed to load upcoming tasks: " + error.message);
     return (
       <Card className="rounded-xl glass-card h-full flex items-center justify-center p-6"> {/* Applied glass-card */}
-        <p className="text-lg text-red-600">Error loading tasks.</p>
+        <p className="text-lg text-destructive">Error loading tasks.</p> {/* Changed text color */}
       </Card>
     );
   }
@@ -90,10 +90,10 @@ export const UpcomingTasksWidget: React.FC = () => {
   return (
     <Card className="rounded-xl glass-card h-full flex flex-col"> {/* Applied glass-card */}
       <CardHeader className="pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-800 flex items-center justify-between">
+        <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-between"> {/* Changed text color */}
           Upcoming Tasks
           <Link to="/daily-digest">
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80"> {/* Changed text color */}
               View All <ListTodo className="ml-2 h-4 w-4" />
             </Button>
           </Link>
@@ -101,16 +101,16 @@ export const UpcomingTasksWidget: React.FC = () => {
       </CardHeader>
       <CardContent className="flex-grow">
         {tasks!.length === 0 ? (
-          <div className="text-center text-gray-500 p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+          <div className="text-center text-muted-foreground p-4 border border-dashed border-border rounded-xl bg-muted/20"> {/* Changed text/border/bg colors */}
             <p className="text-lg">No upcoming tasks!</p>
             <p className="text-sm mt-2">Time to relax or create new ones.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {tasks!.map((task: Task) => (
-              <Link to={`/projects/${task.project_id}`} key={task.id} className="block hover:bg-gray-50 rounded-lg transition-colors duration-200 p-3 -mx-3">
+              <Link to={`/projects/${task.project_id}`} key={task.id} className="block hover:bg-muted/20 rounded-lg transition-colors duration-200 p-3 -mx-3"> {/* Changed hover bg */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between"> {/* Adjusted for mobile stacking */}
-                  <p className="font-medium text-gray-800 text-base">{task.title}</p>
+                  <p className="font-medium text-foreground text-base">{task.title}</p> {/* Changed text color */}
                   <div className="flex items-center gap-2 mt-1 sm:mt-0"> {/* Adjusted margin for mobile */}
                     <Badge className={cn("rounded-full px-2 py-0.5 text-xs font-medium", getPriorityBadgeColor(task.priority))}>
                       {getPriorityLabel(task.priority)}
@@ -121,8 +121,8 @@ export const UpcomingTasksWidget: React.FC = () => {
                   </div>
                 </div>
                 {task.due_date && (
-                  <p className="text-sm text-gray-600 mt-1 flex items-center">
-                    <CalendarDays className="h-4 w-4 mr-2 text-purple-500" />
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center"> {/* Changed text color */}
+                    <CalendarDays className="h-4 w-4 mr-2 text-primary" /> {/* Changed icon color */}
                     Due: {format(new Date(task.due_date), 'PPP')}
                   </p>
                 )}

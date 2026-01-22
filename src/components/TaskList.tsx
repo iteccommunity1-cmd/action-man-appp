@@ -97,7 +97,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
       }
       return data || [];
     },
-    enabled: !!currentUser?.id && !!projectId,
+    enabled: !!currentUser?.id,
   });
 
   const getStatusBadgeColor = (status: Task['status'], dueDate?: string) => {
@@ -341,13 +341,13 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
                     </Badge>
                     {task.due_date && (
                       <span className="flex items-center">
-                        <CalendarDays className="h-4 w-4 mr-1 text-purple-500" />
+                        <CalendarDays className="h-4 w-4 mr-1 text-primary" /> {/* Changed icon color */}
                         Due: {format(new Date(task.due_date), 'PPP')}
                       </span>
                     )}
                     {task.assigned_to && (
                       <span className="flex items-center">
-                        <UserRound className="h-4 w-4 mr-1 text-indigo-500" />
+                        <UserRound className="h-4 w-4 mr-1 text-secondary" /> {/* Changed icon color */}
                         Assigned to: {teamMembers.find(member => member.id === task.assigned_to)?.name || 'Unknown'}
                       </span>
                     )}

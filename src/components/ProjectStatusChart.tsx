@@ -29,11 +29,11 @@ export const ProjectStatusChart: React.FC<ProjectStatusChartProps> = ({ data }) 
   return (
     <Card className="rounded-xl glass-card h-full flex flex-col"> {/* Applied glass-card */}
       <CardHeader className="pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-800">Project Status Overview</CardTitle>
+        <CardTitle className="text-2xl font-bold text-foreground">Project Status Overview</CardTitle> {/* Changed text color */}
       </CardHeader>
       <CardContent className="flex-grow flex items-center justify-center p-0">
         {data.every(item => item.value === 0) ? (
-          <div className="text-center text-gray-500 p-8">
+          <div className="text-center text-muted-foreground p-8"> {/* Changed text color */}
             <p className="text-lg">No projects to display chart.</p>
             <p className="text-sm mt-2">Create some projects to see the breakdown!</p>
           </div>

@@ -58,20 +58,20 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
   };
 
   return (
-    <Card className="rounded-xl glass-card p-4 sm:p-6 h-full flex flex-col"> {/* Applied glass-card */}
+    <Card className="rounded-xl glass-card p-4 sm:p-6 h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="rounded-full">
-          <ChevronLeft className="h-5 w-5 text-gray-700" />
+        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="rounded-full text-muted-foreground hover:bg-muted/20">
+          <ChevronLeft className="h-5 w-5" />
         </Button>
-        <CardTitle className="text-xl font-bold text-gray-800">
+        <CardTitle className="text-xl font-bold text-foreground">
           {format(currentMonth, headerFormat)}
         </CardTitle>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="rounded-full">
-          <ChevronRight className="h-5 w-5 text-gray-700" />
+        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="rounded-full text-muted-foreground hover:bg-muted/20">
+          <ChevronRight className="h-5 w-5" />
         </Button>
       </CardHeader>
       <CardContent className="flex-grow">
-        <div className="grid grid-cols-7 text-center text-sm font-medium text-gray-600 mb-2">
+        <div className="grid grid-cols-7 text-center text-sm font-medium text-muted-foreground mb-2">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="py-2">{day}</div>
           ))}
@@ -88,10 +88,10 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
                   <div
                     className={cn(
                       "relative flex flex-col items-center justify-center p-2 h-16 rounded-lg cursor-pointer transition-colors duration-200",
-                      isSameMonth(day, currentMonth) ? "text-gray-800" : "text-gray-400",
-                      isCurrentDay && "bg-blue-100 border-2 border-blue-500",
-                      dayEvents.length > 0 && "hover:bg-blue-50",
-                      "hover:bg-gray-100"
+                      isSameMonth(day, currentMonth) ? "text-foreground" : "text-muted-foreground/60",
+                      isCurrentDay && "bg-primary/20 border-2 border-primary",
+                      dayEvents.length > 0 && "hover:bg-primary/10",
+                      "hover:bg-muted/20"
                     )}
                   >
                     <span className="text-sm font-semibold">{format(day, dayFormat)}</span>
@@ -101,26 +101,26 @@ export const ProjectTaskCalendar: React.FC<ProjectTaskCalendarProps> = ({ events
                           <span key={i} className={cn("h-2 w-2 rounded-full", getEventColor(event.status))}></span>
                         ))}
                         {dayEvents.length > 3 && (
-                          <span className="text-xs text-gray-500">+{dayEvents.length - 3}</span>
+                          <span className="text-xs text-muted-foreground">+{dayEvents.length - 3}</span>
                         )}
                       </div>
                     )}
                   </div>
                 </PopoverTrigger>
                 {dayEvents.length > 0 && (
-                  <PopoverContent className="w-full sm:w-80 p-0 rounded-xl shadow-lg border border-gray-200"> {/* Adjusted width for mobile */}
-                    <div className="p-4 border-b border-gray-200">
-                      <h4 className="font-semibold text-lg text-gray-800">Events on {format(day, 'PPP')}</h4>
+                  <PopoverContent className="w-full sm:w-80 p-0 rounded-xl shadow-lg border border-border bg-card text-card-foreground">
+                    <div className="p-4 border-b border-border">
+                      <h4 className="font-semibold text-lg text-foreground">Events on {format(day, 'PPP')}</h4>
                     </div>
                     <ScrollArea className="h-[200px]">
                       <div className="flex flex-col">
                         {dayEvents.map((event) => (
                           <Link to={event.link} key={event.id} className="block">
-                            <div className="flex items-center p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center p-3 border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
                               <span className={cn("h-3 w-3 rounded-full mr-3", getEventColor(event.status))}></span>
                               <div className="flex-grow">
-                                <p className="text-sm font-medium text-gray-800">{event.title}</p>
-                                <p className="text-xs text-gray-600 capitalize">{event.type} - {event.status.replace('-', ' ')}</p>
+                                <p className="text-sm font-medium text-foreground">{event.title}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{event.type} - {event.status.replace('-', ' ')}</p>
                               </div>
                             </div>
                           </Link>

@@ -46,10 +46,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
   ).filter(Boolean);
 
   return (
-    <Card className="rounded-xl glass-card"> {/* Applied glass-card */}
+    <Card className="rounded-xl glass-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl font-semibold text-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"> {/* Adjusted for mobile stacking */}
-          <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md">
+        <CardTitle className="text-xl font-semibold text-foreground flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <Link to={`/projects/${project.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded-md">
             {project.title}
           </Link>
           <div className="flex items-center gap-2">
@@ -59,28 +59,28 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={(e) => e.stopPropagation()}>
-                  <MoreVertical className="h-4 w-4 text-gray-600" />
+                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-lg shadow-md">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-gray-100">
-                  <Edit className="h-4 w-4" /> Edit Project
+              <DropdownMenuContent align="end" className="rounded-lg shadow-md bg-card border-border text-card-foreground">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-accent/20">
+                  <Edit className="h-4 w-4 text-primary" /> Edit Project
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-yellow-50">
-                  <PauseCircle className="h-4 w-4 text-yellow-600" /> Set to Pending
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-yellow-500/20">
+                  <PauseCircle className="h-4 w-4 text-yellow-500" /> Set to Pending
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-blue-50">
-                  <PlayCircle className="h-4 w-4 text-blue-600" /> Set to In Progress
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-blue-500/20">
+                  <PlayCircle className="h-4 w-4 text-blue-500" /> Set to In Progress
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-green-50">
-                  <CheckCircle className="h-4 w-4 text-green-600" /> Mark as Completed
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-green-500/20">
+                  <CheckCircle className="h-4 w-4 text-green-500" /> Mark as Completed
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-red-50">
-                  <XCircle className="h-4 w-4 text-red-600" /> Mark as Overdue
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-md hover:bg-red-500/20">
+                  <XCircle className="h-4 w-4 text-red-500" /> Mark as Overdue
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md">
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/20 rounded-md">
                   <Trash2 className="h-4 w-4" /> Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -90,36 +90,36 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
       </CardHeader>
       <CardContent className="space-y-4">
         {project.description && (
-          <p className="text-sm text-gray-700 leading-relaxed">{project.description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{project.description}</p>
         )}
-        <div className="flex items-center text-sm text-gray-600">
-          <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
+        <div className="flex items-center text-sm text-muted-foreground">
+          <CalendarDays className="h-4 w-4 mr-2 text-primary" />
           <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
         </div>
-        <div className="flex items-center text-sm text-gray-600">
-          <Hourglass className="h-4 w-4 mr-2 text-purple-500" />
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Hourglass className="h-4 w-4 mr-2 text-secondary" />
           <span>Created: {format(new Date(project.created_at), 'PPP')}</span>
         </div>
         <div>
-          <h5 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-            <Users className="h-4 w-4 mr-2 text-indigo-500" />
+          <h5 className="text-sm font-medium text-foreground mb-2 flex items-center">
+            <Users className="h-4 w-4 mr-2 text-primary" />
             Assigned Members:
           </h5>
           <div className="flex flex-wrap gap-2">
             {assignedMemberDetails.length > 0 ? (
               assignedMemberDetails.map((member) => (
-                <div key={member!.id} className="flex items-center space-x-2 bg-gray-100 rounded-full pr-3 py-1">
-                  <Avatar className="h-7 w-7 border border-gray-200">
+                <div key={member!.id} className="flex items-center space-x-2 bg-muted rounded-full pr-3 py-1">
+                  <Avatar className="h-7 w-7 border border-border">
                     <AvatarImage src={member!.avatar} alt={member!.name} />
-                    <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                    <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
                       {member!.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-gray-700">{member!.name}</span>
+                  <span className="text-sm text-foreground">{member!.name}</span>
                 </div>
               ))
             ) : (
-              <span className="text-sm text-gray-500">No members assigned</span>
+              <span className="text-sm text-muted-foreground">No members assigned</span>
             )}
           </div>
         </div>

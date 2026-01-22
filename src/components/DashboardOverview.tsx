@@ -125,9 +125,9 @@ export const DashboardOverview: React.FC = () => {
 
   if (isLoadingUser || isLoadingDashboard) {
     return (
-      <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-white rounded-xl shadow-lg border border-gray-200">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        <p className="ml-4 text-xl text-gray-600">Loading dashboard...</p>
+      <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-card rounded-xl shadow-lg border border-border"> {/* Updated bg/border/shadow */}
+        <Loader2 className="h-10 w-10 animate-spin text-primary" /> {/* Changed text color */}
+        <p className="ml-4 text-xl text-muted-foreground">Loading dashboard...</p> {/* Changed text color */}
       </div>
     );
   }
@@ -135,8 +135,8 @@ export const DashboardOverview: React.FC = () => {
   if (isDashboardError) {
     showError("Failed to load dashboard statistics: " + dashboardError.message);
     return (
-      <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-white rounded-xl shadow-lg border border-gray-200">
-        <p className="text-xl text-red-600">Error loading dashboard statistics.</p>
+      <div className="flex items-center justify-center w-full max-w-7xl mx-auto p-8 min-h-[400px] bg-card rounded-xl shadow-lg border border-border"> {/* Updated bg/border/shadow */}
+        <p className="text-xl text-destructive">Error loading dashboard statistics.</p> {/* Changed text color */}
       </div>
     );
   }
@@ -149,31 +149,31 @@ export const DashboardOverview: React.FC = () => {
         {/* KPI Cards */}
         <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Total Projects</CardTitle>
-            <LayoutDashboard className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle> {/* Changed text color */}
+            <LayoutDashboard className="h-5 w-5 text-primary" /> {/* Changed icon color */}
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{dashboardData?.totalProjects}</div>
+            <div className="text-3xl font-bold text-foreground">{dashboardData?.totalProjects}</div> {/* Changed text color */}
             <p className="text-xs text-muted-foreground mt-1">All projects you've created</p>
           </CardContent>
         </Card>
         <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Completed Projects</CardTitle>
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completed Projects</CardTitle> {/* Changed text color */}
+            <CheckCircle className="h-5 w-5 text-green-500" /> {/* Kept green for completed */}
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{dashboardData?.completedProjects}</div>
+            <div className="text-3xl font-bold text-foreground">{dashboardData?.completedProjects}</div> {/* Changed text color */}
             <p className="text-xs text-muted-foreground mt-1">Projects marked as finished</p>
           </CardContent>
         </Card>
         <Card className="rounded-xl glass-card col-span-1"> {/* Applied glass-card */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">Overdue Tasks</CardTitle>
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Overdue Tasks</CardTitle> {/* Changed text color */}
+            <AlertTriangle className="h-5 w-5 text-destructive" /> {/* Changed icon color */}
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{dashboardData?.overdueTasks}</div>
+            <div className="text-3xl font-bold text-foreground">{dashboardData?.overdueTasks}</div> {/* Changed text color */}
             <p className="text-xs text-muted-foreground mt-1">Tasks past their due date</p>
           </CardContent>
         </Card>
@@ -192,7 +192,7 @@ export const DashboardOverview: React.FC = () => {
       </div>
 
       <div className="w-full">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Projects</h3>
+        <h3 className="text-2xl font-bold text-foreground mb-4">Your Projects</h3> {/* Changed text color */}
         <ProjectList />
       </div>
     </div>
