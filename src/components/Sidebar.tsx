@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 bg-dot-pattern">
       <div className="flex items-center justify-center p-4 border-b border-sidebar-border">
         <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
       </div>

@@ -40,10 +40,12 @@
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 20 100% 63%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 210 67% 20%; /* Darker teal for sidebar hover */
+    --sidebar-accent: 210 67% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 210 67% 25%;
     --sidebar-ring: 20 100% 63%;
+
+    --dot-color: hsl(210 67% 20% / 0.3); /* Subtle teal dots for patterns */
   }
 
   .dark {
@@ -84,6 +86,8 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 210 67% 25%;
     --sidebar-ring: 20 100% 63%;
+
+    --dot-color: hsl(210 67% 20% / 0.3);
   }
 }
 
@@ -99,5 +103,12 @@
   /* Base glassmorphism styles for cards */
   .glass-card {
     @apply bg-white/5 backdrop-blur-lg border border-white/10 shadow-soft;
+  }
+}
+
+@layer utilities {
+  .bg-dot-pattern {
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 16px 16px; /* Adjust size as needed */
   }
 }

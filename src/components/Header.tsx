@@ -60,7 +60,7 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm bg-dot-pattern">
       <div className="flex items-center gap-2">
         {isMobile && (
           <Sheet>
