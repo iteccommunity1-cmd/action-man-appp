@@ -38,6 +38,7 @@ import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
 import { Task } from '@/types/task';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 import { supabase } from '@/integrations/supabase/client'; // Direct import
 
 const formSchema = z.object({
@@ -130,6 +131,36 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         } else {
           showSuccess("Task updated successfully!");
           onClose();
+
+          // Send notification if assigned_to changed or was set
+          if (assignedTo && assignedTo !== currentUser.id && assignedTo !== task.assigned_to) {
+            const assignedMember = teamMembers.find(member => member.id === assignedTo);
+            if (assignedMember) {
+              sendNotification({
+                userId: assignedMember.id,
+                message: `${currentUser.name} assigned you to task: "${title}" in project.`,
+                type: 'task_assignment',
+                relatedId: projectId,
+                pushTitle: `New Task Assignment`,
+                pushBody: `${currentUser.name} assigned you to task: "${title}".`,
+                pushUrl: `/projects/${projectId}`,
+              });
+            }
+          } else if (assignedTo && assignedTo === task.assigned_to && status !== task.status) {
+            // If status changed for an assigned task (and assigned_to didn't change)
+            const assignedMember = teamMembers.find(member => member.id === assignedTo);
+            if (assignedMember) {
+              sendNotification({
+                userId: assignedMember.id,
+                message: `${currentUser.name} updated the status of your task: "${title}" to "${status}".`,
+                type: 'task_update',
+                relatedId: projectId,
+                pushTitle: `Task Status Update`,
+                pushBody: `${currentUser.name} updated your task: "${title}" to "${status}".`,
+                pushUrl: `/projects/${projectId}`,
+              });
+            }
+          }
         }
       } else {
         // Create new task
@@ -153,6 +184,22 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         } else {
           showSuccess("Task created successfully!");
           onClose();
+
+          // Send notification if assigned to someone else
+          if (assignedTo && assignedTo !== currentUser.id) {
+            const assignedMember = teamMembers.find(member => member.id === assignedTo);
+            if (assignedMember) {
+              sendNotification({
+                userId: assignedMember.id,
+                message: `${currentUser.name} assigned you to a new task: "${title}" in project.`,
+                type: 'task_assignment',
+                relatedId: projectId,
+                pushTitle: `New Task Assignment`,
+                pushBody: `${currentUser.name} assigned you to a new task: "${title}".`,
+                pushUrl: `/projects/${projectId}`,
+              });
+            }
+          }
         }
       }
     } catch (error) {

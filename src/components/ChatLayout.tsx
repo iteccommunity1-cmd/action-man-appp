@@ -11,6 +11,7 @@ import { CreateChatRoomDialog } from './CreateChatRoomDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
 import { supabase } from '@/integrations/supabase/client'; // Direct import
+import { TeamMember } from '@/types/project'; // Import TeamMember type
 
 export const ChatLayout: React.FC = () => {
   const { currentUser } = useUser();
@@ -65,17 +66,14 @@ export const ChatLayout: React.FC = () => {
             const otherMemberIds = room.members.filter((memberId: string) => memberId !== currentUser.id);
             const otherMembersDetails = otherMemberIds
               .map((id: string) => allMembers.find(member => member.id === id))
-              .filter(Boolean);
-            
+              .filter(Boolean) as TeamMember[]; // Cast to TeamMember[] after filtering
+
             if (otherMembersDetails.length === 1) {
               roomName = otherMembersDetails[0]!.name;
               roomAvatar = otherMembersDetails[0]!.avatar;
-            } else if (otherMembersDetails.length === 2) {
-              roomName = `${otherMembersDetails[0]!.name} & ${otherMembersDetails[1]!.name}`;
-              roomAvatar = otherMembersDetails[0]!.avatar;
-            } else if (otherMembersDetails.length > 2) {
-              roomName = `${otherMembersDetails[0]!.name}, ${otherMembersDetails[1]!.name} & ${otherMembersDetails.length - 2} others`;
-              roomAvatar = otherMembersDetails[0]!.avatar;
+            } else if (otherMembersDetails.length > 1) {
+              roomName = otherMembersDetails.map((m: TeamMember) => m.name).join(', ');
+              roomAvatar = otherMembersDetails[0]!.avatar; // Use first member's avatar for group private chat
             } else if (otherMemberIds.length === 0 && room.members.includes(currentUser.id)) {
               // Self-chat
               roomName = currentUser.name;

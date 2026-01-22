@@ -115,6 +115,11 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
     const { title, description, assignedMembers, deadline, status } = values;
 
+    // Ensure the current user is always included in assignedMembers for new projects
+    const finalAssignedMembers = isEditMode
+      ? assignedMembers
+      : Array.from(new Set([currentUser.id, ...assignedMembers])); // Add current user if not already there
+
     try {
       if (isEditMode && project) {
         // Update existing project
@@ -123,7 +128,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           .update({
             title,
             description: description || null, // Save description
-            assigned_members: assignedMembers,
+            assigned_members: finalAssignedMembers, // Use finalAssignedMembers
             deadline: deadline.toISOString(),
             status,
           })
@@ -146,7 +151,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             name: `${title} Chat`,
             type: 'project',
             avatar: `https://api.dicebear.com/8.x/adventurer/svg?seed=${title}`, // Generate avatar based on project title
-            members: [currentUser.id, ...assignedMembers], // Add current user and assigned members
+            members: finalAssignedMembers, // Use finalAssignedMembers for chat room
           })
           .select('id')
           .single();
@@ -166,7 +171,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             user_id: currentUser.id,
             title,
             description: description || null, // Save description
-            assigned_members: assignedMembers,
+            assigned_members: finalAssignedMembers, // Use finalAssignedMembers for project
             deadline: deadline.toISOString(),
             status: status,
             chat_room_id: chat_room_id, // Link the created chat room

@@ -94,6 +94,9 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
               message: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
               type: 'task_update',
               relatedId: projectId, // Pass projectId here for navigation
+              pushTitle: `Task Status Update`,
+              pushBody: `${currentUser?.name || 'A user'} ${newStatus === 'completed' ? 'completed' : 'reopened'} your task: "${task.title}".`,
+              pushUrl: `/projects/${projectId}`,
             });
           }
         }
