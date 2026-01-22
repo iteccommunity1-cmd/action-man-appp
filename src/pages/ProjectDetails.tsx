@@ -7,7 +7,7 @@ import { Task } from '@/types/task';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit } from 'lucide-react';
+import { CalendarDays, Hourglass, Users, ArrowLeft, Loader2, MessageCircle, Edit, Timer } from 'lucide-react'; // Import Timer icon
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { showError } from '@/utils/toast';
@@ -18,7 +18,8 @@ import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { MilestoneList } from '@/components/MilestoneList';
 import { GoalList } from '@/components/GoalList';
 import { MetricList } from '@/components/MetricList';
-import { ProjectFilesList } from '@/components/ProjectFilesList'; // Import ProjectFilesList
+import { ProjectFilesList } from '@/components/ProjectFilesList';
+import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog'; // Import TimeEntryFormDialog
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,6 +32,7 @@ const ProjectDetails: React.FC = () => {
   const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false);
+  const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false); // State for time entry dialog
 
   const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
     queryKey: ['project', id],
@@ -92,6 +94,12 @@ const ProjectDetails: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['project', id] }); // Refresh project details after edit
   };
 
+  const handleTimeEntryDialogClose = () => {
+    setIsTimeEntryDialogOpen(false);
+    // Optionally invalidate queries related to time entries if you add a time entry list
+    // queryClient.invalidateQueries({ queryKey: ['timeEntries', id] });
+  };
+
   if (isLoading || loadingTeamMembers) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -135,6 +143,12 @@ const ProjectDetails: React.FC = () => {
           <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
         </Link>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            onClick={() => setIsTimeEntryDialogOpen(true)} // Button to open time entry dialog
+            className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 w-full sm:w-auto"
+          >
+            <Timer className="h-5 w-5 mr-2" /> Log Time
+          </Button>
           <Button
             onClick={handleEditProject}
             className="rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 w-full sm:w-auto"
@@ -238,6 +252,13 @@ const ProjectDetails: React.FC = () => {
           onSave={handleProjectFormClose}
         />
       )}
+
+      <TimeEntryFormDialog
+        projectId={project.id}
+        isOpen={isTimeEntryDialogOpen}
+        onClose={handleTimeEntryDialogClose}
+        onSave={handleTimeEntryDialogClose} // Invalidate relevant queries here if needed
+      />
     </div>
   );
 };
