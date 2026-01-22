@@ -1,10 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ListTodo, Flag, Target, Gauge, FileText, Clock } from 'lucide-react'; // Removed CheckCircle
-// import { Project } from '@/types/project'; // Removed unused import
+import { ListTodo, Flag, Target, Gauge, FileText, Clock } from 'lucide-react'; 
 
 interface ProjectOverviewStatsProps {
-  // project: Project; // Removed unused prop
   totalTasks: number;
   completedTasks: number;
   totalMilestones: number;
@@ -15,7 +13,6 @@ interface ProjectOverviewStatsProps {
 }
 
 export const ProjectOverviewStats: React.FC<ProjectOverviewStatsProps> = ({
-  // project, // Removed unused prop
   totalTasks,
   completedTasks,
   totalMilestones,
