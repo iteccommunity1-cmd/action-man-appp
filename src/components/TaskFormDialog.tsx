@@ -216,7 +216,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
   if (loadingTeamMembers) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
+        <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full"> {/* Added w-full */}
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
@@ -228,7 +228,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] rounded-xl p-6">
+      <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full"> {/* Added w-full */}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800">{task ? "Edit Task" : "Create New Task"}</DialogTitle>
           <DialogDescription className="text-gray-600">

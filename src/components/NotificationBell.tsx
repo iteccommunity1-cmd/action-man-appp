@@ -46,7 +46,7 @@ export const NotificationBell: React.FC = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 rounded-xl shadow-lg border border-gray-200">
+      <PopoverContent className="w-full max-w-xs p-0 rounded-xl shadow-lg border border-gray-200"> {/* Adjusted width for mobile */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h4 className="font-semibold text-lg text-gray-800">Notifications</h4>
           {unreadCount > 0 && (
