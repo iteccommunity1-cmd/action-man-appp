@@ -152,7 +152,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
 
         // Check if a private chat room with these exact members already exists
         const existingRoom = existingRooms?.find(room => {
-          const roomMembersSorted = room.members?.sort();
+          const roomMembersSorted = (room.members || []).sort(); // Defensive check
           return JSON.stringify(roomMembersSorted) === JSON.stringify(membersToInclude);
         });
 
