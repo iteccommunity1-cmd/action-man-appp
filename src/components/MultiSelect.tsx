@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-// import { useTeamMembers } from "@/hooks/useTeamMembers"; // Removed unused import
 
 interface MultiSelectProps {
   options: { value: string; label: string }[];
