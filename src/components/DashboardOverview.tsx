@@ -10,7 +10,8 @@ import { showError } from '@/utils/toast';
 import { isPast } from 'date-fns';
 import { ProjectTaskCalendar } from './ProjectTaskCalendar';
 import { CalendarEvent } from '@/types/calendar';
-import { ProjectStatusChart } from './ProjectStatusChart'; // Import the new chart component
+import { ProjectStatusChart } from './ProjectStatusChart';
+import { WelcomeCard } from './WelcomeCard'; // Import the new WelcomeCard
 
 export const DashboardOverview: React.FC = () => {
   const { currentUser, isLoadingUser } = useUser();
@@ -142,12 +143,7 @@ export const DashboardOverview: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center w-full max-w-7xl gap-8 p-4 sm:p-0">
-      <div className="w-full bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-4">
-        <h2 className="text-4xl font-bold text-gray-800 mb-2">
-          Hello, {currentUser?.name || 'User'}!
-        </h2>
-        <p className="text-lg text-gray-600">Here's a quick overview of your progress.</p>
-      </div>
+      <WelcomeCard /> {/* Replaced static welcome message with dynamic WelcomeCard */}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
         <Card className="rounded-xl shadow-md border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50">
