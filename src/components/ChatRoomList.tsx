@@ -42,7 +42,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
               <p className="text-xs text-muted-foreground truncate">
                 {room.lastMessage
                   ? (room.lastSenderName ? `${room.lastSenderName}: ` : '') + room.lastMessage
-                  : 'No recent messages'}
+                  : 'No messages yet'}
               </p>
             </div>
           </div>

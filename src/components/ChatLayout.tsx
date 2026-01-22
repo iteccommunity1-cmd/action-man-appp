@@ -167,7 +167,6 @@ export const ChatLayout: React.FC = () => {
           sender_id: msg.sender_id,
           sender_name: msg.sender_name,
           sender_avatar: msg.sender_avatar,
-          // Removed timestamp as it's redundant with created_at
         })));
       }
     };
@@ -185,7 +184,6 @@ export const ChatLayout: React.FC = () => {
             sender_id: newMessage.sender_id,
             sender_name: newMessage.sender_name,
             sender_avatar: newMessage.sender_avatar,
-            // Removed timestamp as it's redundant with created_at
           },
         ]);
         setChatRooms((prevRooms) =>
