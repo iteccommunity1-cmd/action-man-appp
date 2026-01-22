@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { showError, showSuccess } from '@/utils/toast';
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 // IMPORTANT: Replace this with your actual VAPID public key.
 // You can generate VAPID keys using a tool like web-push-codelab.glitch.me
@@ -154,6 +155,16 @@ export const usePushNotifications = () => {
       } else {
         setIsSubscribed(true);
         showSuccess("Successfully subscribed to push notifications!");
+        // Send a test notification
+        sendNotification({
+          userId: currentUser.id,
+          message: "You've successfully enabled push notifications!",
+          type: 'test_notification',
+          pushTitle: "Notifications Enabled!",
+          pushBody: "You will now receive updates directly to your device.",
+          pushIcon: currentUser.avatar,
+          pushUrl: "/profile",
+        });
       }
     } catch (error) {
       console.error("[usePushNotifications] Error subscribing user:", error);
