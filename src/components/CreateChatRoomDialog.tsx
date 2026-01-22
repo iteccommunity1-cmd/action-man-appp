@@ -199,8 +199,8 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
           <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" /> {/* Changed text color */}
-            <p className="ml-3 text-lg text-muted-foreground">Loading team members...</p> {/* Changed text color */}
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -211,8 +211,8 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Create New Chat Room</DialogTitle> {/* Changed text color */}
-          <DialogDescription className="text-muted-foreground"> {/* Changed text color */}
+          <DialogTitle className="text-2xl font-bold text-gray-800">Create New Chat Room</DialogTitle>
+          <DialogDescription className="text-gray-600">
             Set up a new chat channel for your team or a private conversation.
           </DialogDescription>
         </DialogHeader>
@@ -223,14 +223,14 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Chat Room Type</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Chat Room Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80"> {/* Updated styling */}
+                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                         <SelectValue placeholder="Select a type" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground"> {/* Updated styling */}
+                    <SelectContent className="rounded-lg shadow-md">
                       <SelectItem value="private">Private</SelectItem>
                       <SelectItem value="project">Project</SelectItem>
                     </SelectContent>
@@ -245,12 +245,12 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Chat Room Name</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Chat Room Name</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={selectedType === 'private' ? "Auto-generated for private chats" : "e.g., Marketing Team Chat"}
                       {...field}
-                      className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" {/* Updated styling */}
+                      className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       readOnly={selectedType === 'private'}
                       disabled={selectedType === 'private'}
                     />
@@ -265,7 +265,7 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
               name="selectedMembers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Select Members</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Select Members</FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={memberOptions}
@@ -280,10 +280,10 @@ export const CreateChatRoomDialog: React.FC<CreateChatRoomDialogProps> = ({
             />
 
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground"> {/* Updated styling */}
+              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2">
                 Cancel
               </Button>
-              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2"> {/* Updated styling */}
+              <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2">
                 <PlusCircle className="h-4 w-4 mr-2" /> Create Room
               </Button>
             </DialogFooter>

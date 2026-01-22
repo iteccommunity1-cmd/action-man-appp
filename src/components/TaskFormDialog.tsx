@@ -219,8 +219,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
           <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" /> {/* Changed text color */}
-            <p className="ml-3 text-lg text-muted-foreground">Loading team members...</p> {/* Changed text color */}
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="ml-3 text-lg text-gray-600">Loading team members...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -231,8 +231,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border"> {/* Updated styling */}
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">{task ? "Edit Task" : "Create New Task"}</DialogTitle> {/* Changed text color */}
-          <DialogDescription className="text-muted-foreground"> {/* Changed text color */}
+          <DialogTitle className="text-2xl font-bold text-gray-800">{task ? "Edit Task" : "Create New Task"}</DialogTitle>
+          <DialogDescription className="text-gray-600">
             {task ? "Make changes to your task here." : "Add a new task to your project."}
           </DialogDescription>
         </DialogHeader>
@@ -243,7 +243,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Task Title</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Task Title</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Implement user authentication" {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
@@ -257,7 +257,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Description (Optional)</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Description (Optional)</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Detailed description of the task..." {...field} className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground" />
                   </FormControl>
@@ -271,7 +271,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="assignedTo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Assigned To (Optional)</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Assigned To (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
@@ -297,7 +297,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="text-foreground">Due Date (Optional)</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Due Date (Optional)</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -337,7 +337,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Status</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
@@ -361,7 +361,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               name="priority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground">Priority</FormLabel> {/* Changed text color */}
+                  <FormLabel className="text-gray-700">Priority</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
