@@ -29,8 +29,8 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   };
 
   const renderSidebarContent = () => (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 rounded-l-xl sm:rounded-none"> {/* Adjusted rounded corners for mobile sheet */}
-      <div className="flex items-center justify-center p-4 border-b border-sidebar-border mb-6">
+    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4"> {/* Removed explicit rounded corners here */}
+      <div className="flex items-center justify-center p-4 border-b border-sidebar-border">
         <h1 className="text-2xl font-bold text-sidebar-primary">Dyad App</h1>
       </div>
 
@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   }
 
   return (
-    <div className="w-1/4 min-w-[280px] max-w-[300px] flex-shrink-0 h-full">
+    <div className="w-1/4 min-w-[280px] max-w-[300px] flex-shrink-0 h-full rounded-xl"> {/* Added rounded-xl here for desktop */}
       {renderSidebarContent()}
     </div>
   );
