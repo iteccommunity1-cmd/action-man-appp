@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 const routeNameMap: Record<string, string> = {
   '': 'Dashboard',
   'chat': 'Chat',
-  'projects': 'Projects', // Added Projects to the map
+  'projects': 'Projects',
   'profile': 'Profile',
   'daily-digest': 'Daily Digest',
   'notifications': 'Notifications',
@@ -32,31 +32,36 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, toggleSidebar }) 
   const showBackButton = location.pathname !== '/';
 
   const pathnames = location.pathname.split('/').filter((x) => x);
+  const projectId = params.id; // Extract projectId unconditionally
+
+  // Move useQuery outside the conditional block
+  const { data: fetchedProjectTitle } = useQuery<string, Error>({
+    queryKey: ['projectTitle', projectId],
+    queryFn: async () => {
+      if (!projectId) return 'Unknown Project';
+      const { data, error } = await supabase
+        .from('projects')
+        .select('title')
+        .eq('id', projectId)
+        .single();
+      if (error) {
+        console.error("[Header] Error fetching project title:", error);
+        return 'Unknown Project';
+      }
+      return data?.title || 'Unknown Project';
+    },
+    // Enable the query only when it's a project details page
+    enabled: !!projectId && pathnames.length >= 2 && pathnames[pathnames.length - 2] === 'projects',
+  });
+
   let currentPageTitle = routeNameMap[''];
 
   if (pathnames.length > 0) {
     const lastSegment = pathnames[pathnames.length - 1];
     currentPageTitle = routeNameMap[lastSegment] || lastSegment;
 
-    if (lastSegment === params.id && pathnames[pathnames.length - 2] === 'projects') {
-      const projectId = params.id;
-      const { data: fetchedProjectTitle } = useQuery<string, Error>({
-        queryKey: ['projectTitle', projectId],
-        queryFn: async () => {
-          if (!projectId) return 'Unknown Project';
-          const { data, error } = await supabase
-            .from('projects')
-            .select('title')
-            .eq('id', projectId)
-            .single();
-          if (error) {
-            console.error("[Header] Error fetching project title:", error);
-            return 'Unknown Project';
-          }
-          return data?.title || 'Unknown Project';
-        },
-        enabled: !!projectId,
-      });
+    // Now, use the fetchedProjectTitle if the conditions are met
+    if (lastSegment === projectId && pathnames.length >= 2 && pathnames[pathnames.length - 2] === 'projects') {
       currentPageTitle = fetchedProjectTitle || 'Loading...';
     }
   }
