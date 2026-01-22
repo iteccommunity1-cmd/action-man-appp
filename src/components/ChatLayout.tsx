@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { ChatRoomList } from './ChatRoomList';
 import { ChatWindow } from './ChatWindow';
 import { ChatRoom, Message } from '@/types/chat';
@@ -12,11 +12,13 @@ import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2 for loading indicator
 import { supabase } from '@/integrations/supabase/client'; // Direct import
 import { TeamMember } from '@/types/project'; // Import TeamMember type
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 export const ChatLayout: React.FC = () => {
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
   const location = useLocation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [activeChatRoomId, setActiveChatRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -102,10 +104,18 @@ export const ChatLayout: React.FC = () => {
 
       const stateActiveRoomId = (location.state as { activeChatRoomId?: string })?.activeChatRoomId;
       const localStorageActiveRoomId = localStorage.getItem('activeChatRoomId');
+      const queryParams = new URLSearchParams(location.search);
+      const queryActiveRoomId = queryParams.get('activeChatRoomId');
+
 
       if (stateActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === stateActiveRoomId)) {
         setActiveChatRoomId(stateActiveRoomId);
-      } else if (localStorageActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === localStorageActiveRoomId)) {
+      } else if (queryActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === queryActiveRoomId)) {
+        setActiveChatRoomId(queryActiveRoomId);
+        // Clear the query param from URL to avoid re-triggering on refresh
+        navigate(location.pathname, { replace: true });
+      }
+      else if (localStorageActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === localStorageActiveRoomId)) {
         setActiveChatRoomId(localStorageActiveRoomId);
         localStorage.removeItem('activeChatRoomId');
       } else if (roomsWithLastMessage.length > 0) {
@@ -140,7 +150,7 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers]); // Add teamMembers to dependencies
+  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]); // Add location.search and navigate to dependencies
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -245,6 +255,27 @@ export const ChatLayout: React.FC = () => {
     if (error) {
       console.error("Error sending message:", error);
       showError("Failed to send message.");
+    } else {
+      // Send notifications to all other members of the chat room
+      const activeChatRoom = chatRooms.find(room => room.id === activeChatRoomId);
+      if (activeChatRoom && activeChatRoom.members) {
+        const recipientIds = activeChatRoom.members.filter(memberId => memberId !== currentUser!.id);
+        for (const recipientId of recipientIds) {
+          const recipient = teamMembers.find(tm => tm.id === recipientId);
+          if (recipient) {
+            sendNotification({
+              userId: recipient.id,
+              message: `${currentUser!.name} sent a message in "${activeChatRoom.name}": "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
+              type: 'chat_message',
+              relatedId: activeChatRoomId,
+              pushTitle: `New Message in ${activeChatRoom.name}`,
+              pushBody: `${currentUser!.name}: ${content.trim().substring(0, 100)}${content.trim().length > 100 ? '...' : ''}`,
+              pushIcon: currentUser!.avatar, // Use sender's avatar for push icon
+              pushUrl: `/chat?activeChatRoomId=${activeChatRoomId}`, // Use query param for chat navigation
+            });
+          }
+        }
+      }
     }
   };
 

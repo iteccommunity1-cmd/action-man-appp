@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
 import { Loader2 } from 'lucide-react'; // Import Loader2
 import { supabase } from '@/integrations/supabase/client'; // Direct import
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -165,7 +166,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
         const chat_room_id = chatRoomData.id;
 
         // Then, create the project and link the chat room
-        const { error: projectError } = await supabase
+        const { data: newProjectData, error: projectError } = await supabase
           .from('projects')
           .insert({
             user_id: currentUser.id,
@@ -176,7 +177,8 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
             status: status,
             chat_room_id: chat_room_id, // Link the created chat room
           })
-          .select();
+          .select('id') // Select the ID of the newly created project
+          .single(); // Expect a single row
 
         if (projectError) {
           console.error("Error creating project:", projectError);
@@ -187,6 +189,25 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           showSuccess("Project and associated chat room created successfully!");
           onSave();
           onClose();
+
+          // Send notifications to all assigned members (excluding creator)
+          const projectCreator = currentUser;
+          const assignedMembersForNotification = finalAssignedMembers.filter(memberId => memberId !== projectCreator.id);
+
+          for (const memberId of assignedMembersForNotification) {
+            const member = teamMembers.find(tm => tm.id === memberId);
+            if (member) {
+              sendNotification({
+                userId: member.id,
+                message: `${projectCreator.name} created a new project: "${title}" and assigned you.`,
+                type: 'project_assignment',
+                relatedId: newProjectData.id, // Use the newly created project ID
+                pushTitle: `New Project: ${title}`,
+                pushBody: `${projectCreator.name} assigned you to "${title}".`,
+                pushUrl: `/projects/${newProjectData.id}`,
+              });
+            }
+          }
         }
       }
     } catch (error) {
