@@ -52,3 +52,13 @@ export interface Metric {
   last_updated?: string; // ISO date string
   created_at: string;
 }
+
+export interface ProjectOverviewStatsProps {
+  totalTasks: number;
+  completedTasks: number;
+  totalMilestones: number;
+  totalGoals: number;
+  totalMetrics: number;
+  totalFiles: number;
+  totalTimeLogged: number; // in hours
+}
