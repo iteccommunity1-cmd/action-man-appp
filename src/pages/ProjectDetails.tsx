@@ -16,7 +16,7 @@ import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog';
 import { ProjectOverviewStats } from '@/components/ProjectOverviewStats';
-import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs';
+import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs'; // Import ProjectDetailsTabs
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { supabase } from '@/integrations/supabase/client';
 
