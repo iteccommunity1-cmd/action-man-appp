@@ -1,16 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ListTodo, Flag, Target, Gauge, FileText, Clock } from 'lucide-react'; 
-
-interface ProjectOverviewStatsProps {
-  totalTasks: number;
-  completedTasks: number;
-  totalMilestones: number;
-  totalGoals: number;
-  totalMetrics: number;
-  totalFiles: number;
-  totalTimeLogged: number; // in hours
-}
+import { ListTodo, Flag, Target, Gauge, FileText, Clock } from 'lucide-react';
+import { ProjectOverviewStatsProps } from '@/types/project'; // Import the interface
 
 export const ProjectOverviewStats: React.FC<ProjectOverviewStatsProps> = ({
   totalTasks,
