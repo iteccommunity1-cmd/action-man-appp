@@ -15,10 +15,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
-import { Loader2, BellRing, BellOff, Upload } from 'lucide-react';
+import { Loader2, BellRing, BellOff, Upload, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
 const profileFormSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required." }).optional().or(z.literal('')),
@@ -170,6 +171,26 @@ export const ProfileForm: React.FC = () => {
     }
   };
 
+  const handleSendTestNotification = async () => {
+    if (!currentUser) return;
+    
+    if (!isSubscribed) {
+      showError("You must enable push notifications first.");
+      return;
+    }
+
+    showSuccess("Sending test notification...");
+    await sendNotification({
+      userId: currentUser.id,
+      message: "This is a test notification sent manually.",
+      type: 'test_notification',
+      pushTitle: "Manual Test Notification",
+      pushBody: "If you see this, push notifications are working!",
+      pushIcon: currentUser.avatar,
+      pushUrl: "/profile",
+    });
+  };
+
   if (isLoadingUser) {
     return (
       <div className="flex items-center justify-center p-8 bg-card rounded-xl shadow-lg border border-border w-full max-w-md">
@@ -263,6 +284,16 @@ export const ProfileForm: React.FC = () => {
               <p className="text-sm text-destructive">
                 Notifications are blocked by your browser. Please enable them in your browser settings.
               </p>
+            )}
+            {isSubscribed && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSendTestNotification}
+                className="mt-3 w-full rounded-lg border-primary text-primary hover:bg-primary/10"
+              >
+                <Send className="h-4 w-4 mr-2" /> Send Test Notification
+              </Button>
             )}
           </div>
 
