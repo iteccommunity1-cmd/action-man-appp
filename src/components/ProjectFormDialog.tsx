@@ -123,7 +123,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
     try {
       if (isEditMode && project) {
-        // Update existing project
+        // 1. Update existing project
         const { error } = await supabase
           .from('projects')
           .update({
@@ -138,31 +138,45 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
         if (error) {
           console.error("Error updating project:", error);
           showError("Failed to update project: " + error.message);
-        } else {
-          showSuccess("Project updated successfully!");
-          onSave();
-          onClose();
+          return;
+        }
 
-          // Send notifications to all assigned members (excluding the current user)
-          const projectUpdater = currentUser;
-          const assignedMembersForNotification = finalAssignedMembers.filter(memberId => memberId !== projectUpdater.id);
+        // 2. Synchronize Chat Room Members
+        if (project.chat_room_id) {
+          const { error: chatUpdateError } = await supabase
+            .from('chat_rooms')
+            .update({ members: finalAssignedMembers })
+            .eq('id', project.chat_room_id);
 
-          for (const memberId of assignedMembersForNotification) {
-            const member = teamMembers.find(tm => tm.id === memberId);
-            if (member) {
-              sendNotification({
-                userId: member.id,
-                message: `${projectUpdater.name} updated project: "${title}".`,
-                type: 'project_update',
-                relatedId: project.id,
-                pushTitle: `Project Updated: ${title}`,
-                pushBody: `${projectUpdater.name} made changes to "${title}".`,
-                pushIcon: currentUser.avatar,
-                pushUrl: `/projects/${project.id}`,
-              });
-            }
+          if (chatUpdateError) {
+            console.error("Error updating chat room members:", chatUpdateError);
+            // Log error but proceed, as project update was successful
           }
         }
+
+        showSuccess("Project updated successfully!");
+        onSave();
+        onClose();
+
+        // Send notifications to all assigned members (excluding the current user)
+        const projectUpdater = currentUser;
+        const assignedMembersForNotification = finalAssignedMembers.filter(memberId => memberId !== projectUpdater.id);
+
+        for (const memberId of assignedMembersForNotification) {
+          const member = teamMembers.find(tm => tm.id === memberId);
+          if (member) {
+            sendNotification({
+              userId: member.id,
+              message: `${projectUpdater.name} updated project: "${title}".`,
+              type: 'project_update',
+              relatedId: project.id,
+              pushTitle: `Project Updated: ${title}`,
+              pushBody: `${projectUpdater.name} made changes to "${title}".`,
+              pushIcon: currentUser.avatar,
+              pushUrl: `/projects/${project.id}`,
+            });
+            }
+          }
       } else {
         // Create new project
         // First, create the chat room
