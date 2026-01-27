@@ -4,11 +4,8 @@ import { useUser } from '@/contexts/UserContext';
 import { showError, showSuccess } from '@/utils/toast';
 import { sendNotification } from '@/utils/notifications'; // Import sendNotification
 
-// IMPORTANT: Replace this with your actual VAPID public key.
-// You can generate VAPID keys using a tool like web-push-codelab.glitch.me
-// or by running `npx web-push generate-vapid-keys` in your terminal.
-// The public key will be used here, and the private key will be set as a Supabase Edge Function secret.
-const VAPID_PUBLIC_KEY = "BL-NPAmmISgZtDaqCzBJCQ4u2O-hrVKhSEJWlXq0dKVf0kqPfmYZGwrLMwMvGIR4NnrYPz2clKaiut_VB7o5IVw"; 
+// Read VAPID Public Key from environment variables
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 export const usePushNotifications = () => {
   const { currentUser } = useUser();
@@ -32,7 +29,7 @@ export const usePushNotifications = () => {
   };
 
   const checkSubscription = useCallback(async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !currentUser?.id) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !currentUser?.id || !VAPID_PUBLIC_KEY) {
       setIsSubscribed(false);
       setIsLoading(false);
       return;
@@ -93,6 +90,11 @@ export const usePushNotifications = () => {
   const subscribeUser = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !currentUser?.id) {
       showError("Push notifications are not supported or user not logged in.");
+      return;
+    }
+    
+    if (!VAPID_PUBLIC_KEY) {
+      showError("VAPID Public Key is missing. Please configure environment variables.");
       return;
     }
 
