@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format, differenceInMinutes } from "date-fns"; // Added differenceInMinutes
+import { format, differenceInMinutes } from "date-fns";
 import { CalendarIcon, Clock, PlusCircle, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -36,15 +36,27 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/UserContext";
 import { showSuccess, showError } from "@/utils/toast";
-import { supabase } from '@/integrations/supabase/client'; // Corrected import
+import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Task } from '@/types/task';
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { sendNotification } from '@/utils/notifications';
+
+// Define TimeEntry interface locally for use in the component props
+interface TimeEntry {
+  id: string;
+  user_id: string;
+  project_id: string;
+  task_id?: string;
+  start_time: string;
+  end_time: string;
+  description?: string;
+  created_at: string;
+}
 
 const timeEntryFormSchema = z.object({
   taskId: z.string().optional(),
-  startTime: z.date().optional(), // Changed to optional
-  endTime: z.date().optional(), // Changed to optional
+  startTime: z.date().optional(),
+  endTime: z.date().optional(),
   description: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (!data.startTime) {
@@ -72,7 +84,8 @@ const timeEntryFormSchema = z.object({
 
 interface TimeEntryFormDialogProps {
   projectId: string;
-  initialTaskId?: string; // Optional: pre-select a task
+  timeEntry?: TimeEntry | null; // New prop for editing
+  initialTaskId?: string;
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
@@ -80,19 +93,21 @@ interface TimeEntryFormDialogProps {
 
 export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
   projectId,
+  timeEntry, // Destructure timeEntry
   initialTaskId,
   isOpen,
   onClose,
   onSave,
 }) => {
   const { currentUser } = useUser();
+  const isEditMode = !!timeEntry;
 
   const { data: tasks, isLoading: isLoadingTasks } = useQuery<Task[], Error>({
     queryKey: ['tasksForTimeEntry', projectId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tasks')
-        .select('*') // Changed to select all fields to match Task interface
+        .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -128,14 +143,24 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
 
   React.useEffect(() => {
     if (isOpen) {
-      form.reset({
-        taskId: initialTaskId || undefined,
-        startTime: undefined,
-        endTime: undefined,
-        description: "",
-      });
+      if (isEditMode && timeEntry) {
+        form.reset({
+          taskId: timeEntry.task_id || undefined,
+          startTime: new Date(timeEntry.start_time),
+          endTime: new Date(timeEntry.end_time),
+          description: timeEntry.description || "",
+        });
+      } else {
+        // Reset for new entry creation
+        form.reset({
+          taskId: initialTaskId || undefined,
+          startTime: undefined,
+          endTime: undefined,
+          description: "",
+        });
+      }
     }
-  }, [isOpen, initialTaskId, form]);
+  }, [isOpen, initialTaskId, timeEntry, isEditMode, form]);
 
   const onSubmit = async (values: z.infer<typeof timeEntryFormSchema>) => {
     if (!currentUser?.id) {
@@ -145,68 +170,90 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
 
     const { taskId, startTime, endTime, description } = values;
 
-    // These checks are now handled by superRefine, but good to have a runtime check too
     if (!startTime || !endTime) {
       showError("Start time and End time are required.");
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('time_entries')
-        .insert({
-          user_id: currentUser.id,
-          project_id: projectId,
-          task_id: taskId || null,
-          start_time: startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          description: description || null,
-        });
+      if (isEditMode && timeEntry) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('time_entries')
+          .update({
+            task_id: taskId || null,
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            description: description || null,
+          })
+          .eq('id', timeEntry.id);
 
-      if (error) {
-        console.error("[TimeEntryFormDialog] Error logging time:", error);
-        showError("Failed to log time: " + error.message);
-      } else {
-        showSuccess("Time entry logged successfully!");
-        onSave();
-        onClose();
-
-        const timeSpentMinutes = differenceInMinutes(endTime, startTime);
-        const timeSpentString = `${Math.floor(timeSpentMinutes / 60)}h ${timeSpentMinutes % 60}m`;
-
-        // Notify project creator
-        if (projectDetails?.user_id && projectDetails.user_id !== currentUser.id) {
-          sendNotification({
-            userId: projectDetails.user_id,
-            message: `${currentUser.name} logged ${timeSpentString} for project "${projectDetails.title}".`,
-            type: 'time_entry',
-            relatedId: projectId,
-            pushTitle: `New Time Entry for ${projectDetails.title}`,
-            pushBody: `${currentUser.name} logged ${timeSpentString}.`,
-            pushIcon: currentUser.avatar,
-            pushUrl: `/projects/${projectId}`,
-          });
+        if (error) {
+          console.error("[TimeEntryFormDialog] Error updating time entry:", error);
+          showError("Failed to update time entry: " + error.message);
+        } else {
+          showSuccess("Time entry updated successfully!");
+          onSave();
+          onClose();
         }
+      } else {
+        // Create new entry
+        const { error } = await supabase
+          .from('time_entries')
+          .insert({
+            user_id: currentUser.id,
+            project_id: projectId,
+            task_id: taskId || null,
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            description: description || null,
+          });
 
-        // Notify assigned task member if a task is selected and they are not the current user
-        if (taskId) {
-          const associatedTask = tasks?.find(t => t.id === taskId);
-          if (associatedTask?.assigned_to && associatedTask.assigned_to !== currentUser.id) {
+        if (error) {
+          console.error("[TimeEntryFormDialog] Error logging time:", error);
+          showError("Failed to log time: " + error.message);
+        } else {
+          showSuccess("Time entry logged successfully!");
+          onSave();
+          onClose();
+
+          const timeSpentMinutes = differenceInMinutes(endTime, startTime);
+          const timeSpentString = `${Math.floor(timeSpentMinutes / 60)}h ${timeSpentMinutes % 60}m`;
+
+          // Notify project creator
+          if (projectDetails?.user_id && projectDetails.user_id !== currentUser.id) {
             sendNotification({
-              userId: associatedTask.assigned_to,
-              message: `${currentUser.name} logged ${timeSpentString} for task "${associatedTask.title}" in project "${projectDetails?.title}".`,
+              userId: projectDetails.user_id,
+              message: `${currentUser.name} logged ${timeSpentString} for project "${projectDetails.title}".`,
               type: 'time_entry',
               relatedId: projectId,
-              pushTitle: `Time Logged for Your Task`,
-              pushBody: `${currentUser.name} logged ${timeSpentString} for "${associatedTask.title}".`,
+              pushTitle: `New Time Entry for ${projectDetails.title}`,
+              pushBody: `${currentUser.name} logged ${timeSpentString}.`,
               pushIcon: currentUser.avatar,
               pushUrl: `/projects/${projectId}`,
             });
           }
+
+          // Notify assigned task member if a task is selected and they are not the current user
+          if (taskId) {
+            const associatedTask = tasks?.find(t => t.id === taskId);
+            if (associatedTask?.assigned_to && associatedTask.assigned_to !== currentUser.id) {
+              sendNotification({
+                userId: associatedTask.assigned_to,
+                message: `${currentUser.name} logged ${timeSpentString} for task "${associatedTask.title}" in project "${projectDetails?.title}".`,
+                type: 'time_entry',
+                relatedId: projectId,
+                pushTitle: `Time Logged for Your Task`,
+                pushBody: `${currentUser.name} logged ${timeSpentString} for "${associatedTask.title}".`,
+                pushIcon: currentUser.avatar,
+                pushUrl: `/projects/${projectId}`,
+              });
+            }
+          }
         }
       }
     } catch (error) {
-      console.error("[TimeEntryFormDialog] Unexpected error logging time:", error);
+      console.error("[TimeEntryFormDialog] Unexpected error managing time entry:", error);
       showError("An unexpected error occurred.");
     }
   };
@@ -220,7 +267,7 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
       newDateTime.setDate(date.getDate());
       form.setValue(field, newDateTime, { shouldValidate: true });
     } else {
-      form.setValue(field, undefined, { shouldValidate: true }); // Now allowed as fields are optional
+      form.setValue(field, undefined, { shouldValidate: true });
     }
   };
 
@@ -258,9 +305,9 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] rounded-xl p-6 w-full bg-card border border-border text-card-foreground glass-card">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Log Time Entry</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-foreground">{isEditMode ? "Edit Time Entry" : "Log Time Entry"}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Record the time spent on a task or project.
+            {isEditMode ? "Adjust the details of your logged time." : "Record the time spent on a task or project."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -408,7 +455,7 @@ export const TimeEntryFormDialog: React.FC<TimeEntryFormDialogProps> = ({
                 Cancel
               </Button>
               <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
-                <PlusCircle className="h-4 w-4 mr-2" /> Log Time
+                {isEditMode ? "Save Changes" : <><PlusCircle className="h-4 w-4 mr-2" /> Log Time</>}
               </Button>
             </DialogFooter>
           </form>
