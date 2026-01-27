@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react"; // Added Loader2
+import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -380,11 +380,11 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               )}
             />
 
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+            <DialogFooter className="pt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
+              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 w-full sm:w-auto">
                 {task ? "Save Changes" : <><PlusCircle className="h-4 w-4 mr-2" /> Create Task</>}
               </Button>
             </DialogFooter>

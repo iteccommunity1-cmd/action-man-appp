@@ -4,11 +4,21 @@ import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { format, differenceInMinutes } from 'date-fns';
-import { Edit, Loader2, Clock, ListTodo } from 'lucide-react';
-import { showError } from '@/utils/toast';
+import { Edit, Loader2, Clock, ListTodo, Trash2 } from 'lucide-react';
+import { showError, showSuccess } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types/task';
 import { TimeEntryFormDialog } from './TimeEntryFormDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TimeEntry {
   id: string;
@@ -29,9 +39,12 @@ interface TimeEntryListProps {
 export const TimeEntryList: React.FC<TimeEntryListProps> = ({ projectId }) => {
   const { currentUser } = useUser();
   const queryClient = useQueryClient();
-  // Removed deletion state: isDeleteDialogOpen, entryToDeleteId, setEntryToDeleteId
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  
+  // State for deletion
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
 
   const { data: timeEntries, isLoading, isError, error } = useQuery<TimeEntry[], Error>({
     queryKey: ['timeEntries', projectId],
@@ -59,11 +72,40 @@ export const TimeEntryList: React.FC<TimeEntryListProps> = ({ projectId }) => {
     return `${h}h ${m}m`;
   };
 
-  // Removed handleDeleteEntry and confirmDeleteEntry functions
-
   const handleEditEntry = (entry: TimeEntry) => {
     setEditingEntry(entry);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteEntry = (entryId: string) => {
+    setEntryToDeleteId(entryId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteEntry = async () => {
+    if (!entryToDeleteId) return;
+
+    try {
+      const { error } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('id', entryToDeleteId);
+
+      if (error) {
+        console.error("[TimeEntryList] Error deleting time entry:", error);
+        showError("Failed to delete time entry: " + error.message);
+      } else {
+        showSuccess("Time entry deleted successfully!");
+        queryClient.invalidateQueries({ queryKey: ['timeEntries', projectId] });
+        queryClient.invalidateQueries({ queryKey: ['projectStats', projectId] });
+      }
+    } catch (error) {
+      console.error("[TimeEntryList] Unexpected error deleting time entry:", error);
+      showError("An unexpected error occurred.");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setEntryToDeleteId(null);
+    }
   };
 
   const handleFormDialogClose = () => {
@@ -127,7 +169,17 @@ export const TimeEntryList: React.FC<TimeEntryListProps> = ({ projectId }) => {
                   <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30" onClick={() => handleEditEntry(entry)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  {/* Delete button removed */}
+                  {/* Re-added delete button, visible only if current user created the entry */}
+                  {currentUser?.id === entry.user_id && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/20" 
+                      onClick={() => handleDeleteEntry(entry.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -146,7 +198,22 @@ export const TimeEntryList: React.FC<TimeEntryListProps> = ({ projectId }) => {
         />
       )}
 
-      {/* AlertDialog for deletion removed */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground glass-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete this time entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground w-full sm:w-auto">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteEntry} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 w-full sm:w-auto">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

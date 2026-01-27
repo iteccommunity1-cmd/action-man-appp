@@ -391,11 +391,11 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
               )}
             />
 
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+            <DialogFooter className="pt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              <Button type="button" variant="outline" onClick={onClose} className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2">
+              <Button type="submit" className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 w-full sm:w-auto">
                 {isEditMode ? "Save Changes" : <><PlusCircle className="h-4 w-4 mr-2" /> Create Project</>}
               </Button>
             </DialogFooter>
