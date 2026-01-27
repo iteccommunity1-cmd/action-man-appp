@@ -3,22 +3,18 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { AuthChangeEvent, Session } from '@supabase/supabase-js'; // Import AuthChangeEvent and Session
+import { useUser } from '@/contexts/UserContext'; // Import useUser
 
 const Login = () => {
   const navigate = useNavigate();
+  const { currentUser, isLoadingUser } = useUser(); // Use the user context
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      if (session) {
-        navigate('/'); // Redirect to home page after successful login
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
+    // If user is already logged in and not loading, redirect to dashboard
+    if (!isLoadingUser && currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, isLoadingUser, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4"> {/* Updated background */}
