@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react";
+import { CalendarIcon, PlusCircle, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -37,17 +37,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
-import { useTeamMembers } from '@/hooks/useTeamMembers'; // Import the hook
-import { Loader2 } from 'lucide-react'; // Import Loader2
-import { supabase } from '@/integrations/supabase/client'; // Direct import
-import { sendNotification } from '@/utils/notifications'; // Import sendNotification
+import { Textarea } from "@/components/ui/textarea";
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/utils/notifications';
 
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Project title must be at least 2 characters.",
   }),
-  description: z.string().optional(), // New: Description field
+  description: z.string().optional(),
   assignedMembers: z.array(z.string()).min(1, {
     message: "Please assign at least one team member.",
   }),
@@ -71,14 +70,14 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
   onSave,
 }) => {
   const { currentUser } = useUser();
-  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers(); // Use the hook
+  const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const isEditMode = !!project;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      description: "", // Default for new projects
+      description: "",
       assignedMembers: [],
       deadline: undefined,
       status: 'pending',
@@ -90,7 +89,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
       if (isEditMode && project) {
         form.reset({
           title: project.title,
-          description: project.description || "", // Set description for editing
+          description: project.description || "",
           assignedMembers: project.assigned_members,
           deadline: new Date(project.deadline),
           status: project.status,
@@ -100,13 +99,13 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
         form.reset({
           title: "",
           description: "",
-          assignedMembers: [],
+          assignedMembers: currentUser ? [currentUser.id] : [], // Pre-select current user for new projects
           deadline: undefined,
           status: 'pending',
         });
       }
     }
-  }, [project, isOpen, form, isEditMode]);
+  }, [project, isOpen, form, isEditMode, currentUser]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!currentUser?.id) {
@@ -116,10 +115,8 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 
     const { title, description, assignedMembers, deadline, status } = values;
 
-    // Ensure the current user is always included in assignedMembers for new projects
-    const finalAssignedMembers = isEditMode
-      ? assignedMembers
-      : Array.from(new Set([currentUser.id, ...assignedMembers])); // Add current user if not already there
+    // Ensure the current user is always included in assignedMembers
+    const finalAssignedMembers = Array.from(new Set([currentUser.id, ...assignedMembers]));
 
     try {
       if (isEditMode && project) {
@@ -128,8 +125,8 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           .from('projects')
           .update({
             title,
-            description: description || null, // Save description
-            assigned_members: finalAssignedMembers, // Use finalAssignedMembers
+            description: description || null,
+            assigned_members: finalAssignedMembers,
             deadline: deadline.toISOString(),
             status,
           })
@@ -205,14 +202,14 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
           .insert({
             user_id: currentUser.id,
             title,
-            description: description || null, // Save description
-            assigned_members: finalAssignedMembers, // Use finalAssignedMembers for project
+            description: description || null,
+            assigned_members: finalAssignedMembers,
             deadline: deadline.toISOString(),
             status: status,
-            chat_room_id: chat_room_id, // Link the created chat room
+            chat_room_id: chat_room_id,
           })
-          .select('id') // Select the ID of the newly created project
-          .single(); // Expect a single row
+          .select('id')
+          .single();
 
         if (projectError) {
           console.error("Error creating project:", projectError);
@@ -235,9 +232,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
                 userId: member.id,
                 message: `${projectCreator.name} created a new project: "${title}" and assigned you.`,
                 type: 'project_assignment',
-                relatedId: newProjectData.id, // Use the newly created project ID
+                relatedId: newProjectData.id,
                 pushTitle: `New Project: ${title}`,
                 pushBody: `${projectCreator.name} assigned you to "${title}".`,
+                pushIcon: currentUser.avatar,
                 pushUrl: `/projects/${newProjectData.id}`,
               });
             }
@@ -250,6 +248,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
     }
   };
 
+  // Filter out the current user from the selectable options, but ensure they are included in the final list if they are the creator/editor.
   const memberOptions = teamMembers.map((member) => ({
     value: member.id,
     label: member.name,
