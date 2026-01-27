@@ -7,6 +7,7 @@ import { MetricList } from './MetricList';
 import { ProjectFilesList } from './ProjectFilesList';
 import { TimeEntryList } from './TimeEntryList'; // Import TimeEntryList
 import { Task } from '@/types/task';
+import { Card, CardContent } from '@/components/ui/card'; // Import Card components
 
 interface ProjectDetailsTabsProps {
   projectId: string;
@@ -32,24 +33,28 @@ export const ProjectDetailsTabs: React.FC<ProjectDetailsTabsProps> = ({
         <TabsTrigger value="time" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Time</TabsTrigger> {/* New Time tab */}
       </TabsList>
 
-      <TabsContent value="tasks">
-        <TaskList projectId={projectId} onAddTask={onAddTask} onEditTask={onEditTask} />
-      </TabsContent>
-      <TabsContent value="milestones">
-        <MilestoneList projectId={projectId} />
-      </TabsContent>
-      <TabsContent value="goals">
-        <GoalList projectId={projectId} />
-      </TabsContent>
-      <TabsContent value="metrics">
-        <MetricList projectId={projectId} />
-      </TabsContent>
-      <TabsContent value="files">
-        <ProjectFilesList projectId={projectId} />
-      </TabsContent>
-      <TabsContent value="time">
-        <TimeEntryList projectId={projectId} /> {/* Render TimeEntryList */}
-      </TabsContent>
+      <Card className="rounded-xl glass-card">
+        <CardContent className="p-4 sm:p-6">
+          <TabsContent value="tasks" className="mt-0">
+            <TaskList projectId={projectId} onAddTask={onAddTask} onEditTask={onEditTask} />
+          </TabsContent>
+          <TabsContent value="milestones" className="mt-0">
+            <MilestoneList projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="goals" className="mt-0">
+            <GoalList projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="metrics" className="mt-0">
+            <MetricList projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="files" className="mt-0">
+            <ProjectFilesList projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="time" className="mt-0">
+            <TimeEntryList projectId={projectId} />
+          </TabsContent>
+        </CardContent>
+      </Card>
     </Tabs>
   );
 };
