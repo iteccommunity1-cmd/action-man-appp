@@ -39,9 +39,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
     >
       <div className={cn("flex items-center p-4 border-b border-sidebar-border", isSidebarOpen ? "justify-start" : "justify-center")}>
         {isSidebarOpen ? (
-          <h1 className="text-2xl font-bold text-sidebar-primary">Action Manager</h1>
+          <img src="/logo.png" alt="Action Manager Logo" className="h-8 w-auto" />
         ) : (
-          <Home className="h-7 w-7 text-sidebar-primary" />
+          <img src="/logo.png" alt="Logo" className="h-7 w-7" />
         )}
       </div>
 
