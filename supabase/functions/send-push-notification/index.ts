@@ -1,8 +1,15 @@
-/// <reference lib="deno.ns" />
-/// <reference types="npm:web-push" />
+// Minimal Deno type declaration to satisfy TS compiler outside Deno environment
+declare namespace Deno {
+  export const env: {
+    get(key: string): string | undefined;
+  };
+}
 
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+// @ts-ignore
 import webpush from 'npm:web-push';
 
 const corsHeaders = {
@@ -16,20 +23,44 @@ interface UserSubscription {
   auth: string;
 }
 
+interface NotificationRecord {
+  id: string;
+  user_id: string;
+  message: string;
+  type?: string;
+  related_id?: string;
+  // Custom fields for push payload, stored in the notification record itself
+  push_title?: string;
+  push_body?: string;
+  push_icon?: string;
+  push_url?: string;
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { userId, title, body, icon, url, relatedId, type } = await req.json();
+    // Expecting a webhook payload from the database trigger
+    const payload = await req.json();
+    const notification: NotificationRecord = payload.record; // Extract the new notification record
 
-    if (!userId || !title || !body) {
-      return new Response(JSON.stringify({ error: 'Missing userId, title, or body' }), {
+    if (!notification || !notification.user_id || !notification.message) {
+      console.error("[send-push-notification] Invalid notification payload received.");
+      return new Response(JSON.stringify({ error: 'Invalid notification payload' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const userId = notification.user_id;
+    const title = notification.push_title || "New Notification";
+    const body = notification.push_body || notification.message;
+    const icon = notification.push_icon;
+    const url = notification.push_url;
+    const relatedId = notification.related_id;
+    const type = notification.type;
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -43,7 +74,7 @@ serve(async (req: Request) => {
       .eq('user_id', userId);
 
     if (fetchError) {
-      console.error("[send-push-notification] Error fetching subscriptions:", fetchError);
+      console.error(`[send-push-notification] Error fetching subscriptions for user ${userId}:`, fetchError);
       return new Response(JSON.stringify({ error: 'Failed to fetch subscriptions' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

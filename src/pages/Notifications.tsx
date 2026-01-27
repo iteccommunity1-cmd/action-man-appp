@@ -92,7 +92,7 @@ const NotificationsPage: React.FC = () => {
           navigate('/chat', { state: { activeChatRoomId: notification.related_id } });
           break;
         case 'test_notification':
-          navigate(notification.pushUrl || '/profile');
+          navigate(notification.push_url || '/profile');
           break;
         default:
           // Optionally navigate to a generic notifications page or home
