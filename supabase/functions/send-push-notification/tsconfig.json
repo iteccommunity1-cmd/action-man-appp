@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "deno.window"],
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["npm:web-push"],
+    "baseUrl": ".",
+    "paths": {
+      "npm:*": ["./node_modules/*"]
+    }
+  },
+  "include": ["./index.ts"],
+  "exclude": ["node_modules"]
+}

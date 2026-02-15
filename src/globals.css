@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 210 67% 16%; /* Deep Midnight Teal */
+    --foreground: 0 0% 98%; /* Near White for text */
+
+    --card: 210 67% 16%; /* Deep Midnight Teal for card background */
+    --card-foreground: 0 0% 98%; /* Near White for card text */
+
+    --popover: 210 67% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 20 100% 63%; /* Burnt Apricot */
+    --primary-foreground: 0 0% 98%; /* Near White */
+
+    --secondary: 210 67% 25%; /* Slightly lighter teal for secondary */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 210 67% 20%; /* Muted teal */
+    --muted-foreground: 210 10% 70%; /* Lighter gray-teal */
+
+    --accent: 20 100% 63%; /* Burnt Apricot for accent */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 67% 30%; /* Teal border */
+    --input: 210 67% 20%; /* Teal input background */
+    --ring: 20 100% 63%; /* Burnt Apricot ring */
+
+    --radius: 0.75rem; /* Rounded corners */
+
+    --sidebar-background: 210 67% 12%; /* Even darker teal for sidebar */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 20 100% 63%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 67% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 210 67% 25%;
+    --sidebar-ring: 20 100% 63%;
+
+    --dot-color: hsl(210 67% 20% / 0.3); /* Subtle teal dots for patterns */
+  }
+
+  .dark {
+    /* In a 'Solar Eclipse' theme, dark mode is the default, so these can be similar or slightly adjusted */
+    --background: 210 67% 16%;
+    --foreground: 0 0% 98%;
+
+    --card: 210 67% 16%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 67% 16%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 20 100% 63%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 210 67% 25%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 210 67% 20%;
+    --muted-foreground: 210 10% 70%;
+
+    --accent: 20 100% 63%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 67% 30%;
+    --input: 210 67% 20%;
+    --ring: 20 100% 63%;
+
+    --sidebar-background: 210 67% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 20 100% 63%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 67% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 210 67% 25%;
+    --sidebar-ring: 20 100% 63%;
+
+    --dot-color: hsl(210 67% 20% / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans; /* Apply Inter font */
+  }
+
+  /* Base glassmorphism styles for cards */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 shadow-soft;
+  }
+}
+
+@layer utilities {
+  .bg-dot-pattern {
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 16px 16px; /* Adjust size as needed */
+  }
+}
