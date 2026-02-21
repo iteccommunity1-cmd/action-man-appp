@@ -277,26 +277,29 @@ export const ProjectList: React.FC = () => {
   }
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center">
-        <h3 className="text-2xl font-bold text-foreground">Your Projects</h3>
+    <div className="w-full space-y-8">
+      <div className="flex flex-col sm:flex-row gap-6 justify-between items-end animate-fade-in-up">
+        <div className="space-y-1">
+          <p className="text-sm font-bold text-primary uppercase tracking-widest">Workspace</p>
+          <h3 className="text-4xl font-black text-foreground tracking-tight">Active Projects</h3>
+        </div>
         <Button
           onClick={() => setIsCreateProjectDialogOpen(true)}
-          className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 w-full sm:w-auto"
+          className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 px-8 shadow-[0_0_20px_rgba(249,115,22,0.2)] transition-all duration-300 hover:scale-105"
         >
-          <PlusCircle className="h-5 w-5 mr-2" /> Create New Project
+          <PlusCircle className="h-5 w-5 mr-3" /> Create New Project
         </Button>
       </div>
-      
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-end">
-        <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="filter-status" className="text-foreground">Filter by Status:</Label>
+
+      <div className="flex flex-col sm:flex-row gap-4 p-2 glass-card rounded-2xl border-none ring-1 ring-white/10 shadow-lg justify-end items-center">
+        <div className="flex items-center gap-3 w-full sm:w-auto px-4">
+          <Label htmlFor="filter-status" className="text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Filter</Label>
           <Select value={filterStatus} onValueChange={(value: ProjectStatus) => setFilterStatus(value)}>
-            <SelectTrigger id="filter-status" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
-              <SelectValue placeholder="Select status" />
+            <SelectTrigger id="filter-status" className="w-full sm:w-[160px] h-9 rounded-xl border-none bg-white/5 text-xs font-bold text-foreground hover:bg-white/10 transition-colors">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
-              <SelectItem value="all">All</SelectItem>
+            <SelectContent className="rounded-xl shadow-2xl border-white/10 bg-card/90 backdrop-blur-lg text-card-foreground">
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="in-progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
@@ -305,13 +308,15 @@ export const ProjectList: React.FC = () => {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto"> {/* Added w-full for mobile */}
-          <Label htmlFor="sort-order" className="text-foreground">Sort by:</Label>
+        <div className="h-8 w-px bg-white/5 hidden sm:block" />
+
+        <div className="flex items-center gap-3 w-full sm:w-auto px-4">
+          <Label htmlFor="sort-order" className="text-xs font-bold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Sort</Label>
           <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-            <SelectTrigger id="sort-order" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80"> {/* Adjusted width for mobile */}
-              <SelectValue placeholder="Sort order" />
+            <SelectTrigger id="sort-order" className="w-full sm:w-[160px] h-9 rounded-xl border-none bg-white/5 text-xs font-bold text-foreground hover:bg-white/10 transition-colors">
+              <SelectValue placeholder="Order" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
+            <SelectContent className="rounded-xl shadow-2xl border-white/10 bg-card/90 backdrop-blur-lg text-card-foreground">
               <SelectItem value="newest">Newest First</SelectItem>
               <SelectItem value="oldest">Oldest First</SelectItem>
             </SelectContent>
@@ -319,14 +324,26 @@ export const ProjectList: React.FC = () => {
         </div>
       </div>
 
-      {projects!.length === 0 ? (
-        <div className="text-center text-muted-foreground p-8 border border-dashed border-border rounded-xl bg-muted/20">
-          <p className="text-lg">No projects found matching your criteria.</p>
-          <p className="text-sm mt-2">Click "Create New Project" to get started!</p>
+      {projects && projects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-16 glass-card rounded-3xl border-none ring-1 ring-white/10 text-center space-y-4 animate-fade-in-up">
+          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <PlusCircle className="h-10 w-10 text-primary opacity-50" />
+          </div>
+          <h4 className="text-2xl font-bold text-foreground">No projects yet</h4>
+          <p className="text-muted-foreground max-w-sm">
+            You haven't created any projects matching your current filters. Start a new one to see it here!
+          </p>
+          <Button
+            onClick={() => setIsCreateProjectDialogOpen(true)}
+            variant="outline"
+            className="mt-4 rounded-xl border-white/10 hover:bg-white/5"
+          >
+            Create New Project
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Adjusted grid for responsiveness */}
-          {projects!.map((project) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up">
+          {projects?.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
@@ -352,17 +369,22 @@ export const ProjectList: React.FC = () => {
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-foreground">Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              This action cannot be undone. This will permanently delete your project.
+        <AlertDialogContent className="rounded-2xl glass-card border-none ring-1 ring-white/10 shadow-2xl p-8 max-w-md">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-black tracking-tight text-foreground">Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground text-sm leading-relaxed">
+              This action cannot be undone. This will permanently delete the project and all its associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="pt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground w-full sm:w-auto">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteProject} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 w-full sm:w-auto">
-              Delete
+          <AlertDialogFooter className="mt-8 gap-3">
+            <AlertDialogCancel className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-foreground font-bold py-6 px-6 transition-all">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteProject}
+              className="rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold py-6 px-6 transition-all shadow-lg"
+            >
+              Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

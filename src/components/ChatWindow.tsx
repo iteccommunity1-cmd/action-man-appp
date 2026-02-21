@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, ArrowLeft } from "lucide-react"; // Import ArrowLeft icon
+import { Send, ArrowLeft } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import { Message } from '@/types/chat';
-import { TypingIndicator } from './TypingIndicator';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChatWindowProps {
   chatRoomName: string;
@@ -67,78 +67,124 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-none sm:rounded-xl shadow-lg glass-card"> {/* Updated styling */}
-      <div className="p-4 border-b border-border bg-gradient-to-r from-primary to-blue-600 text-primary-foreground rounded-t-none sm:rounded-t-xl flex items-center"> {/* Updated styling */}
-        {isMobile && onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2 text-primary-foreground hover:bg-primary/80 rounded-full">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        )}
-        <h3 className="text-xl font-semibold">{chatRoomName}</h3>
-      </div>
-      <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex items-start ${
-              message.sender_id === currentUserId ? "justify-end" : "justify-start"
-            }`}
-          >
-            {message.sender_id !== currentUserId && (
-              <Avatar className="h-8 w-8 rounded-full border border-border"> {/* Updated styling */}
-                <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
-                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                  {message.sender_name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            <div
-              className={`max-w-[70%] p-3 rounded-xl ${
-                message.sender_id === currentUserId
-                  ? "bg-primary text-primary-foreground rounded-br-none ml-2" // Updated styling
-                  : "bg-muted text-muted-foreground rounded-bl-none mr-2" // Updated styling
-              }`}
+    <div className="flex flex-col h-full bg-transparent overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-white/5 bg-white/5 backdrop-blur-xl flex items-center justify-between z-10">
+        <div className="flex items-center gap-3">
+          {isMobile && onBack && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              className="mr-1 h-9 w-9 text-muted-foreground hover:bg-white/5 rounded-xl transition-all"
             >
-              {message.sender_id !== currentUserId && (
-                <p className="font-semibold text-xs mb-1">{message.sender_name}</p>
-              )}
-              <p className="text-sm">{message.content}</p>
-              <p className="text-xs opacity-75 mt-1 text-right">
-                {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <div className="flex flex-col">
+            <h3 className="text-lg font-black tracking-tight text-foreground leading-none">{chatRoomName}</h3>
+            {otherTypingUsers.length > 0 && (
+              <p className="text-[10px] text-primary font-bold animate-pulse mt-1 uppercase tracking-wider">
+                {otherTypingUsers.length === 1
+                  ? `${otherTypingUsers[0].name.split(' ')[0]} is typing...`
+                  : 'Multiple people typing...'}
               </p>
-            </div>
-            {message.sender_id === currentUserId && (
-              <Avatar className="h-8 w-8 rounded-full border border-border"> {/* Updated styling */}
-                <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs"> {/* Updated styling */}
-                  {message.sender_name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
             )}
           </div>
-        ))}
-        {otherTypingUsers.length > 0 && (
-          <div className="flex justify-start mt-4">
-            <TypingIndicator userName={otherTypingUsers.map(u => u.name).join(', ')} />
-          </div>
-        )}
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <ScrollArea className="flex-grow p-6 relative" ref={scrollAreaRef}>
+        <div className="space-y-6">
+          {messages.map((message, index) => {
+            const isMe = message.sender_id === currentUserId;
+            const showAvatar = index === 0 || messages[index - 1].sender_id !== message.sender_id;
+
+            return (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex items-end gap-3 group animate-fade-in-up",
+                  isMe ? "flex-row-reverse" : "flex-row"
+                )}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {!isMe && (
+                  <div className="w-8 h-8 flex-shrink-0">
+                    {showAvatar ? (
+                      <Avatar className="h-8 w-8 border border-white/10 ring-2 ring-primary/10">
+                        <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
+                        <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
+                          {message.sender_name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className={cn(
+                  "flex flex-col max-w-[75%]",
+                  isMe ? "items-end" : "items-start"
+                )}>
+                  {showAvatar && !isMe && (
+                    <span className="text-[10px] font-bold text-muted-foreground/60 mb-1 ml-1 uppercase tracking-wider">
+                      {message.sender_name.split(' ')[0]}
+                    </span>
+                  )}
+                  <div
+                    className={cn(
+                      "p-4 rounded-2xl text-sm leading-relaxed shadow-lg transition-all duration-300",
+                      isMe
+                        ? "bg-primary text-white rounded-br-none shadow-[0_4px_15px_rgba(249,115,22,0.3)] hover:scale-[1.01]"
+                        : "bg-white/5 text-foreground rounded-bl-none border border-white/10 backdrop-blur-md hover:bg-white/10"
+                    )}
+                  >
+                    <p>{message.content}</p>
+                  </div>
+                  <span className="text-[9px] font-medium text-muted-foreground/40 mt-1.5 px-1 uppercase letter-spacing-wide">
+                    {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+
+                {isMe && (
+                  <div className="w-8 h-8 flex-shrink-0">
+                    {showAvatar ? (
+                      <Avatar className="h-8 w-8 border border-white/10 ring-2 ring-primary/10">
+                        <AvatarImage src={message.sender_avatar} alt={message.sender_name} />
+                        <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
+                          {message.sender_name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </ScrollArea>
-      <div className="p-4 border-t border-border flex items-center gap-2 bg-muted rounded-b-none sm:rounded-b-xl"> {/* Updated styling */}
-        <Input
-          placeholder="Type your message..."
-          className="flex-grow rounded-full border-border focus:border-primary focus:ring-primary bg-input text-foreground" // Updated styling
-          value={newMessage}
-          onChange={handleInputChange}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-        />
-        <Button
-          type="button"
-          size="icon"
-          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground" // Updated styling
-          onClick={handleSend}
-        >
-          <Send className="h-5 w-5" />
-        </Button>
+
+      {/* Input Area */}
+      <div className="p-6 border-t border-white/5 bg-white/[0.02] backdrop-blur-xl">
+        <div className="relative flex items-center gap-3">
+          <Input
+            placeholder="Type your message..."
+            className="flex-grow h-14 rounded-2xl border-none ring-1 ring-white/10 bg-white/5 focus:ring-primary/50 focus:bg-white/10 transition-all text-sm px-6"
+            value={newMessage}
+            onChange={handleInputChange}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <Button
+            type="button"
+            size="icon"
+            className="h-14 w-14 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg transition-all active:scale-95 group"
+            onClick={handleSend}
+            disabled={!newMessage.trim()}
+          >
+            <Send className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Button>
+        </div>
       </div>
     </div>
   );

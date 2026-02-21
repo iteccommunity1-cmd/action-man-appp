@@ -33,66 +33,78 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
   return (
     <div
       className={cn(
-        "flex flex-col h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4 bg-dot-pattern transition-all duration-300 ease-in-out",
-        isSidebarOpen ? "w-full" : "w-[72px] items-center" // Adjust width and alignment
+        "flex flex-col h-full bg-sidebar/80 backdrop-blur-md text-sidebar-foreground border-r border-sidebar-border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
+        isSidebarOpen ? "w-full p-6" : "w-[80px] items-center p-4"
       )}
     >
-      <div className={cn("flex items-center p-4 border-b border-sidebar-border", isSidebarOpen ? "justify-start" : "justify-center")}>
-        {isSidebarOpen ? (
-          <img src="/logo.svg" alt="Action Manager Logo" className="h-8 w-auto" />
-        ) : (
-          <img src="/logo.svg" alt="Logo" className="h-7 w-7" />
-        )}
+      <div className={cn("flex items-center mb-10", isSidebarOpen ? "justify-start px-2" : "justify-center")}>
+        <div className="relative group">
+          <div className="absolute -inset-2 bg-gradient-to-r from-primary to-orange-400 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          {isSidebarOpen ? (
+            <img src="/logo.svg" alt="Action Manager Logo" className="h-10 w-auto relative" />
+          ) : (
+            <img src="/logo.svg" alt="Logo" className="h-8 w-8 relative" />
+          )}
+        </div>
       </div>
 
       {currentUser && (
-        <div className={cn("flex gap-3 p-3 mb-6 bg-sidebar-accent rounded-lg", isSidebarOpen ? "items-center" : "flex-col items-center")}>
-          <Avatar className="h-10 w-10 border-2 border-sidebar-primary">
+        <div className={cn(
+          "flex gap-3 p-3 mb-8 glass-card border-none ring-1 ring-white/10 shadow-lg",
+          isSidebarOpen ? "items-center" : "flex-col items-center"
+        )}>
+          <Avatar className="h-10 w-10 border-2 border-primary glow-primary">
             <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+            <AvatarFallback className="bg-primary text-primary-foreground font-bold">
               {currentUser.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           {isSidebarOpen && (
-            <div className="flex flex-col">
-              <span className="font-semibold text-sidebar-primary-foreground text-base">{currentUser.name}</span>
-              <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+            <div className="flex flex-col overflow-hidden">
+              <span className="font-bold text-foreground text-sm truncate">{currentUser.name}</span>
+              <span className="text-[10px] text-muted-foreground truncate">{currentUser.email}</span>
             </div>
           )}
         </div>
       )}
 
-      <nav className="flex-grow space-y-2 w-full">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            to={item.href}
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-lg transition-colors duration-200",
-              location.pathname === item.href
-                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              !isSidebarOpen && "justify-center" // Center icon when collapsed
-            )}
-            onClick={onLinkClick}
-          >
-            <item.icon className="h-5 w-5" />
-            {isSidebarOpen && <span className="font-medium">{item.label}</span>}
-          </Link>
-        ))}
+      <nav className="flex-grow space-y-3 w-full">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={cn(
+                "group flex items-center gap-3 p-3 rounded-xl transition-all duration-300 relative",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                !isSidebarOpen && "justify-center"
+              )}
+              onClick={onLinkClick}
+            >
+              <item.icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110", isActive && "glow-primary")} />
+              {isSidebarOpen && <span className="font-semibold text-sm">{item.label}</span>}
+              {isActive && !isSidebarOpen && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="mt-auto pt-4 border-t border-sidebar-border w-full">
+      <div className="mt-auto pt-6 border-t border-sidebar-border w-full">
         <Button
           onClick={handleSignOut}
           variant="ghost"
           className={cn(
-            "w-full justify-start text-sidebar-foreground hover:bg-destructive hover:text-destructive-foreground rounded-lg",
-            !isSidebarOpen && "justify-center" // Center icon when collapsed
+            "w-full justify-start text-sidebar-foreground/70 hover:bg-destructive hover:text-white rounded-xl transition-all duration-300",
+            !isSidebarOpen && "justify-center"
           )}
         >
           <LogOut className="h-5 w-5" />
-          {isSidebarOpen && <span className="ml-3">Logout</span>}
+          {isSidebarOpen && <span className="ml-3 font-semibold text-sm">Logout</span>}
         </Button>
       </div>
     </div>

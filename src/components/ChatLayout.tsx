@@ -150,7 +150,7 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]);
 
   useEffect(() => {
@@ -326,27 +326,31 @@ export const ChatLayout: React.FC = () => {
 
   if (overallLoading) {
     return (
-      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card glass-card"> {/* Updated styling */}
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-        <p className="ml-4 text-xl text-gray-600">Loading chat rooms and team members...</p>
+      <div className="flex flex-col items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-3xl border-none ring-1 ring-white/10 glass-card animate-fade-in-up">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-xl bg-primary/20 animate-pulse"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+        </div>
+        <p className="mt-6 text-lg font-bold text-foreground/70 tracking-tight">Initializing secure connection...</p>
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="flex items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-border bg-card glass-card"> {/* Updated styling */}
-        <p className="text-lg text-red-600">User not authenticated for chat.</p>
+      <div className="flex flex-col items-center justify-center flex-grow min-h-[500px] w-full max-w-6xl mx-auto rounded-3xl border-none ring-1 ring-white/10 glass-card animate-fade-in-up">
+        <p className="text-xl font-bold text-destructive">User not authenticated for chat.</p>
+        <p className="text-muted-foreground mt-2">Please log in to participate in the conversation.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-grow min-h-screen sm:min-h-[500px] w-full max-w-6xl mx-auto rounded-none sm:rounded-xl shadow-none sm:shadow-2xl overflow-hidden border-none sm:border border-border glass-card"> {/* Adjusted rounded corners and shadow for mobile */}
+    <div className="flex flex-grow min-h-screen sm:min-h-[500px] w-full max-w-6xl mx-auto rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden border-none sm:border border-white/10 glass-card transition-all duration-500">
       {/* Mobile: Show ChatRoomList if no active room, else show ChatWindow */}
       {isMobile ? (
         activeChatRoomId ? (
-          <div className="flex-grow">
+          <div className="flex-grow animate-fade-in-up">
             {activeChatRoom ? (
               <ChatWindow
                 chatRoomName={activeChatRoom.name}
@@ -358,13 +362,17 @@ export const ChatLayout: React.FC = () => {
                 onBack={() => setActiveChatRoomId(null)} // Back button for mobile
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-lg bg-card rounded-xl"> {/* Updated styling */}
-                Select a chatroom or create a new one to start messaging
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center space-y-4">
+                <div className="h-16 w-16 rounded-full bg-primary/5 flex items-center justify-center">
+                  <PlusCircle className="h-8 w-8 text-primary opacity-30" />
+                </div>
+                <p className="font-bold">Chat room not found</p>
+                <Button onClick={() => setActiveChatRoomId(null)} variant="link">Back to list</Button>
               </div>
             )}
           </div>
         ) : (
-          <div className="w-full flex flex-col">
+          <div className="w-full flex flex-col animate-fade-in-up">
             <div className="flex-grow">
               <ChatRoomList
                 chatRooms={chatRooms}
@@ -372,12 +380,12 @@ export const ChatLayout: React.FC = () => {
                 onSelectChatRoom={setActiveChatRoomId}
               />
             </div>
-            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-b-none sm:rounded-b-xl"> {/* Adjusted rounded corners */}
+            <div className="p-6 border-t border-white/5 bg-sidebar/40 backdrop-blur-xl">
               <Button
                 onClick={() => setIsCreateRoomDialogOpen(true)}
-                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2"
+                className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 shadow-[0_0_20px_rgba(249,115,22,0.2)]"
               >
-                <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
+                <PlusCircle className="h-5 w-5 mr-3" /> Create New Chat Room
               </Button>
             </div>
           </div>
@@ -385,24 +393,24 @@ export const ChatLayout: React.FC = () => {
       ) : (
         /* Desktop: Show both side-by-side */
         <>
-          <div className="w-1/3 min-w-[280px] max-w-[350px] flex-shrink-0 flex flex-col">
-            <div className="flex-grow">
+          <div className="w-1/3 min-w-[300px] max-w-[380px] flex-shrink-0 flex flex-col border-r border-white/5">
+            <div className="flex-grow overflow-hidden">
               <ChatRoomList
                 chatRooms={chatRooms}
                 activeChatRoomId={activeChatRoomId}
                 onSelectChatRoom={setActiveChatRoomId}
               />
             </div>
-            <div className="p-4 border-t border-sidebar-border bg-sidebar rounded-bl-xl"> {/* Adjusted rounded corners */}
+            <div className="p-6 border-t border-white/5 bg-sidebar/40">
               <Button
                 onClick={() => setIsCreateRoomDialogOpen(true)}
-                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2"
+                className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 transition-all duration-300 hover:scale-[1.02]"
               >
-                <PlusCircle className="h-5 w-5 mr-2" /> Create New Chat Room
+                <PlusCircle className="h-5 w-5 mr-3" /> New Chat Room
               </Button>
             </div>
           </div>
-          <div className="flex-grow">
+          <div className="flex-grow flex flex-col bg-white/[0.02] backdrop-blur-sm">
             {activeChatRoom ? (
               <ChatWindow
                 chatRoomName={activeChatRoom.name}
@@ -413,8 +421,17 @@ export const ChatLayout: React.FC = () => {
                 typingUsers={typingUsers}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-lg bg-card rounded-r-xl"> {/* Updated styling */}
-                Select a chatroom or create a new one to start messaging
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-12 text-center space-y-6 animate-fade-in-up">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-primary/10 rounded-full blur-2xl"></div>
+                  <div className="relative h-24 w-24 rounded-3xl bg-primary/10 flex items-center justify-center border border-white/10 rotate-3">
+                    <PlusCircle className="h-10 w-10 text-primary opacity-40 -rotate-3" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-2xl font-black text-foreground/40">Select a Conversation</h4>
+                  <p className="text-sm">Choose a chatroom from the list or start a new one.</p>
+                </div>
               </div>
             )}
           </div>

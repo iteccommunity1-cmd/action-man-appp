@@ -39,16 +39,17 @@ export const WelcomeCard: React.FC = () => {
   return (
     <Card
       className={cn(
-        "w-full rounded-xl glass-card overflow-hidden relative h-48 sm:h-56 flex items-center justify-center text-white",
-        "bg-gradient-to-br", bgColor // Keep gradient for dynamic background color
+        "w-full rounded-2xl glass-card overflow-hidden relative h-48 sm:h-56 flex items-center justify-center text-white",
+        "bg-gradient-to-br animate-fade-in-up", bgColor
       )}
       style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
-      <div className="absolute inset-0 bg-black opacity-20 rounded-xl"></div> {/* Overlay for text readability, reduced opacity */}
-      <CardContent className="relative z-10 text-center p-4">
-        <h2 className="text-4xl sm:text-5xl font-extrabold mb-2 drop-shadow-lg text-primary-foreground"> {/* Changed text color */}
-          {greeting}, {currentUser?.name || 'User'}!
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] rounded-2xl"></div>
+      <CardContent className="relative z-10 text-center p-6">
+        <h2 className="text-4xl sm:text-6xl font-black mb-2 drop-shadow-2xl text-white tracking-tight">
+          <span className="gradient-text">{greeting}</span>, {currentUser?.name || 'User'}!
         </h2>
+        <p className="text-white/80 text-lg font-medium drop-shadow">Ready to conquer your tasks today?</p>
       </CardContent>
     </Card>
   );

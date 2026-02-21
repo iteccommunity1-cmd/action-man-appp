@@ -35,29 +35,39 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/30 selection:text-white">
       {/* Sidebar for desktop, Sheet for mobile */}
       {!isMobile && (
-        <div
+        <aside
           className={cn(
-            "flex-shrink-0 transition-all duration-300 ease-in-out",
-            isSidebarOpen ? "w-1/4 min-w-[280px] max-w-[300px]" : "w-[72px]"
+            "flex-shrink-0 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) relative z-50",
+            isSidebarOpen ? "w-1/4 min-w-[280px] max-w-[300px]" : "w-[80px]"
           )}
         >
           <Sidebar isSidebarOpen={isSidebarOpen} onLinkClick={handleSidebarLinkClick} />
-        </div>
+        </aside>
       )}
       <div
-        className="flex flex-col flex-grow transition-all duration-300 ease-in-out"
+        className="flex flex-col flex-grow transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) relative"
       >
         <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-        <AppBreadcrumbs />
-        <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col relative">
-          <div className="flex-grow w-full">
-            {children}
+        <div className="flex-grow flex flex-col relative bg-dot-pattern">
+          {/* Subtle gradient overlay for better depth */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-primary/5 pointer-events-none" />
+
+          <div className="px-4 py-2">
+            <AppBreadcrumbs />
           </div>
-          <MadeWithDyad />
-        </main>
+
+          <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col relative z-10">
+            <div className="flex-grow w-full animate-fade-in-up">
+              {children}
+            </div>
+            <div className="mt-8 pt-6 border-t border-white/5">
+              <MadeWithDyad />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );
