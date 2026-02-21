@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
-import { MadeWithDyad } from './made-with-dyad';
+import { MadeWithBigSam } from './made-with-bigsam';
 import { Header } from './Header';
 import { AppBreadcrumbs } from './AppBreadcrumbs';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -64,7 +64,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {children}
             </div>
             <div className="mt-8 pt-6 border-t border-white/5">
-              <MadeWithDyad />
+              <MadeWithBigSam />
             </div>
           </main>
         </div>
