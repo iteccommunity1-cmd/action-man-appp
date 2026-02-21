@@ -129,7 +129,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           className="flex-grow rounded-full border-border focus:border-primary focus:ring-primary bg-input text-foreground" // Updated styling
           value={newMessage}
           onChange={handleInputChange}
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
         />
         <Button
           type="button"

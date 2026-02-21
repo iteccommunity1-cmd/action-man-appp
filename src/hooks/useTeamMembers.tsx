@@ -40,7 +40,7 @@ export const useTeamMembers = () => {
     };
 
     fetchTeamMembers();
-  }, [supabase, currentUser?.id]);
+  }, [currentUser?.id]);
 
   return { teamMembers, loading };
 };

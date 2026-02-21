@@ -144,9 +144,9 @@ export const ProfileForm: React.FC = () => {
 
       showSuccess("Profile updated successfully!");
       // Optionally, refresh user context if it holds these values
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating profile:", error);
-      showError("Failed to update profile: " + error.message);
+      showError("Failed to update profile: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUploading(false);
       setAvatarFile(null); // Clear file input after upload

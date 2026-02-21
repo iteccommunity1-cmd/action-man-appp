@@ -146,9 +146,9 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
         }
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("[ProjectFilesList] Error uploading file:", error);
-      showError("Failed to upload file: " + error.message);
+      showError("Failed to upload file: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsUploading(false);
       event.target.value = ''; // Clear the file input
@@ -173,9 +173,9 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error) {
       console.error("[ProjectFilesList] Error downloading file:", error);
-      showError("Failed to download file: " + error.message);
+      showError("Failed to download file: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -237,9 +237,9 @@ export const ProjectFilesList: React.FC<ProjectFilesListProps> = ({ projectId })
         }
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error("[ProjectFilesList] Error deleting file:", error);
-      showError("Failed to delete file: " + error.message);
+      showError("Failed to delete file: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsDeleteDialogOpen(false);
       setFileToDelete(null);

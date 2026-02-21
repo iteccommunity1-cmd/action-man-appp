@@ -150,7 +150,8 @@ export const ChatLayout: React.FC = () => {
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-  }, [supabase, location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]);
 
   useEffect(() => {
     if (!activeChatRoomId) {
@@ -232,14 +233,15 @@ export const ChatLayout: React.FC = () => {
       })
       .subscribe();
 
+    const typingStatusMap = typingStatusRef.current;
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(typingChannel);
-      typingStatusRef.current.forEach(user => clearTimeout(user.timeout));
-      typingStatusRef.current.clear();
+      typingStatusMap.forEach(user => clearTimeout(user.timeout));
+      typingStatusMap.clear();
       setTypingUsers([]);
     };
-  }, [activeChatRoomId, supabase, currentUser?.id]);
+  }, [activeChatRoomId, currentUser?.id]);
 
   const handleSendMessage = async (content: string) => {
     if (!activeChatRoomId || !content.trim() || !currentUser) return;
