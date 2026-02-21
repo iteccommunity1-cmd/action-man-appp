@@ -91,7 +91,7 @@ export const useAnalyticsData = () => {
             }, {});
 
             const memberPerformanceData = Object.entries(memberTasks).map(([userId, count]) => {
-                const profile = profiles.find((p: any) => p.id === userId);
+                const profile = profiles.find((p: { id: string; first_name: string; last_name: string }) => p.id === userId);
                 return {
                     name: profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown',
                     tasks: count
@@ -99,7 +99,7 @@ export const useAnalyticsData = () => {
             });
 
             // 4. Project Progress
-            const projectProgressData = projects.map((project: any) => {
+            const projectProgressData = projects.map((project: { id: string; title: string }) => {
                 const projectTasks = tasks.filter((t: Task) => t.project_id === project.id);
                 const total = projectTasks.length;
                 const completed = projectTasks.filter((t: Task) => t.status === 'completed').length;

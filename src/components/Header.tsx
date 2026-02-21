@@ -3,9 +3,6 @@ import { useNavigate, useLocation, Link, useParams } from 'react-router-dom';
 import { ChevronLeft, Home, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from './NotificationBell';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Sidebar } from './Sidebar';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,19 +16,17 @@ const routeNameMap: Record<string, string> = {
 };
 
 interface HeaderProps {
-  isSidebarOpen: boolean;
   toggleSidebar: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, toggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const isMobile = useIsMobile();
 
   const showBackButton = location.pathname !== '/';
 
-  const pathnames = location.pathname.split('/').filter((x) => x);
+  const pathnames = location.pathname.split('/').filter((x: string) => x);
   const projectId = params.id; // Extract projectId unconditionally
 
   // Move useQuery outside the conditional block
@@ -69,22 +64,14 @@ export const Header: React.FC<HeaderProps> = ({ isSidebarOpen, toggleSidebar }) 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm bg-dot-pattern">
       <div className="flex items-center gap-2">
-        {isMobile ? (
-          <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-primary/20">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[280px] rounded-r-xl border-r-0">
-              <Sidebar isSidebarOpen={true} onLinkClick={toggleSidebar} />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="rounded-full text-foreground hover:bg-primary/20">
-            <Menu className="h-6 w-6" />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="rounded-full text-foreground hover:bg-primary/20"
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
         {showBackButton && (
           <Button
             variant="ghost"

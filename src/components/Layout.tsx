@@ -36,21 +36,30 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/30 selection:text-white">
-      {/* Sidebar for desktop, Sheet for mobile */}
-      {!isMobile && (
-        <aside
-          className={cn(
-            "flex-shrink-0 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) relative z-50",
-            isSidebarOpen ? "w-1/4 min-w-[280px] max-w-[300px]" : "w-[80px]"
-          )}
-        >
-          <Sidebar isSidebarOpen={isSidebarOpen} onLinkClick={handleSidebarLinkClick} />
-        </aside>
-      )}
-      <div
-        className="flex flex-col flex-grow transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) relative"
+      {/* Sidebar - Desktop and Mobile Drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
+          isMobile
+            ? (isSidebarOpen ? "translate-x-0 w-[280px]" : "-translate-x-full w-[280px]")
+            : (isSidebarOpen ? "relative w-1/4 min-w-[280px] max-w-[300px]" : "relative w-[80px]")
+        )}
       >
-        <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <Sidebar isSidebarOpen={isSidebarOpen || !isMobile} onLinkClick={handleSidebarLinkClick} />
+      </aside>
+
+      {/* Mobile Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      <div
+        className="flex flex-col flex-grow transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) relative min-w-0"
+      >
+        <Header toggleSidebar={toggleSidebar} />
         <div className="flex-grow flex flex-col relative bg-dot-pattern">
           {/* Subtle gradient overlay for better depth */}
           <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-primary/5 pointer-events-none" />

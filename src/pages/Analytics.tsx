@@ -1,14 +1,15 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAnalyticsData } from '@/hooks/useAnalyticsData';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area
+    PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
 import {
-    Activity, CheckCircle2, Target, BarChart2, TrendingUp, Users, Clock, AlertCircle
+    Activity, CheckCircle2, Target, BarChart2, TrendingUp, Users, Clock, AlertCircle, Download
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { exportAnalyticsToPdf } from '@/utils/analyticsPdfExport';
 
 const Analytics = () => {
     const { data, isLoading, error } = useAnalyticsData();
@@ -123,6 +124,19 @@ const Analytics = () => {
                             <TrendingUp className="h-5 w-5 text-primary" />
                             Task Completion Velocity
                         </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white/10"
+                            onClick={() => exportAnalyticsToPdf(
+                                'Task Completion Velocity',
+                                ['Date', 'Completed Tasks'],
+                                data.taskVelocityData.map(item => [item.date, item.completed]),
+                                'task_velocity'
+                            )}
+                        >
+                            <Download className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px] w-full mt-4">
@@ -138,15 +152,17 @@ const Analytics = () => {
                                     <XAxis
                                         dataKey="date"
                                         stroke="#94a3b8"
-                                        fontSize={12}
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
+                                        minTickGap={20}
                                     />
                                     <YAxis
                                         stroke="#94a3b8"
-                                        fontSize={12}
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
+                                        width={25}
                                     />
                                     <Tooltip
                                         contentStyle={{
@@ -177,6 +193,19 @@ const Analytics = () => {
                             <Activity className="h-5 w-5 text-emerald-500" />
                             Status Distribution
                         </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white/10"
+                            onClick={() => exportAnalyticsToPdf(
+                                'Task Status Distribution',
+                                ['Status', 'Count'],
+                                data.taskStatusDistribution.map(item => [item.name, item.value]),
+                                'status_distribution'
+                            )}
+                        >
+                            <Download className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </CardHeader>
                     <CardContent className="flex justify-center">
                         <div className="h-[300px] w-full max-w-[400px]">
@@ -218,6 +247,19 @@ const Analytics = () => {
                             <Users className="h-5 w-5 text-blue-500" />
                             Team Throughput
                         </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white/10"
+                            onClick={() => exportAnalyticsToPdf(
+                                'Team Member Performance',
+                                ['Member Name', 'Tasks Completed'],
+                                data.memberPerformanceData.map(item => [item.name, item.tasks]),
+                                'team_performance'
+                            )}
+                        >
+                            <Download className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px] w-full mt-4">
@@ -255,10 +297,23 @@ const Analytics = () => {
                             <Target className="h-5 w-5 text-primary" />
                             Project Completion Progress
                         </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white/10"
+                            onClick={() => exportAnalyticsToPdf(
+                                'Project Completion Progress',
+                                ['Project Title', 'Progress Percentage'],
+                                data.projectProgressData.map(item => [item.name, `${item.progress}%`]),
+                                'project_progress'
+                            )}
+                        >
+                            <Download className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6 mt-4">
-                            {data.projectProgressData.slice(0, 5).map((project, i) => (
+                            {data.projectProgressData.slice(0, 5).map((project: { name: string; progress: number }, i: number) => (
                                 <div key={i} className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="font-bold text-foreground">{project.name}</span>

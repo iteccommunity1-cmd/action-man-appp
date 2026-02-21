@@ -48,32 +48,32 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
   return (
     <Card className="rounded-2xl glass-card border-none ring-1 ring-white/10 shadow-xl overflow-hidden group animate-fade-in-up">
       <CardHeader className="pb-3 relative">
-        <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-0 right-0 p-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-white/10" onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-white/10" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl shadow-2xl bg-card/90 backdrop-blur-lg border-white/10 text-card-foreground">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-primary/20 transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onEdit(project); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-primary/20 transition-colors">
                 <Edit className="h-4 w-4 text-primary" /> Edit Project
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-yellow-500/20 transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onStatusChange(project, 'pending'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-yellow-500/20 transition-colors">
                 <PauseCircle className="h-4 w-4 text-yellow-500" /> Set to Pending
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-blue-500/20 transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onStatusChange(project, 'in-progress'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-blue-500/20 transition-colors">
                 <PlayCircle className="h-4 w-4 text-blue-500" /> Set to In Progress
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-green-500/20 transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onStatusChange(project, 'completed'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-green-500/20 transition-colors">
                 <CheckCircle className="h-4 w-4 text-green-500" /> Mark as Completed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStatusChange(project, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-red-500/20 transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onStatusChange(project, 'overdue'); }} className="flex items-center gap-2 cursor-pointer rounded-lg hover:bg-red-500/20 transition-colors">
                 <XCircle className="h-4 w-4 text-red-500" /> Mark as Overdue
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/20 rounded-lg transition-colors">
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDelete(project.id); }} className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/20 rounded-lg transition-colors">
                 <Trash2 className="h-4 w-4" /> Delete Project
               </DropdownMenuItem>
             </DropdownMenuContent>

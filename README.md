@@ -12,13 +12,19 @@ The application is built on the following foundation:
 *   **State Management & Data Fetching:** **React Query** (or TanStack Query) is utilized for managing server state, caching, synchronization, and handling asynchronous data operations efficiently.
 *   **Backend & Database:** **Supabase** provides the backend services, including authentication, a PostgreSQL database, and Edge Functions for serverless logic (like sending push notifications).
 
-### Key Features and Architecture
+### Analytics & Performance Insights
 
-The application is structured around several core functionalities:
+*   **Analytics Page (`src/pages/Analytics.tsx`):** Provides visual data representation using **Recharts**.
+    *   **Task Velocity:** Tracks completed tasks over time.
+    *   **Status Distribution:** Breakdown of tasks by current status.
+    *   **Team Throughput:** Measures performance across assigned members.
+    *   **Project Progress:** Visualizes completion percentages across all projects.
+*   **PDF Export:** Integrated **jsPDF** and **jspdf-autotable** to allow users to download professional, branded PDF reports of their analytics data.
 
 #### 1. User Management and Authentication
 
-*   **Authentication:** Handled by Supabase Auth, integrated via the `SupabaseProvider` and `UserProvider` contexts.
+*   **Authentication:** Handled by Supabase Auth, integrated via the `SupabaseProvider` and `UserProvider` contexts. Supports ephemeral (Session Storage) and persisted sessions.
+*   **BigSam Security Policy:** Includes a 15-minute inactivity timeout for automatic session protection.
 *   **Protected Routes:** The `ProtectedRoute` component ensures that users must be authenticated to access the main application pages.
 *   **User Context:** The `useUser` hook provides global access to the current user's profile and authentication status.
 
