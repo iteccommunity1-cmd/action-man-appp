@@ -56,6 +56,11 @@ The application is built on the following foundation:
 *   **Push Notifications:** The application is configured to support Web Push Notifications:
     *   **Service Worker (`public/service-worker.js`):** Handles receiving and displaying push messages in the browser.
     *   **Edge Function (`supabase/functions/send-push-notification/index.ts`):** A serverless function responsible for sending push notifications using the `web-push` library and VAPID keys.
+        > [!IMPORTANT]
+        > To enable push notifications, you must set the following secrets in your Supabase project using the CLI or Dashboard:
+        > - `VAPID_PUBLIC_KEY`: BIXck_9XhyqzR4sVVyxDmbE1m-_ydJq2_TrGlJ3x0sVx_cv0hAEGP4_gcBq9zjfuwq-lxL5C0iAixytk1Nx5jhs
+        > - `VAPID_PRIVATE_KEY`: fBPrPYGXE2yZAtgJ0xJLh1paAdKQ6-EiMplgpiGu9lo
+        > - `VAPID_SUBJECT`: mailto:sam@actionman.app
     *   **`usePushNotifications` Hook:** Manages subscription status, permission requests, and saving/deleting subscription details in the Supabase database.
     *   **`sendNotification` Utility:** A centralized function that handles both inserting the notification into the database (for in-app display) and invoking the Edge Function (for push delivery).
 
