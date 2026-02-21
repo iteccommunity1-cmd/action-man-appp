@@ -1,39 +1,16 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { format } from 'date-fns';
 
-// Extend jsPDF with autoTable type for TypeScript
-declare module 'jspdf' {
-    interface jsPDF {
-        autoTable: (options: {
-            startY: number;
-            head: string[][];
-            body: (string | number)[][];
-            theme: string;
-            headStyles: {
-                fillColor: number[];
-                textColor: number[];
-                fontSize: number;
-                fontStyle: string;
-            };
-            bodyStyles: {
-                fontSize: number;
-            };
-            alternateRowStyles: {
-                fillColor: number[];
-            };
-            margin: { top: number };
-        }) => jsPDF;
-    }
-}
-
-export const exportAnalyticsToPdf = (
+export const exportAnalyticsToPdf = async (
     title: string,
     headers: string[],
     data: (string | number)[][],
     filename: string
 ) => {
-    const doc = new jsPDF();
+    // Dynamically import jspdf and jspdf-autotable
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+
+    const doc = new jsPDF() as any; // Using any as a quick way to access autoTable on dynamic import
     const now = new Date();
     const dateStr = format(now, 'yyyy-MM-dd HH:mm');
 
@@ -53,30 +30,30 @@ export const exportAnalyticsToPdf = (
     doc.text(title, 14, 45);
 
     // Add Table
-    doc.autoTable({
-        startY: 55,
-        head: [headers],
-        body: data,
-        theme: 'grid',
-        headStyles: {
-            fillColor: [59, 130, 246], // primary blue
-            textColor: [255, 255, 255],
-            fontSize: 12,
-            fontStyle: 'bold',
-        },
-        bodyStyles: {
-            fontSize: 10,
-        },
-        alternateRowStyles: {
-            fillColor: [248, 250, 252],
-        },
-        margin: { top: 50 },
-    });
+    if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+            startY: 55,
+            head: [headers],
+            body: data,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [59, 130, 246], // primary blue
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold',
+            },
+            bodyStyles: {
+                fontSize: 10,
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252],
+            },
+            margin: { top: 50 },
+        });
+    }
 
     // Footer
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const internalDoc = doc as any;
-    const pageCount = internalDoc.internal.getNumberOfPages() as number;
+    const pageCount = doc.internal.getNumberOfPages() as number;
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);

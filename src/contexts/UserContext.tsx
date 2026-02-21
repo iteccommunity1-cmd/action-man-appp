@@ -23,6 +23,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isFetchingProfile = useRef(false);
 
   const signOut = useCallback(async () => {
     setIsLoadingUser(true);
@@ -48,49 +49,61 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser, signOut]);
 
-  const fetchUserProfile = async (user: User) => {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('first_name, last_name, avatar_url')
-      .eq('id', user.id)
-      .single();
+  const fetchUserProfile = useCallback(async (user: User) => {
+    if (isFetchingProfile.current) return;
+    isFetchingProfile.current = true;
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (profile not yet created)
-      console.error("Error fetching user profile:", error);
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching user profile:", error);
+      }
+
+      setCurrentUser({
+        id: user.id,
+        name: profile?.first_name && profile?.last_name
+          ? `${profile.first_name} ${profile.last_name}`
+          : user.email || 'User',
+        avatar: profile?.avatar_url || `https://api.dicebear.com/8.x/adventurer/svg?seed=${user.id}`,
+        email: user.email,
+      });
+    } finally {
+      setIsLoadingUser(false);
+      isFetchingProfile.current = false;
     }
-
-    setCurrentUser({
-      id: user.id,
-      name: profile?.first_name && profile?.last_name
-        ? `${profile.first_name} ${profile.last_name}`
-        : user.email || 'User',
-      avatar: profile?.avatar_url || `https://api.dicebear.com/8.x/adventurer/svg?seed=${user.id}`,
-      email: user.email,
-    });
-  };
+  }, []);
 
   useEffect(() => {
+    // Initial check for session
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await fetchUserProfile(session.user);
+      } else {
+        setIsLoadingUser(false);
+      }
+    };
+
+    checkInitialSession();
+
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
         await fetchUserProfile(session.user);
       } else {
         setCurrentUser(null);
+        setIsLoadingUser(false);
       }
-      setIsLoadingUser(false);
-    });
-
-    // Initial check for session
-    supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: Session | null } }) => {
-      if (session?.user) {
-        await fetchUserProfile(session.user);
-      }
-      setIsLoadingUser(false);
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchUserProfile]);
 
   // Inactivity detection effect
   useEffect(() => {

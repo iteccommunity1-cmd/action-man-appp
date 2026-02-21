@@ -38,7 +38,7 @@ export const usePushNotifications = () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      
+
       if (subscription) {
         // Verify if the subscription exists in our database
         const { data, error } = await supabase
@@ -90,11 +90,13 @@ export const usePushNotifications = () => {
   const subscribeUser = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !currentUser?.id) {
       showError("Push notifications are not supported or user not logged in.");
+      setIsLoading(false);
       return;
     }
-    
+
     if (!VAPID_PUBLIC_KEY) {
       showError("VAPID Public Key is missing. Please configure environment variables.");
+      setIsLoading(false);
       return;
     }
 

@@ -64,6 +64,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }, 3000); // 3 seconds delay
   };
 
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const otherTypingUsers = typingUsers.filter(user => user.id !== currentUserId);
 
   return (

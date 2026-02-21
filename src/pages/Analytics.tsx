@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAnalyticsData } from '@/hooks/useAnalyticsData';
 import {
@@ -5,7 +6,7 @@ import {
     PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
 import {
-    Activity, CheckCircle2, Target, BarChart2, TrendingUp, Users, Clock, AlertCircle, Download
+    Activity, CheckCircle2, Target, BarChart2, TrendingUp, Users, Clock, AlertCircle, Download, Loader2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,18 @@ import { exportAnalyticsToPdf } from '@/utils/analyticsPdfExport';
 
 const Analytics = () => {
     const { data, isLoading, error } = useAnalyticsData();
+    const [exportingCard, setExportingCard] = useState<string | null>(null);
+
+    const handleExport = async (cardTitle: string, headers: string[], rowData: (string | number)[][], filename: string) => {
+        setExportingCard(cardTitle);
+        try {
+            await exportAnalyticsToPdf(cardTitle, headers, rowData, filename);
+        } catch (err) {
+            console.error("Export failed:", err);
+        } finally {
+            setExportingCard(null);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -35,7 +48,7 @@ const Analytics = () => {
             <div className="flex flex-col items-center justify-center min-h-[400px] glass-card">
                 <AlertCircle className="h-12 w-12 text-destructive mb-4" />
                 <h2 className="text-xl font-bold">Failed to load analytics</h2>
-                <p className="text-muted-foreground">{error.message}</p>
+                <p className="text-muted-foreground">{(error as Error).message}</p>
             </div>
         );
     }
@@ -118,8 +131,8 @@ const Analytics = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Task Velocity Chart */}
-                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl">
-                    <CardHeader>
+                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase tracking-tight">
                             <TrendingUp className="h-5 w-5 text-primary" />
                             Task Completion Velocity
@@ -127,15 +140,19 @@ const Analytics = () => {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-white/10"
-                            onClick={() => exportAnalyticsToPdf(
+                            className="h-9 w-9 rounded-xl hover:bg-white/10"
+                            disabled={exportingCard !== null}
+                            onClick={() => handleExport(
                                 'Task Completion Velocity',
                                 ['Date', 'Completed Tasks'],
-                                data.taskVelocityData.map(item => [item.date, item.completed]),
+                                data.taskVelocityData.map((item: any) => [item.date, item.completed]),
                                 'task_velocity'
                             )}
                         >
-                            <Download className="h-4 w-4 text-muted-foreground" />
+                            {exportingCard === 'Task Completion Velocity'
+                                ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                : <Download className="h-4 w-4 text-muted-foreground" />
+                            }
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -187,8 +204,8 @@ const Analytics = () => {
                 </Card>
 
                 {/* Status Distribution Chart */}
-                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl">
-                    <CardHeader>
+                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase tracking-tight">
                             <Activity className="h-5 w-5 text-emerald-500" />
                             Status Distribution
@@ -196,15 +213,19 @@ const Analytics = () => {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-white/10"
-                            onClick={() => exportAnalyticsToPdf(
+                            className="h-9 w-9 rounded-xl hover:bg-white/10"
+                            disabled={exportingCard !== null}
+                            onClick={() => handleExport(
                                 'Task Status Distribution',
                                 ['Status', 'Count'],
-                                data.taskStatusDistribution.map(item => [item.name, item.value]),
+                                data.taskStatusDistribution.map((item: any) => [item.name, item.value]),
                                 'status_distribution'
                             )}
                         >
-                            <Download className="h-4 w-4 text-muted-foreground" />
+                            {exportingCard === 'Task Status Distribution'
+                                ? <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                                : <Download className="h-4 w-4 text-muted-foreground" />
+                            }
                         </Button>
                     </CardHeader>
                     <CardContent className="flex justify-center">
@@ -220,7 +241,7 @@ const Analytics = () => {
                                         paddingAngle={8}
                                         dataKey="value"
                                     >
-                                        {data.taskStatusDistribution.map((entry, index) => (
+                                        {data.taskStatusDistribution.map((entry: any, index: number) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                                         ))}
                                     </Pie>
@@ -241,8 +262,8 @@ const Analytics = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Team Member Performance */}
-                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl">
-                    <CardHeader>
+                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase tracking-tight">
                             <Users className="h-5 w-5 text-blue-500" />
                             Team Throughput
@@ -250,15 +271,19 @@ const Analytics = () => {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-white/10"
-                            onClick={() => exportAnalyticsToPdf(
+                            className="h-9 w-9 rounded-xl hover:bg-white/10"
+                            disabled={exportingCard !== null}
+                            onClick={() => handleExport(
                                 'Team Member Performance',
                                 ['Member Name', 'Tasks Completed'],
-                                data.memberPerformanceData.map(item => [item.name, item.tasks]),
+                                data.memberPerformanceData.map((item: any) => [item.name, item.tasks]),
                                 'team_performance'
                             )}
                         >
-                            <Download className="h-4 w-4 text-muted-foreground" />
+                            {exportingCard === 'Team Member Performance'
+                                ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                                : <Download className="h-4 w-4 text-muted-foreground" />
+                            }
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -291,8 +316,8 @@ const Analytics = () => {
                 </Card>
 
                 {/* Project Progress */}
-                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl">
-                    <CardHeader>
+                <Card className="glass-card border-none ring-1 ring-white/10 shadow-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase tracking-tight">
                             <Target className="h-5 w-5 text-primary" />
                             Project Completion Progress
@@ -300,15 +325,19 @@ const Analytics = () => {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full hover:bg-white/10"
-                            onClick={() => exportAnalyticsToPdf(
+                            className="h-9 w-9 rounded-xl hover:bg-white/10"
+                            disabled={exportingCard !== null}
+                            onClick={() => handleExport(
                                 'Project Completion Progress',
                                 ['Project Title', 'Progress Percentage'],
-                                data.projectProgressData.map(item => [item.name, `${item.progress}%`]),
+                                data.projectProgressData.map((item: any) => [item.name, `${item.progress}%`]),
                                 'project_progress'
                             )}
                         >
-                            <Download className="h-4 w-4 text-muted-foreground" />
+                            {exportingCard === 'Project Completion Progress'
+                                ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                : <Download className="h-4 w-4 text-muted-foreground" />
+                            }
                         </Button>
                     </CardHeader>
                     <CardContent>

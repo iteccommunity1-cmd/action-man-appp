@@ -34,33 +34,38 @@ export const ChatLayout: React.FC = () => {
   const activeChatRoom = chatRooms.find(room => room.id === activeChatRoomId);
 
   const fetchChatRooms = async () => {
-    setLoadingChatRooms(true);
     if (!currentUser?.id) {
       setLoadingChatRooms(false);
       return;
     }
 
-    const { data: roomsData, error: roomsError } = await supabase
-      .from('chat_rooms')
-      .select('*')
-      .contains('members', [currentUser.id])
-      .order('created_at', { ascending: false });
+    setLoadingChatRooms(true);
+    try {
+      const { data: roomsData, error: roomsError } = await supabase
+        .from('chat_rooms')
+        .select('*')
+        .contains('members', [currentUser.id])
+        .order('created_at', { ascending: false });
 
-    if (roomsError) {
-      console.error("Error fetching chat rooms:", roomsError);
-      showError("Failed to load chat rooms.");
-    } else {
+      if (roomsError) {
+        console.error("Error fetching chat rooms:", roomsError);
+        showError("Failed to load chat rooms. Please try refreshing.");
+        setLoadingChatRooms(false);
+        return;
+      }
+
       const roomsWithLastMessage = await Promise.all(
         roomsData.map(async (room) => {
+          // Optimize: Only fetch last message if it's not already known (or always fetch for freshness)
           const { data: lastMessageData, error: lastMessageError } = await supabase
             .from('messages')
             .select('content, created_at, sender_name')
             .eq('chat_room_id', room.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
-          if (lastMessageError && lastMessageError.code !== 'PGRST116') {
+          if (lastMessageError) {
             console.error(`Error fetching last message for room ${room.id}:`, lastMessageError);
           }
 
@@ -87,9 +92,6 @@ export const ChatLayout: React.FC = () => {
               roomName = "Unknown Private Chat";
               roomAvatar = `https://api.dicebear.com/8.x/adventurer/svg?seed=default`;
             }
-          } else if (room.type === 'project') {
-            roomName = room.name;
-            roomAvatar = room.avatar;
           }
 
           return {
@@ -103,28 +105,29 @@ export const ChatLayout: React.FC = () => {
       );
       setChatRooms(roomsWithLastMessage);
 
+      // Handle selection logic
       const stateActiveRoomId = (location.state as { activeChatRoomId?: string })?.activeChatRoomId;
       const localStorageActiveRoomId = localStorage.getItem('activeChatRoomId');
       const queryParams = new URLSearchParams(location.search);
       const queryActiveRoomId = queryParams.get('activeChatRoomId');
 
-
-      if (stateActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === stateActiveRoomId)) {
+      if (stateActiveRoomId && roomsWithLastMessage.some((room) => room.id === stateActiveRoomId)) {
         setActiveChatRoomId(stateActiveRoomId);
-      } else if (queryActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === queryActiveRoomId)) {
+      } else if (queryActiveRoomId && roomsWithLastMessage.some((room) => room.id === queryActiveRoomId)) {
         setActiveChatRoomId(queryActiveRoomId);
         navigate(location.pathname, { replace: true });
-      }
-      else if (localStorageActiveRoomId && roomsWithLastMessage.some((room: ChatRoom) => room.id === localStorageActiveRoomId)) {
+      } else if (localStorageActiveRoomId && roomsWithLastMessage.some((room) => room.id === localStorageActiveRoomId)) {
         setActiveChatRoomId(localStorageActiveRoomId);
         localStorage.removeItem('activeChatRoomId');
-      } else if (roomsWithLastMessage.length > 0) {
+      } else if (roomsWithLastMessage.length > 0 && !activeChatRoomId) {
         setActiveChatRoomId(roomsWithLastMessage[0].id);
-      } else {
-        setActiveChatRoomId(null);
       }
+    } catch (err) {
+      console.error("Unexpected error in fetchChatRooms:", err);
+      showError("An unexpected error occurred while loading chats.");
+    } finally {
+      setLoadingChatRooms(false);
     }
-    setLoadingChatRooms(false);
   };
 
   useEffect(() => {
@@ -134,24 +137,33 @@ export const ChatLayout: React.FC = () => {
 
     const chatRoomsChannel = supabase
       .channel('chat_rooms_changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_rooms', filter: `members.cs.{${currentUser?.id}}` }, (payload) => {
-        const newRoom = payload.new as ChatRoom;
-        const roomToAdd = {
-          ...newRoom,
-          lastMessage: undefined,
-          lastSenderName: undefined,
-          avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
-        };
-        setChatRooms((prev) => [roomToAdd, ...prev]);
-        setActiveChatRoomId(newRoom.id);
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_rooms'
+      }, (payload) => {
+        const newRoom = payload.new as any;
+        // Only add if user is a member
+        if (newRoom.members && newRoom.members.includes(currentUser?.id)) {
+          const roomToAdd = {
+            ...newRoom,
+            lastMessage: undefined,
+            lastSenderName: undefined,
+            avatar: newRoom.avatar || `https://api.dicebear.com/8.x/adventurer/svg?seed=${newRoom.name}`,
+          };
+          setChatRooms((prev) => {
+            if (prev.some(r => r.id === roomToAdd.id)) return prev;
+            return [roomToAdd, ...prev];
+          });
+          setActiveChatRoomId(newRoom.id);
+        }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(chatRoomsChannel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, currentUser?.id, loadingTeamMembers, teamMembers, location.search, navigate]);
+  }, [currentUser?.id, loadingTeamMembers]);
 
   useEffect(() => {
     if (!activeChatRoomId) {
