@@ -64,6 +64,7 @@ export const useNotifications = (filterType: NotificationFilterType = 'all') => 
         { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUser.id}` },
         (payload) => {
           const updatedNotification = payload.new as Notification;
+          const previousNotification = payload.old as Notification;
           setNotifications((prev) => {
             const updated = prev.map((n) => (n.id === updatedNotification.id ? updatedNotification : n));
             // If filter is active, ensure updated notification still matches or remove it
@@ -72,9 +73,12 @@ export const useNotifications = (filterType: NotificationFilterType = 'all') => 
             }
             return updated;
           });
-          setUnreadCount((prev) =>
-            updatedNotification.read ? Math.max(0, prev - 1) : prev + 1
-          );
+          // Only adjust unread count if read status actually changed
+          if (updatedNotification.read !== previousNotification.read) {
+            setUnreadCount((prev) =>
+              updatedNotification.read ? Math.max(0, prev - 1) : prev + 1
+            );
+          }
         }
       )
       .on(
@@ -96,7 +100,7 @@ export const useNotifications = (filterType: NotificationFilterType = 'all') => 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, currentUser?.id, filterType]);
+  }, [currentUser?.id, filterType]);
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase

@@ -132,7 +132,7 @@ export const ProjectList: React.FC = () => {
     return () => {
       supabase.removeChannel(projectsChannel);
     };
-  }, [supabase, currentUser?.id, queryClient, queryKey]); // Updated dependencies
+  }, [currentUser?.id, queryClient, queryKey, filterStatus, sortOrder]); // Updated dependencies
 
   const handleEditProject = (project: Project) => {
     setEditingProject(project);

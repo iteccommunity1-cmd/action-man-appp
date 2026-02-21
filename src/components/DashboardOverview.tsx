@@ -69,14 +69,16 @@ export const DashboardOverview: React.FC = () => {
       const calendarEvents: CalendarEvent[] = [];
 
       (projectsData || []).forEach(project => {
-        calendarEvents.push({
-          id: project.id,
-          title: project.title,
-          date: new Date(project.deadline),
-          type: 'project',
-          status: project.status,
-          link: `/projects/${project.id}`
-        });
+        if (project.deadline) {
+          calendarEvents.push({
+            id: project.id,
+            title: project.title,
+            date: new Date(project.deadline),
+            type: 'project',
+            status: project.status,
+            link: `/projects/${project.id}`
+          });
+        }
       });
 
       (tasksData || []).forEach(task => {

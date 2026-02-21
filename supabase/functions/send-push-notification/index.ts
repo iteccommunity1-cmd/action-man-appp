@@ -1,15 +1,15 @@
 // Minimal Deno type declaration to satisfy TS compiler outside Deno environment
-declare namespace Deno {
-  export const env: {
+declare const Deno: {
+  env: {
     get(key: string): string | undefined;
   };
-}
+};
 
-// @ts-ignore
+// @ts-expect-error Deno URL imports are not resolvable in Node/browser environments
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-// @ts-ignore
+// @ts-expect-error Deno URL imports are not resolvable in Node/browser environments
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-// @ts-ignore
+// @ts-expect-error npm: specifier is Deno-specific
 import webpush from 'npm:web-push';
 
 const corsHeaders = {

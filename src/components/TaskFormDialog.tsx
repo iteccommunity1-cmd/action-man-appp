@@ -272,14 +272,17 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-foreground">Assigned To (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "__unassigned__" ? undefined : value)}
+                    value={field.value ?? "__unassigned__"}
+                  >
                     <FormControl>
                       <SelectTrigger className="rounded-lg border-border focus:border-primary focus:ring-primary bg-input text-foreground hover:bg-input/80">
                         <SelectValue placeholder="Select a team member" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="__unassigned__">Unassigned</SelectItem>
                       {memberOptions.map((member) => (
                         <SelectItem key={member.value} value={member.value}>
                           {member.label}

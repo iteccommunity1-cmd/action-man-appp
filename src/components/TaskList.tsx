@@ -173,7 +173,7 @@ export const TaskList: React.FC<TaskListProps> = ({ projectId, onAddTask, onEdit
     return () => {
       supabase.removeChannel(tasksChannel);
     };
-  }, [supabase, currentUser?.id, projectId, queryClient, queryKey, filterStatus, sortOrder]);
+  }, [currentUser?.id, projectId, queryClient, queryKey, filterStatus, sortOrder]);
 
   const getStatusBadgeColor = (status: Task['status'], dueDate?: string) => {
     if (status === 'completed') return 'bg-green-500 text-white';
