@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import DailyDigest from "./pages/DailyDigest";
 import NotificationsPage from "./pages/Notifications";
 import Projects from "./pages/Projects"; // Import the new Projects page
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <NotificationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
                   </ProtectedRoute>
                 }
               />

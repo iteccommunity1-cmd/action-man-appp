@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, MessageCircle, User, LogOut, ListTodo, ListChecks } from 'lucide-react'; // Import ListChecks icon
+import { Home, MessageCircle, User, LogOut, ListTodo, ListChecks, BarChart2 } from 'lucide-react'; // Import BarChart2 icon
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -18,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
     { icon: ListChecks, label: "Projects", href: "/projects" }, // Added Projects link
+    { icon: BarChart2, label: "Analytics", href: "/analytics" }, // New Analytics link
     { icon: ListTodo, label: "Daily Digest", href: "/daily-digest" },
     { icon: MessageCircle, label: "Chat", href: "/chat" },
     { icon: User, label: "Profile", href: "/profile" },
@@ -41,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onLinkClick }) 
         <div className="relative group">
           <div className="absolute -inset-2 bg-gradient-to-r from-primary to-orange-400 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
           {isSidebarOpen ? (
-            <img src="/logo.svg" alt="Action Manager Logo" className="h-10 w-auto relative" />
+            <img src="/logo.svg" alt="Action Man Logo" className="h-10 w-auto relative" />
           ) : (
             <img src="/logo.svg" alt="Logo" className="h-8 w-8 relative" />
           )}
