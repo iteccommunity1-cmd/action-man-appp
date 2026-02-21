@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'; // Import AuthChangeEvent and Session
+
+const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 interface CurrentUser {
   id: string;
@@ -20,6 +22,31 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const signOut = useCallback(async () => {
+    setIsLoadingUser(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error);
+    } else {
+      setCurrentUser(null);
+    }
+    setIsLoadingUser(false);
+  }, []);
+
+  const resetInactivityTimer = useCallback(() => {
+    if (activityTimerRef.current) {
+      clearTimeout(activityTimerRef.current);
+    }
+
+    if (currentUser) {
+      activityTimerRef.current = setTimeout(() => {
+        console.log("Inactivity timeout reached. Signing out...");
+        signOut();
+      }, INACTIVITY_TIMEOUT);
+    }
+  }, [currentUser, signOut]);
 
   const fetchUserProfile = async (user: User) => {
     const { data: profile, error } = await supabase
@@ -65,16 +92,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signOut = async () => {
-    setIsLoadingUser(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error signing out:", error);
-    } else {
-      setCurrentUser(null);
+  // Inactivity detection effect
+  useEffect(() => {
+    if (!currentUser) {
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current);
+      }
+      return;
     }
-    setIsLoadingUser(false);
-  };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    // Initial timer start
+    resetInactivityTimer();
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current);
+      }
+    };
+  }, [currentUser, resetInactivityTimer]);
 
   return (
     <UserContext.Provider value={{ currentUser, isLoadingUser, signOut }}>
