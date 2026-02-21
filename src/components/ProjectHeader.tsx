@@ -18,17 +18,17 @@ interface ProjectHeaderProps {
   onLogTime: () => void;
 }
 
-const getStatusBadgeColor = (status: Project['status']) => {
+const getStatusBadgeStyles = (status: Project['status']) => {
   switch (status) {
     case 'completed':
-      return 'bg-green-500 text-white hover:bg-green-600';
+      return 'bg-green-500/10 text-green-500 border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]';
     case 'in-progress':
-      return 'bg-blue-500 text-white hover:bg-blue-600';
+      return 'bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]';
     case 'overdue':
-      return 'bg-red-500 text-white hover:bg-red-600';
+      return 'bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]';
     case 'pending':
     default:
-      return 'bg-yellow-500 text-white hover:bg-yellow-600';
+      return 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]';
   }
 };
 
@@ -44,80 +44,111 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   );
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <Link to="/projects" className="flex items-center text-primary hover:text-primary/80 font-medium text-lg transition-colors duration-200">
-          <ArrowLeft className="h-5 w-5 mr-2" /> Back to Projects
+    <div className="w-full space-y-12 animate-fade-in">
+      {/* Navigation and Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <Link
+          to="/projects"
+          className="group flex items-center text-muted-foreground hover:text-primary font-bold text-xs tracking-widest uppercase transition-all duration-300"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" />
+          Workspace Network
         </Link>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             onClick={onLogTime}
-            className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 w-full sm:w-auto"
+            className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 text-foreground border border-white/10 font-bold text-xs uppercase tracking-widest px-6 transition-all active:scale-95"
           >
-            <Timer className="h-5 w-5 mr-2" /> Log Time
+            <Timer className="h-4 w-4 mr-2 text-primary" /> Log Hours
           </Button>
           <Button
             onClick={onEditProject}
-            className="rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 w-full sm:w-auto"
+            className="h-12 rounded-2xl bg-white/5 hover:bg-white/10 text-foreground border border-white/10 font-bold text-xs uppercase tracking-widest px-6 transition-all active:scale-95"
           >
-            <Edit className="h-5 w-5 mr-2" /> Edit Project
+            <Edit className="h-4 w-4 mr-2 text-primary" /> Configure
           </Button>
           {project.chat_room_id && (
-            <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }} className="w-full sm:w-auto">
-              <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 w-full">
-                <MessageCircle className="h-5 w-5 mr-2" /> Go to Project Chat
+            <Link to="/chat" state={{ activeChatRoomId: project.chat_room_id }}>
+              <Button className="h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest px-8 shadow-[0_0_20px_rgba(249,115,22,0.2)] transition-all active:scale-95">
+                <MessageCircle className="h-4 w-4 mr-2" /> Launch Comms
               </Button>
             </Link>
           )}
         </div>
       </div>
 
-      <Card className="w-full rounded-xl glass-card mb-8">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-3xl font-bold text-foreground flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            {project.title}
-            <Badge className={cn("rounded-full px-3 py-1 text-sm font-medium", getStatusBadgeColor(project.status))}>
-              {project.status.replace('-', ' ')}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {project.description && (
-            <p className="text-lg text-muted-foreground leading-relaxed">{project.description}</p>
-          )}
-          <div className="flex items-center text-lg text-muted-foreground">
-            <CalendarDays className="h-5 w-5 mr-3 text-primary" />
-            <span>Deadline: {format(new Date(project.deadline), 'PPP')}</span>
-          </div>
-          <div className="flex items-center text-lg text-muted-foreground">
-            <Hourglass className="h-5 w-5 mr-3 text-secondary" />
-            <span>Created: {format(new Date(project.created_at), 'PPP')}</span>
-          </div>
-          <div>
-            <h5 className="text-lg font-semibold text-foreground mb-3 flex items-center">
-              <Users className="h-5 w-5 mr-3 text-primary" />
-              Assigned Team Members:
-            </h5>
-            <div className="flex flex-wrap gap-3">
-              {assignedMemberDetails.length > 0 ? (
-                assignedMemberDetails.map((member) => member && (
-                  <div key={member.id} className="flex items-center space-x-2 bg-muted rounded-full pr-4 py-2 shadow-sm">
-                    <Avatar className="h-9 w-9 border border-border">
-                      <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
-                        {member.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-base text-foreground font-medium">{member.name}</span>
-                  </div>
-                ))
-              ) : (
-                <span className="text-base text-muted-foreground">No members assigned</span>
-              )}
+      {/* Hero Section */}
+      <div className="relative group">
+        <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 via-transparent to-transparent rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+        <Card className="relative w-full rounded-[2.5rem] border-none ring-1 ring-white/10 glass-card overflow-hidden shadow-2xl">
+          <CardHeader className="p-10 pb-6">
+            <div className="flex flex-col gap-6">
+              <Badge className={cn(
+                "w-fit rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border transition-all",
+                getStatusBadgeStyles(project.status)
+              )}>
+                {project.status.replace('-', ' ')}
+              </Badge>
+              <h1 className="text-5xl md:text-6xl font-black tracking-tight text-foreground leading-[1.1]">
+                {project.title}
+              </h1>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="p-10 pt-0 space-y-10">
+            {project.description && (
+              <p className="text-xl text-muted-foreground/80 leading-relaxed max-w-2xl font-medium">
+                {project.description}
+              </p>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-y border-white/5">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                  <CalendarDays className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mb-0.5">Final Deadline</p>
+                  <p className="text-lg font-bold text-foreground">{format(new Date(project.deadline), 'MMMM do, yyyy')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                  <Hourglass className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mb-0.5">Project Inception</p>
+                  <p className="text-lg font-bold text-foreground">{format(new Date(project.created_at), 'MMMM do, yyyy')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <Users className="h-4 w-4 text-primary" />
+                <h5 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/60">Operative Assets</h5>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {assignedMemberDetails.length > 0 ? (
+                  assignedMemberDetails.map((member) => member && (
+                    <div key={member.id} className="group/member flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-2xl pl-1 pr-5 py-1 border border-white/5 transition-all cursor-default">
+                      <Avatar className="h-10 w-10 border-2 border-transparent group-hover/member:border-primary/30 transition-all shadow-lg">
+                        <AvatarImage src={member.avatar} alt={member.name} />
+                        <AvatarFallback className="bg-primary/20 text-primary text-xs font-black uppercase">
+                          {member.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-bold text-foreground/80 group-hover/member:text-foreground transition-colors">{member.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm font-medium text-muted-foreground italic">No assets currently assigned to this mission.</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <ProjectOverviewStats {...projectStats} />
     </div>

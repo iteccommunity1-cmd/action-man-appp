@@ -23,38 +23,53 @@ export const ProjectDetailsTabs: React.FC<ProjectDetailsTabsProps> = ({
   const [activeTab, setActiveTab] = useState("tasks");
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-6 bg-muted/50 rounded-lg p-1 mb-6"> {/* Increased grid to 6 columns */}
-        <TabsTrigger value="tasks" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Tasks</TabsTrigger>
-        <TabsTrigger value="milestones" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Milestones</TabsTrigger>
-        <TabsTrigger value="goals" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Goals</TabsTrigger>
-        <TabsTrigger value="metrics" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Metrics</TabsTrigger>
-        <TabsTrigger value="files" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Files</TabsTrigger>
-        <TabsTrigger value="time" className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200">Time</TabsTrigger> {/* New Time tab */}
-      </TabsList>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
+      <div className="flex justify-center">
+        <TabsList className="flex flex-wrap h-auto items-center gap-2 bg-white/5 p-2 rounded-3xl border border-white/10 backdrop-blur-xl">
+          {[
+            { value: "tasks", label: "Operations" },
+            { value: "milestones", label: "Milestones" },
+            { value: "goals", label: "Objectives" },
+            { value: "metrics", label: "Analytics" },
+            { value: "files", label: "Intelligence" },
+            { value: "time", label: "Temporal" }
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="rounded-2xl px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:text-foreground/80"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
-      <Card className="rounded-xl glass-card">
-        <CardContent className="p-4 sm:p-6">
-          <TabsContent value="tasks" className="mt-0">
-            <TaskList projectId={projectId} onAddTask={onAddTask} onEditTask={onEditTask} />
-          </TabsContent>
-          <TabsContent value="milestones" className="mt-0">
-            <MilestoneList projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="goals" className="mt-0">
-            <GoalList projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="metrics" className="mt-0">
-            <MetricList projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="files" className="mt-0">
-            <ProjectFilesList projectId={projectId} />
-          </TabsContent>
-          <TabsContent value="time" className="mt-0">
-            <TimeEntryList projectId={projectId} />
-          </TabsContent>
-        </CardContent>
-      </Card>
+      <div className="relative group/tabs">
+        <div className="absolute -inset-1 bg-gradient-to-b from-primary/10 to-transparent rounded-[2.5rem] blur-xl opacity-0 group-hover/tabs:opacity-100 transition-opacity duration-700" />
+        <Card className="relative rounded-[2rem] border-none ring-1 ring-white/10 glass-card shadow-2xl overflow-hidden transition-all duration-500">
+          <CardContent className="p-8">
+            <TabsContent value="tasks" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <TaskList projectId={projectId} onAddTask={onAddTask} onEditTask={onEditTask} />
+            </TabsContent>
+            <TabsContent value="milestones" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <MilestoneList projectId={projectId} />
+            </TabsContent>
+            <TabsContent value="goals" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <GoalList projectId={projectId} />
+            </TabsContent>
+            <TabsContent value="metrics" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <MetricList projectId={projectId} />
+            </TabsContent>
+            <TabsContent value="files" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <ProjectFilesList projectId={projectId} />
+            </TabsContent>
+            <TabsContent value="time" className="mt-0 focus-visible:outline-none focus-visible:ring-0 animate-fade-in">
+              <TimeEntryList projectId={projectId} />
+            </TabsContent>
+          </CardContent>
+        </Card>
+      </div>
     </Tabs>
   );
 };

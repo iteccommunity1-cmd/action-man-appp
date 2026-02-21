@@ -1,102 +1,30 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
-import { Project, ProjectOverviewStatsProps } from '@/types/project';
 import { Task } from '@/types/task';
 import { Loader2 } from 'lucide-react';
-import { differenceInMinutes } from 'date-fns';
 import { showError } from '@/utils/toast';
+import { Button } from '@/components/ui/button';
 import { TaskFormDialog } from '@/components/TaskFormDialog';
 import { ProjectFormDialog } from '@/components/ProjectFormDialog';
 import { TimeEntryFormDialog } from '@/components/TimeEntryFormDialog';
 import { ProjectDetailsTabs } from '@/components/ProjectDetailsTabs';
-import { ProjectHeader } from '@/components/ProjectHeader'; // Import ProjectHeader
+import { ProjectHeader } from '@/components/ProjectHeader';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
-import { supabase } from '@/integrations/supabase/client';
+import { useProjectDetails } from '@/hooks/useProjectDetails';
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useUser();
   const { teamMembers, loading: loadingTeamMembers } = useTeamMembers();
   const queryClient = useQueryClient();
+  const { project, projectStats, isLoading, isError, error } = useProjectDetails(id, currentUser?.id);
 
   const [isTaskFormDialogOpen, setIsTaskFormDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isProjectEditDialogOpen, setIsProjectEditDialogOpen] = useState(false);
   const [isTimeEntryDialogOpen, setIsTimeEntryDialogOpen] = useState(false);
-
-  const { data: project, isLoading, isError, error } = useQuery<Project, Error>({
-    queryKey: ['project', id],
-    queryFn: async () => {
-      if (!id || !currentUser?.id) {
-        throw new Error("Project ID or user ID is missing.");
-      }
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', currentUser.id)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-      return data;
-    },
-    enabled: !!id && !!currentUser?.id,
-  });
-
-  // Queries for project overview stats
-  const { data: projectStats, isLoading: isLoadingStats } = useQuery<ProjectOverviewStatsProps, Error>({
-    queryKey: ['projectStats', id],
-    queryFn: async () => {
-      if (!id) return { totalTasks: 0, completedTasks: 0, totalMilestones: 0, totalGoals: 0, totalMetrics: 0, totalFiles: 0, totalTimeLogged: 0 };
-
-      const [
-        tasksCount,
-        completedTasksCount,
-        milestonesCount,
-        goalsCount,
-        metricsCount,
-        filesCount,
-        timeEntriesData,
-      ] = await Promise.all([
-        supabase.from('tasks').select('id', { count: 'exact' }).eq('project_id', id),
-        supabase.from('tasks').select('id', { count: 'exact' }).eq('project_id', id).eq('status', 'completed'),
-        supabase.from('milestones').select('id', { count: 'exact' }).eq('project_id', id),
-        supabase.from('goals').select('id', { count: 'exact' }).eq('project_id', id),
-        supabase.from('metrics').select('id', { count: 'exact' }).eq('project_id', id),
-        supabase.from('project_files').select('id', { count: 'exact' }).eq('project_id', id),
-        supabase.from('time_entries').select('start_time, end_time').eq('project_id', id),
-      ]);
-
-      if (tasksCount.error) throw tasksCount.error;
-      if (completedTasksCount.error) throw completedTasksCount.error;
-      if (milestonesCount.error) throw milestonesCount.error;
-      if (goalsCount.error) throw goalsCount.error;
-      if (metricsCount.error) throw metricsCount.error;
-      if (filesCount.error) throw filesCount.error;
-      if (timeEntriesData.error) throw timeEntriesData.error;
-
-      const totalTimeLoggedMinutes = (timeEntriesData.data || []).reduce((sum, entry) => {
-        const start = new Date(entry.start_time);
-        const end = new Date(entry.end_time);
-        return sum + differenceInMinutes(end, start);
-      }, 0);
-
-      return {
-        totalTasks: tasksCount.count || 0,
-        completedTasks: completedTasksCount.count || 0,
-        totalMilestones: milestonesCount.count || 0,
-        totalGoals: goalsCount.count || 0,
-        totalMetrics: metricsCount.count || 0,
-        totalFiles: filesCount.count || 0,
-        totalTimeLogged: totalTimeLoggedMinutes / 60, // Convert minutes to hours
-      };
-    },
-    enabled: !!id,
-  });
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -129,22 +57,31 @@ const ProjectDetails: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['projectStats', id] });
   };
 
-  if (isLoading || loadingTeamMembers || isLoadingStats) {
+  if (isLoading || loadingTeamMembers) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="ml-4 text-xl text-muted-foreground">Loading project details...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+        </div>
+        <p className="mt-6 text-sm font-bold uppercase tracking-widest text-muted-foreground animate-pulse">Initializing Project Workspace...</p>
       </div>
     );
   }
 
   if (isError) {
-    showError("Failed to load project details: " + error.message);
+    showError("Failed to load project details: " + (error as Error).message);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-        <p className="text-xl text-destructive">Error loading project details. Please try again.</p>
-        <Link to="/projects" className="mt-4 text-primary hover:text-primary/80 font-medium text-lg transition-colors duration-200">
-          Back to Projects
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
+        <div className="h-20 w-20 rounded-3xl bg-destructive/10 flex items-center justify-center mb-6">
+          <Loader2 className="h-10 w-10 text-destructive" />
+        </div>
+        <h2 className="text-2xl font-black tracking-tight text-foreground mb-4">Workspace Unavailable</h2>
+        <p className="text-muted-foreground max-w-sm mb-8">We encountered an issue while assembling your project data. Please try again or return to the dashboard.</p>
+        <Link to="/projects">
+          <Button variant="outline" className="h-12 rounded-2xl px-8 border-white/10 bg-white/5 hover:bg-white/10 font-bold">
+            Back to Projects
+          </Button>
         </Link>
       </div>
     );
@@ -152,32 +89,39 @@ const ProjectDetails: React.FC = () => {
 
   if (!project || !projectStats) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-        <p className="text-xl text-muted-foreground">Project not found or you do not have access.</p>
-        <Link to="/projects" className="mt-4 text-primary hover:text-primary/80 font-medium text-lg transition-colors duration-200">
-          Back to Projects
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
+        <div className="h-20 w-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+          <Loader2 className="h-10 w-10 text-muted-foreground/40" />
+        </div>
+        <h2 className="text-2xl font-black tracking-tight text-foreground mb-4">Project Not Found</h2>
+        <p className="text-muted-foreground max-w-sm mb-8">The project you're looking for doesn't exist or you don't have the necessary clearance to view it.</p>
+        <Link to="/projects">
+          <Button variant="outline" className="h-12 rounded-2xl px-8 border-white/10 bg-white/5 hover:bg-white/10 font-bold">
+            All Projects
+          </Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background p-0">
-      <ProjectHeader
-        project={project}
-        projectStats={projectStats}
-        teamMembers={teamMembers}
-        onEditProject={handleEditProject}
-        onLogTime={() => setIsTimeEntryDialogOpen(true)}
-      />
-
-      {/* Project Details Tabs */}
-      <div className="w-full max-w-3xl mx-auto mb-8">
-        <ProjectDetailsTabs
-          projectId={project.id}
-          onAddTask={handleAddTask}
-          onEditTask={handleEditTask}
+    <div className="min-h-screen flex flex-col items-center bg-transparent animate-fade-in pb-20">
+      <div className="w-full max-w-4xl px-6 py-12">
+        <ProjectHeader
+          project={project}
+          projectStats={projectStats}
+          teamMembers={teamMembers}
+          onEditProject={handleEditProject}
+          onLogTime={() => setIsTimeEntryDialogOpen(true)}
         />
+
+        <div className="mt-12 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <ProjectDetailsTabs
+            projectId={project.id}
+            onAddTask={handleAddTask}
+            onEditTask={handleEditTask}
+          />
+        </div>
       </div>
 
       <TaskFormDialog

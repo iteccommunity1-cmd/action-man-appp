@@ -112,22 +112,21 @@ const NotificationsPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 sm:p-0 bg-background">
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-        <Link to="/" className="flex items-center text-primary hover:text-primary/80 font-medium text-lg transition-colors duration-200">
-          <ArrowLeft className="h-5 w-5 mr-2" /> Back to Dashboard
+    <div className="w-full max-w-4xl mx-auto px-6 py-12 animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-12 gap-6">
+        <Link to="/" className="group flex items-center text-muted-foreground hover:text-primary font-bold text-sm tracking-widest uppercase transition-all duration-300">
+          <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back to Dashboard
         </Link>
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
-            <Label htmlFor="filter-type" className="text-foreground sr-only sm:not-sr-only">Filter:</Label>
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-3 bg-white/5 p-1 rounded-2xl ring-1 ring-white/10 backdrop-blur-md">
             <Select value={filterType} onValueChange={(value: NotificationFilterType) => setFilterType(value)}>
-              <SelectTrigger id="filter-type" className="w-full sm:w-[180px] rounded-lg border-border bg-input text-foreground hover:bg-input/80">
-                <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Filter by type" />
+              <SelectTrigger id="filter-type" className="h-10 border-none bg-transparent hover:bg-white/5 rounded-xl text-xs font-bold uppercase tracking-wider min-w-[140px]">
+                <Filter className="h-3 w-3 mr-2 text-primary" />
+                <SelectValue placeholder="All Activities" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl shadow-lg border border-border bg-card text-card-foreground">
+              <SelectContent className="rounded-2xl border-none ring-1 ring-white/10 glass-card shadow-2xl overflow-hidden p-1">
                 {notificationTypes.map(type => (
-                  <SelectItem key={type} value={type} className="capitalize">
+                  <SelectItem key={type} value={type} className="rounded-xl text-xs font-bold uppercase tracking-tight py-3 focus:bg-primary/20">
                     {type.replace(/_/g, ' ')}
                   </SelectItem>
                 ))}
@@ -137,50 +136,72 @@ const NotificationsPage: React.FC = () => {
           <Button
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 flex-shrink-0"
+            className="h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest px-6 shadow-[0_0_20px_rgba(249,115,22,0.2)] disabled:opacity-30 transition-all active:scale-95"
           >
-            <CheckCircle2 className="h-5 w-5 mr-2" /> Mark All As Read
+            <CheckCircle2 className="h-4 w-4 mr-2" /> Mark All Read
           </Button>
         </div>
       </div>
 
-      <Card className="rounded-xl glass-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Bell className="h-8 w-8 text-primary" />
-            All Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+      <div className="rounded-[2.5rem] border-none ring-1 ring-white/10 glass-card shadow-2xl overflow-hidden">
+        <div className="px-10 py-8 border-b border-white/5 bg-white/5 backdrop-blur-xl flex items-center gap-4">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <Bell className="h-7 w-7 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-foreground">Recent Activity</h1>
+            <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-widest mt-1">Stay updated with your team's progress</p>
+          </div>
+        </div>
+        <div className="p-0">
           {notifications.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <p className="text-lg">You're all caught up!</p>
-              <p className="text-sm mt-2">No notifications to display.</p>
+            <div className="py-32 text-center flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="h-24 w-24 rounded-3xl bg-white/5 flex items-center justify-center border border-white/10 relative z-10">
+                  <Bell className="h-10 w-10 text-muted-foreground/20" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xl font-bold text-foreground/40 italic">Total clarity, no noise</p>
+                <p className="text-sm text-muted-foreground/40">You're all caught up with your notifications.</p>
+              </div>
             </div>
           ) : (
-            <ScrollArea className="h-[calc(100vh-250px)] sm:h-[600px]">
-              <div className="flex flex-col">
-                {notifications.map((notification) => (
+            <ScrollArea className="h-[calc(100vh-400px)] min-h-[500px]">
+              <div className="flex flex-col py-4 px-4">
+                {notifications.map((notification, index) => (
                   <div
                     key={notification.id}
                     className={cn(
-                      "flex items-start p-4 border-b border-border last:border-b-0 transition-colors duration-200",
-                      !notification.read ? "bg-secondary/30 hover:bg-secondary/50" : "bg-card hover:bg-muted/20"
+                      "flex items-start p-6 rounded-[2rem] transition-all duration-300 group mb-2 animate-fade-in-up",
+                      !notification.read
+                        ? "bg-primary/5 hover:bg-primary/10 shadow-[0_4px_20px_rgba(249,115,22,0.05)]"
+                        : "hover:bg-white/5"
                     )}
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <div className="flex-grow cursor-pointer" onClick={() => handleNotificationAction(notification)}>
-                      <p className={cn("text-base", !notification.read ? "font-medium text-foreground" : "text-muted-foreground")}>
+                    <div className="flex-grow cursor-pointer pr-4" onClick={() => handleNotificationAction(notification)}>
+                      <p className={cn(
+                        "text-sm leading-relaxed transition-colors",
+                        !notification.read ? "font-bold text-foreground" : "text-muted-foreground"
+                      )}>
                         {notification.message}
                       </p>
-                      <p className="text-xs text-muted-foreground/80 mt-1">
-                        {new Date(notification.created_at).toLocaleString()}
-                      </p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                          {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(notification.created_at).toLocaleDateString()}
+                        </span>
+                        {!notification.read && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="rounded-full h-8 w-8 text-muted-foreground hover:bg-muted/30"
+                        className="rounded-xl h-10 w-10 text-muted-foreground hover:bg-white/10 hover:text-primary transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (notification.read) {
@@ -190,12 +211,12 @@ const NotificationsPage: React.FC = () => {
                           }
                         }}
                       >
-                        {notification.read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4 text-primary" />}
+                        {notification.read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="rounded-full h-8 w-8 text-destructive hover:bg-destructive/20"
+                        className="rounded-xl h-10 w-10 text-destructive/40 hover:bg-destructive/10 hover:text-destructive transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteNotification(notification.id);
@@ -209,21 +230,24 @@ const NotificationsPage: React.FC = () => {
               </div>
             </ScrollArea>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-xl p-6 bg-card border border-border text-card-foreground glass-card">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-foreground">Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to delete this notification? This action cannot be undone.
+        <AlertDialogContent className="rounded-3xl border-none ring-1 ring-white/10 glass-card shadow-2xl p-10 max-w-md">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-black text-foreground tracking-tight">Clear Activity?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              This will permanently remove this notification from your history. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="pt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-            <AlertDialogCancel className="rounded-lg px-4 py-2 border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground w-full sm:w-auto">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteNotification} className="rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 w-full sm:w-auto">
-              Delete
+          <AlertDialogFooter className="mt-10 gap-3">
+            <AlertDialogCancel className="h-12 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-foreground font-bold px-6 transition-all">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteNotification}
+              className="h-12 rounded-2xl bg-destructive hover:bg-destructive/90 text-white font-bold px-6 shadow-lg shadow-destructive/20 active:scale-95 transition-all"
+            >
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
